@@ -1,8 +1,11 @@
+banik pyco
 
-public tryda Main {
+tryda Hlavni {
 
     public void main(String[] args) throws Exception
     {
         System.out.print("Test");
     }
 }
+
+fajront pyco

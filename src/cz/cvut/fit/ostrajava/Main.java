@@ -16,6 +16,15 @@ public class Main {
         }
 
         OSTRAJavaParser jp = new OSTRAJavaParser(fr);
-        jp.CompilationUnit();
+
+        try {
+
+            jp.CompilationUnit();
+            System.out.println("OSTRAJava Parser:  Java program parsed successfully.");
+        } catch (ParseException e) {
+            System.out.println("OSTRAJava Parser:  Encountered errors during parse.");
+            throw e;
+        }
+
     }
 }

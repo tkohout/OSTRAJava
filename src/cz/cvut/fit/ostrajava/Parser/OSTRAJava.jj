@@ -86,14 +86,20 @@ SPECIAL_TOKEN : /* COMMENTS */
 
 TOKEN : /* RESERVED WORDS AND LITERALS */
 {
-//  < ABSTRACT: "abstract" > |
-< BOOLEAN: "boolean" >
+
+<
+BEGIN: "banik" >
+| < END: "fajront" >
+| < ENDLINE: "pyco" >
+| < CLASS: "tryda" >
+
+| < ABSTRACT: "abstract" >
+| < BOOLEAN: "boolean" >
 | < BREAK: "break" >
 | < BYTE: "byte" >
 | < CASE: "case" >
 | < CATCH: "catch" >
 | < CHAR: "char" >
-| < CLASS: "tryda" >
 | < CONST: "const" >
 | < CONTINUE: "continue" >
 | < _DEFAULT: "default" >
@@ -294,11 +300,26 @@ TOKEN : /* OPERATORS */
  * Program structuring syntax follows.
  */
 
+
 void CompilationUnit() :
 {}
 {
+  Begin()
   ( TypeDeclaration() )*
+  End()
   <EOF>
+}
+
+void Begin():
+{}
+{
+    "banik" "pyco"
+}
+
+void End():
+{}
+{
+    "fajront" "pyco"
 }
 
 void TypeDeclaration() :
