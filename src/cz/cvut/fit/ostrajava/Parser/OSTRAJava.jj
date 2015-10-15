@@ -297,22 +297,8 @@ TOKEN : /* OPERATORS */
 void CompilationUnit() :
 {}
 {
-  [ PackageDeclaration() ]
-  ( ImportDeclaration() )*
   ( TypeDeclaration() )*
   <EOF>
-}
-
-void PackageDeclaration() :
-{}
-{
-  "package" Name() ";"
-}
-
-void ImportDeclaration() :
-{}
-{
-  "import" Name() [ "." "*" ] ";"
 }
 
 void TypeDeclaration() :
