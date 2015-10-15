@@ -15,7 +15,7 @@ public class Main {
             return;
         }
 
-        JavaParser jp = new JavaParser(fr);
+        OSTRAJavaParser jp = new OSTRAJavaParser(fr);
         jp.CompilationUnit();
     }
 }

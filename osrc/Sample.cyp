@@ -1,7 +1,7 @@
 
-public class Main {
+public tryda Main {
 
-    public static void main(String[] args) throws Exception
+    public void main(String[] args) throws Exception
     {
         System.out.print("Test");
     }

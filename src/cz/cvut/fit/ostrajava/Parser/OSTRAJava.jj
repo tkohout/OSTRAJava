@@ -31,41 +31,41 @@ options {
   JAVA_UNICODE_ESCAPE = true;
 }
 
-PARSER_BEGIN(JavaParser)
+PARSER_BEGIN(OSTRAJavaParser)
 
-public class JavaParser {
+public class OSTRAJavaParser {
 
   public static void main(String args[]) {
-    JavaParser parser;
+    OSTRAJavaParser parser;
     if (args.length == 0) {
-      System.out.println("Java Parser Version 1.0.2:  Reading from standard input . . .");
-      parser = new JavaParser(System.in);
+      System.out.println("OSTRAJava Parser:  Reading from standard input . . .");
+      parser = new OSTRAJavaParser(System.in);
     } else if (args.length == 1) {
-      System.out.println("Java Parser Version 1.0.2:  Reading from file " + args[0] + " . . .");
+      System.out.println("OSTRAJava Parser:  Reading from file " + args[0] + " . . .");
       try {
-        parser = new JavaParser(new java.io.FileInputStream(args[0]));
+        parser = new OSTRAJavaParser(new java.io.FileInputStream(args[0]));
       } catch (java.io.FileNotFoundException e) {
-        System.out.println("Java Parser Version 1.0.2:  File " + args[0] + " not found.");
+        System.out.println("OSTRAJava Parser Version:  File " + args[0] + " not found.");
         return;
       }
     } else {
-      System.out.println("Java Parser Version 1.0.2:  Usage is one of:");
-      System.out.println("         java JavaParser < inputfile");
+      System.out.println("OSTRAJava Parser:  Usage is one of:");
+      System.out.println("         java OSTRAJavaParser < inputfile");
       System.out.println("OR");
-      System.out.println("         java JavaParser inputfile");
+      System.out.println("         java OSTRAJavaParser inputfile");
       return;
     }
     try {
       parser.CompilationUnit();
-      System.out.println("Java Parser Version 1.0.2:  Java program parsed successfully.");
+      System.out.println("OSTRAJava Parser:  Java program parsed successfully.");
     } catch (ParseException e) {
-      System.out.println("Java Parser Version 1.0.2:  Encountered errors during parse.");
+      System.out.println("OSTRAJava Parser:  Encountered errors during parse.");
     }
   }
 
 }
 
-PARSER_END(JavaParser)
+PARSER_END(OSTRAJavaParser)
 
 
 SKIP : /* WHITE SPACE */
@@ -86,14 +86,14 @@ SPECIAL_TOKEN : /* COMMENTS */
 
 TOKEN : /* RESERVED WORDS AND LITERALS */
 {
-  < ABSTRACT: "abstract" >
-| < BOOLEAN: "boolean" >
+//  < ABSTRACT: "abstract" > |
+< BOOLEAN: "boolean" >
 | < BREAK: "break" >
 | < BYTE: "byte" >
 | < CASE: "case" >
 | < CATCH: "catch" >
 | < CHAR: "char" >
-| < CLASS: "class" >
+| < CLASS: "tryda" >
 | < CONST: "const" >
 | < CONTINUE: "continue" >
 | < _DEFAULT: "default" >
@@ -318,7 +318,7 @@ void ImportDeclaration() :
 void TypeDeclaration() :
 {}
 {
-  LOOKAHEAD( ( "abstract" | "final" | "public" )* "class" )
+  LOOKAHEAD( ( "abstract" | "final" | "public" )* "tryda" )
   ClassDeclaration()
 |
   InterfaceDeclaration()
@@ -335,7 +335,7 @@ void ClassDeclaration() :
 {}
 {
   ( "abstract" | "final" | "public" )*
-  "class" <IDENTIFIER> [ "extends" Name() ] [ "implements" NameList() ]
+  "tryda" <IDENTIFIER> [ "extends" Name() ] [ "implements" NameList() ]
   "{" ( ClassBodyDeclaration() )* "}"
 }
 
