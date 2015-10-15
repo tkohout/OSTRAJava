@@ -84,62 +84,67 @@ SPECIAL_TOKEN : /* COMMENTS */
 | <MULTI_LINE_COMMENT: "/*" (~["*"])* "*" ("*" | (~["*","/"] (~["*"])* "*"))* "/">
 }
 
+
+
 TOKEN : /* RESERVED WORDS AND LITERALS */
 {
-
-<
-BEGIN: "banik" >
+<BEGIN: "banik" >
 | < END: "fajront" >
 | < ENDLINE: "pyco" >
 | < CLASS: "tryda" >
+| < EXTENDS: "fagan od" >
+| < DECLARATION: "davaj" >
+| < THROW: "mrdnut" >
+| < THROWS: "muze mrdnut" >
+| < SUPER: "nadrizeny" >
+| < THIS: "joch" >
+| < VOID: "fraj" >
+| < NEW: "zrob" >
+| < TRUE: "fajne" >
+| < FALSE: "nyt" >
+
+| < INT: "number" >
+| < BOOLEAN: "bool" >
+| < FLOAT: "float" >
+| < STRING: "string" >
+| < NULL: "chuj" >
+
 
 | < ABSTRACT: "abstract" >
-| < BOOLEAN: "boolean" >
 | < BREAK: "break" >
-| < BYTE: "byte" >
+
 | < CASE: "case" >
 | < CATCH: "catch" >
-| < CHAR: "char" >
-| < CONST: "const" >
+
 | < CONTINUE: "continue" >
 | < _DEFAULT: "default" >
 | < DO: "do" >
-| < DOUBLE: "double" >
 | < ELSE: "else" >
-| < EXTENDS: "extends" >
-| < FALSE: "false" >
+
+
 | < FINAL: "final" >
 | < FINALLY: "finally" >
-| < FLOAT: "float" >
 | < FOR: "for" >
 | < GOTO: "goto" >
 | < IF: "if" >
 | < IMPLEMENTS: "implements" >
 | < IMPORT: "import" >
 | < INSTANCEOF: "instanceof" >
-| < INT: "int" >
+
 | < INTERFACE: "interface" >
-| < LONG: "long" >
-| < NATIVE: "native" >
-| < NEW: "new" >
-| < NULL: "null" >
+
 | < PACKAGE: "package">
-| < PRIVATE: "private" >
-| < PROTECTED: "protected" >
-| < PUBLIC: "public" >
 | < RETURN: "return" >
-| < SHORT: "short" >
-| < STATIC: "static" >
-| < SUPER: "super" >
+//| < SHORT: "short" >
+
 | < SWITCH: "switch" >
 | < SYNCHRONIZED: "synchronized" >
-| < THIS: "this" >
-| < THROW: "throw" >
-| < THROWS: "throws" >
+
+
 | < TRANSIENT: "transient" >
-| < TRUE: "true" >
+
 | < TRY: "try" >
-| < VOID: "void" >
+
 | < VOLATILE: "volatile" >
 | < WHILE: "while" >
 }
@@ -255,40 +260,18 @@ TOKEN : /* OPERATORS */
   < ASSIGN: "=" >
 | < GT: ">" >
 | < LT: "<" >
-| < BANG: "!" >
-| < TILDE: "~" >
-| < HOOK: "?" >
 | < COLON: ":" >
+| < HOOK: "?" >
 | < EQ: "==" >
 | < LE: "<=" >
 | < GE: ">=" >
 | < NE: "!=" >
-| < SC_OR: "||" >
-| < SC_AND: "&&" >
-| < INCR: "++" >
-| < DECR: "--" >
+| < SC_OR: "&&" >
+| < SC_AND: "||" >
 | < PLUS: "+" >
 | < MINUS: "-" >
 | < STAR: "*" >
 | < SLASH: "/" >
-| < BIT_AND: "&" >
-| < BIT_OR: "|" >
-| < XOR: "^" >
-| < REM: "%" >
-| < LSHIFT: "<<" >
-| < RSIGNEDSHIFT: ">>" >
-| < RUNSIGNEDSHIFT: ">>>" >
-| < PLUSASSIGN: "+=" >
-| < MINUSASSIGN: "-=" >
-| < STARASSIGN: "*=" >
-| < SLASHASSIGN: "/=" >
-| < ANDASSIGN: "&=" >
-| < ORASSIGN: "|=" >
-| < XORASSIGN: "^=" >
-| < REMASSIGN: "%=" >
-| < LSHIFTASSIGN: "<<=" >
-| < RSIGNEDSHIFTASSIGN: ">>=" >
-| < RUNSIGNEDSHIFTASSIGN: ">>>=" >
 }
 
 
@@ -305,7 +288,8 @@ void CompilationUnit() :
 {}
 {
   Begin()
-  ( TypeDeclaration() )*
+  ( TypeDeclaration() )* |
+  BlockStatement()
   End()
   <EOF>
 }
@@ -325,12 +309,9 @@ void End():
 void TypeDeclaration() :
 {}
 {
-  LOOKAHEAD( ( "abstract" | "final" | "public" )* "tryda" )
+  //LOOKAHEAD( "tryda" )
   ClassDeclaration()
-|
-  InterfaceDeclaration()
-|
-  ";"
+
 }
 
 
@@ -341,18 +322,15 @@ void TypeDeclaration() :
 void ClassDeclaration() :
 {}
 {
-  ( "abstract" | "final" | "public" )*
-  "tryda" <IDENTIFIER> [ "extends" Name() ] [ "implements" NameList() ]
+  "tryda" <IDENTIFIER> [ "fagan od" Name() ] /*[ "implements" NameList() ]*/
   "{" ( ClassBodyDeclaration() )* "}"
 }
 
 void ClassBodyDeclaration() :
 {}
 {
-  LOOKAHEAD(2)
-  StaticInitializer()
-|
-  LOOKAHEAD( [ "public" | "protected" | "private" ] Name() "(" )
+
+  LOOKAHEAD( Name() "(" )
   ConstructorDeclaration()
 |
   LOOKAHEAD( MethodDeclarationLookahead() )
@@ -365,11 +343,10 @@ void ClassBodyDeclaration() :
 void MethodDeclarationLookahead() :
 {}
 {
-  ( "public" | "protected" | "private" | "static" | "abstract" | "final" | "native" | "synchronized" )*
   ResultType() <IDENTIFIER> "("
 }
 
-void InterfaceDeclaration() :
+/*void InterfaceDeclaration() :
 {}
 {
   ( "abstract" | "public" )*
@@ -384,13 +361,12 @@ void InterfaceMemberDeclaration() :
   MethodDeclaration()
 |
   FieldDeclaration()
-}
+}*/
 
 void FieldDeclaration() :
 {}
 {
-  ( "public" | "protected" | "private" | "static" | "final" | "transient" | "volatile" )*
-  Type() VariableDeclarator() ( "," VariableDeclarator() )* ";"
+  "davaj" Type() VariableDeclaratorId() ( "," VariableDeclaratorId() )* "pyco"
 }
 
 void VariableDeclarator() :
@@ -416,15 +392,14 @@ void VariableInitializer() :
 void MethodDeclaration() :
 {}
 {
-  ( "public" | "protected" | "private" | "static" | "abstract" | "final" | "native" | "synchronized" )*
-  ResultType() MethodDeclarator() [ "throws" NameList() ]
-  ( Block() | ";" )
+  ResultType() MethodDeclarator() [ "muze mrdnut" NameList() ]
+  ( Block() | "pyco" )
 }
 
 void MethodDeclarator() :
 {}
 {
-  <IDENTIFIER> FormalParameters() ( "[" "]" )*
+  <IDENTIFIER> FormalParameters()
 }
 
 void FormalParameters() :
@@ -442,24 +417,19 @@ void FormalParameter() :
 void ConstructorDeclaration() :
 {}
 {
-  [ "public" | "protected" | "private" ]
-  <IDENTIFIER> FormalParameters() [ "throws" NameList() ]
+  <IDENTIFIER> FormalParameters() [ "muze mrdnut" NameList() ]
   "{" [ LOOKAHEAD(2) ExplicitConstructorInvocation() ] ( BlockStatement() )* "}"
 }
 
 void ExplicitConstructorInvocation() :
 {}
 {
-  "this" Arguments() ";"
+  "joch" Arguments() ";"
 |
-  "super" Arguments() ";"
+  "nadrizeny" Arguments() ";"
 }
 
-void StaticInitializer() :
-{}
-{
-  "static" Block()
-}
+
 
 
 /*
@@ -475,27 +445,28 @@ void Type() :
 void PrimitiveType() :
 {}
 {
-  "boolean"
+/*"bulin"
 |
-  "char"
+"dryst"
 |
-  "byte"
+"numero"
 |
-  "short"
+"flojd"
+*/
+
+"bool"
 |
-  "int"
+"string"
 |
-  "long"
+ "number"
 |
-  "float"
-|
-  "double"
+ "float"
 }
 
 void ResultType() :
 {}
 {
-  "void"
+  "fraj"
 |
   Type()
 }
@@ -543,7 +514,7 @@ void Assignment() :
 void AssignmentOperator() :
 {}
 {
-  "=" | "*=" | "/=" | "%=" | "+=" | "-=" | "<<=" | ">>=" | ">>>=" | "&=" | "^=" | "|="
+  "="
 }
 
 void ConditionalExpression() :
@@ -561,49 +532,26 @@ void ConditionalOrExpression() :
 void ConditionalAndExpression() :
 {}
 {
-  InclusiveOrExpression() ( "&&" InclusiveOrExpression() )*
+  EqualityExpression() ( "&&" EqualityExpression() )*
 }
 
-void InclusiveOrExpression() :
-{}
-{
-  ExclusiveOrExpression() ( "|" ExclusiveOrExpression() )*
-}
-
-void ExclusiveOrExpression() :
-{}
-{
-  AndExpression() ( "^" AndExpression() )*
-}
-
-void AndExpression() :
-{}
-{
-  EqualityExpression() ( "&" EqualityExpression() )*
-}
 
 void EqualityExpression() :
 {}
 {
-  InstanceOfExpression() ( ( "==" | "!=" ) InstanceOfExpression() )*
+  RelationalExpression() ( ( "==" | "!=" ) RelationalExpression() )*
 }
 
-void InstanceOfExpression() :
+/*void InstanceOfExpression() :
 {}
 {
   RelationalExpression() [ "instanceof" Type() ]
-}
+}*/
 
 void RelationalExpression() :
 {}
 {
-  ShiftExpression() ( ( "<" | ">" | "<=" | ">=" ) ShiftExpression() )*
-}
-
-void ShiftExpression() :
-{}
-{
-  AdditiveExpression() ( ( "<<" | ">>" | ">>>" ) AdditiveExpression() )*
+  AdditiveExpression() ( ( "<" | ">" | "<=" | ">=" ) AdditiveExpression() )*
 }
 
 void AdditiveExpression() :
@@ -623,40 +571,21 @@ void UnaryExpression() :
 {
   ( "+" | "-" ) UnaryExpression()
 |
-  PreIncrementExpression()
-|
-  PreDecrementExpression()
-|
   UnaryExpressionNotPlusMinus()
 }
 
-void PreIncrementExpression() :
-{}
-{
-  "++" PrimaryExpression()
-}
 
-void PreDecrementExpression() :
-{}
-{
-  "--" PrimaryExpression()
-}
 
 void UnaryExpressionNotPlusMinus() :
 {}
 {
-  ( "~" | "!" ) UnaryExpression()
-|
-  LOOKAHEAD( CastLookahead() )
-  CastExpression()
-|
-  PostfixExpression()
+   "!"  UnaryExpression()
 }
 
 // This production is to determine lookahead only.  The LOOKAHEAD specifications
 // below are not used, but they are there just to indicate that we know about
 // this.
-void CastLookahead() :
+/*void CastLookahead() :
 {}
 {
   LOOKAHEAD(2)
@@ -666,22 +595,17 @@ void CastLookahead() :
   "(" Name() "[" "]"
 |
   "(" Name() ")" ( "~" | "!" | "(" | <IDENTIFIER> | "this" | "super" | "new" | Literal() )
-}
+}*/
 
-void PostfixExpression() :
-{}
-{
-  PrimaryExpression() [ "++" | "--" ]
-}
 
-void CastExpression() :
+/*void CastExpression() :
 {}
 {
   LOOKAHEAD(2)
   "(" PrimitiveType() ( "[" "]" )* ")" UnaryExpression()
 |
   "(" Name() ( "[" "]" )* ")" UnaryExpressionNotPlusMinus()
-}
+}*/
 
 void PrimaryExpression() :
 {}
@@ -696,9 +620,9 @@ void PrimaryPrefix() :
 |
   Name()
 |
-  "this"
+  "joch"
 |
-  "super" "." <IDENTIFIER>
+  "nadrizeny" "." <IDENTIFIER>
 |
   "(" Expression() ")"
 |
@@ -734,15 +658,15 @@ void Literal() :
 void BooleanLiteral() :
 {}
 {
-  "true"
+  "fajne"
 |
-  "false"
+  "nyt"
 }
 
 void NullLiteral() :
 {}
 {
-  "null"
+  "chuj"
 }
 
 void Arguments() :
@@ -761,9 +685,9 @@ void AllocationExpression() :
 {}
 {
   LOOKAHEAD(2)
-  "new" PrimitiveType() ArrayDimensions()
+  "zrob" PrimitiveType() ArrayDimensions()
 |
-  "new" Name() ( Arguments() | ArrayDimensions() )
+  "zrob" Name() ( Arguments() | ArrayDimensions() )
 }
 
 /*
@@ -856,14 +780,9 @@ void StatementExpression() :
  */
 {}
 {
-  PreIncrementExpression()
-|
-  PreDecrementExpression()
-|
-  LOOKAHEAD( PrimaryExpression() AssignmentOperator() )
+  //LOOKAHEAD( PrimaryExpression() AssignmentOperator() )
   Assignment()
-|
-  PostfixExpression()
+
 }
 
 void SwitchStatement() :
@@ -953,7 +872,7 @@ void ReturnStatement() :
 void ThrowStatement() :
 {}
 {
-  "throw" Expression() ";"
+  "mrdnut" Expression() ";"
 }
 
 void SynchronizedStatement() :
