@@ -93,7 +93,7 @@ TOKEN : /* RESERVED WORDS AND LITERALS */
 | < ENDLINE: "pyco" >
 | < CLASS: "tryda" >
 | < EXTENDS: "fagan od" >
-| < DECLARATION: "davaj" >
+| < DECLARATION: "toz" >
 | < THROW: "mrdnut" >
 | < THROWS: "muze mrdnut" >
 | < SUPER: "forant" >
@@ -114,6 +114,7 @@ TOKEN : /* RESERVED WORDS AND LITERALS */
 | < CATCH: "lapnut" >
 | < FINALLY: "fertyk" >
 | < PRINT: "pravit" >
+| < RETURN: "davaj" >
 
 | < INT: "number" >
 | < BOOLEAN: "bool" >
@@ -126,7 +127,7 @@ TOKEN : /* RESERVED WORDS AND LITERALS */
 | < _DEFAULT: "default" >
 | < FOR: "for" >
 | < INSTANCEOF: "instanceof" >
-| < RETURN: "return" >
+
 
 //?
 | < IMPORT: "import" >
@@ -362,7 +363,7 @@ void InterfaceMemberDeclaration() :
 void FieldDeclaration() :
 {}
 {
-  "davaj" Type() VariableDeclaratorId() ( "," VariableDeclaratorId() )* "pyco"
+  "toz" Type() VariableDeclaratorId() ( "," VariableDeclaratorId() )* "pyco"
 }
 
 void VariableDeclarator() :
@@ -729,7 +730,7 @@ void Block() :
 void BlockStatement() :
 {}
 {
-  LOOKAHEAD("davaj")
+  LOOKAHEAD("toz")
   LocalVariableDeclaration() "pyco"
 |
   Statement()
@@ -738,7 +739,7 @@ void BlockStatement() :
 void LocalVariableDeclaration() :
 {}
 {
-  "davaj" Type() VariableDeclarator() ( "," VariableDeclarator() )*
+  "toz" Type() VariableDeclarator() ( "," VariableDeclarator() )*
 }
 
 void EmptyStatement() :
@@ -842,7 +843,7 @@ void ContinueStatement() :
 void ReturnStatement() :
 {}
 {
-  "return" [ Expression() ] "pyco"
+  "davaj" [ Expression() ] "pyco"
 }
 
 void ThrowStatement() :
