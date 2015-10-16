@@ -11,7 +11,10 @@ tryda Kocka fagan od Zvire {
 
         number i;
 
-        if (neco == 0){
+        i = k + j;
+        r = k bo l;
+
+        if (neco > 0 bo tamto <= 1 aj tadyto == 1){
 
         }
 

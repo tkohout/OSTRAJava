@@ -96,18 +96,17 @@ TOKEN : /* RESERVED WORDS AND LITERALS */
 | < DECLARATION: "davaj" >
 | < THROW: "mrdnut" >
 | < THROWS: "muze mrdnut" >
-| < SUPER: "nadrizeny" >
+| < SUPER: "forant" >
 | < THIS: "joch" >
 | < VOID: "fraj" >
-| < NEW: "zrob" >
-| < TRUE: "fajne" >
-| < FALSE: "nyt" >
 
 | < INT: "number" >
 | < BOOLEAN: "bool" >
 | < FLOAT: "float" >
 | < STRING: "string" >
 | < NULL: "chuj" >
+| < TRUE: "fajne" >
+| < FALSE: "nyt" >
 
 
 | < ABSTRACT: "abstract" >
@@ -121,7 +120,6 @@ TOKEN : /* RESERVED WORDS AND LITERALS */
 | < DO: "do" >
 | < ELSE: "else" >
 
-
 | < FINAL: "final" >
 | < FINALLY: "finally" >
 | < FOR: "for" >
@@ -132,7 +130,7 @@ TOKEN : /* RESERVED WORDS AND LITERALS */
 | < INSTANCEOF: "instanceof" >
 
 | < INTERFACE: "interface" >
-
+| < NEW: "new" >
 | < PACKAGE: "package">
 | < RETURN: "return" >
 //| < SHORT: "short" >
@@ -142,7 +140,6 @@ TOKEN : /* RESERVED WORDS AND LITERALS */
 
 
 | < TRANSIENT: "transient" >
-
 | < TRY: "try" >
 
 | < VOLATILE: "volatile" >
@@ -199,6 +196,40 @@ TOKEN : /* LITERALS */
   >
 }
 
+
+TOKEN : /* SEPARATORS */
+{
+  < LPAREN: "(" >
+| < RPAREN: ")" >
+| < LBRACE: "{" >
+| < RBRACE: "}" >
+| < LBRACKET: "[" >
+| < RBRACKET: "]" >
+| < SEMICOLON: ";" >
+| < COMMA: "," >
+| < DOT: "." >
+}
+
+TOKEN : /* OPERATORS */
+{
+  < ASSIGN: "=" >
+| < GT: ">" >
+| < LT: "<" >
+| < BANG: "!" >
+| < EQ: "==" >
+| < LE: "<=" >
+| < GE: ">=" >
+| < NE: "!=" >
+| < SC_OR: "bo" >
+| < SC_AND: "aj" >
+| < PLUS: "+" >
+| < MINUS: "-" >
+| < STAR: "*" >
+| < SLASH: "/" >
+| < REM: "%" >
+
+}
+
 TOKEN : /* IDENTIFIERS */
 {
   < IDENTIFIER: <LETTER> (<LETTER>|<DIGIT>)* >
@@ -242,37 +273,7 @@ TOKEN : /* IDENTIFIERS */
   >
 }
 
-TOKEN : /* SEPARATORS */
-{
-  < LPAREN: "(" >
-| < RPAREN: ")" >
-| < LBRACE: "{" >
-| < RBRACE: "}" >
-| < LBRACKET: "[" >
-| < RBRACKET: "]" >
-| < SEMICOLON: ";" >
-| < COMMA: "," >
-| < DOT: "." >
-}
 
-TOKEN : /* OPERATORS */
-{
-  < ASSIGN: "=" >
-| < GT: ">" >
-| < LT: "<" >
-| < COLON: ":" >
-| < HOOK: "?" >
-| < EQ: "==" >
-| < LE: "<=" >
-| < GE: ">=" >
-| < NE: "!=" >
-| < SC_OR: "&&" >
-| < SC_AND: "||" >
-| < PLUS: "+" >
-| < MINUS: "-" >
-| < STAR: "*" >
-| < SLASH: "/" >
-}
 
 
 /*****************************************
@@ -426,7 +427,7 @@ void ExplicitConstructorInvocation() :
 {
   "joch" Arguments() ";"
 |
-  "nadrizeny" Arguments() ";"
+  "forant" Arguments() ";"
 }
 
 
@@ -520,39 +521,40 @@ void AssignmentOperator() :
 void ConditionalExpression() :
 {}
 {
-  ConditionalOrExpression() [ "?" Expression() ":" ConditionalExpression() ]
+  ConditionalOrExpression() 
 }
 
 void ConditionalOrExpression() :
 {}
 {
-  ConditionalAndExpression() ( "||" ConditionalAndExpression() )*
+  ConditionalAndExpression() ( "bo" ConditionalAndExpression() )*
 }
 
 void ConditionalAndExpression() :
 {}
 {
-  EqualityExpression() ( "&&" EqualityExpression() )*
+  EqualityExpression() ( "aj" EqualityExpression() )*
 }
-
 
 void EqualityExpression() :
 {}
 {
-  RelationalExpression() ( ( "==" | "!=" ) RelationalExpression() )*
+  InstanceOfExpression() ( ( "==" | "!=" ) InstanceOfExpression() )*
 }
 
-/*void InstanceOfExpression() :
+void InstanceOfExpression() :
 {}
 {
   RelationalExpression() [ "instanceof" Type() ]
-}*/
+}
 
 void RelationalExpression() :
 {}
 {
   AdditiveExpression() ( ( "<" | ">" | "<=" | ">=" ) AdditiveExpression() )*
 }
+
+
 
 void AdditiveExpression() :
 {}
@@ -579,33 +581,10 @@ void UnaryExpression() :
 void UnaryExpressionNotPlusMinus() :
 {}
 {
-   "!"  UnaryExpression()
+  ( "!" ) UnaryExpression()
+|
+  PrimaryExpression()
 }
-
-// This production is to determine lookahead only.  The LOOKAHEAD specifications
-// below are not used, but they are there just to indicate that we know about
-// this.
-/*void CastLookahead() :
-{}
-{
-  LOOKAHEAD(2)
-  "(" PrimitiveType()
-|
-  LOOKAHEAD("(" Name() "[")
-  "(" Name() "[" "]"
-|
-  "(" Name() ")" ( "~" | "!" | "(" | <IDENTIFIER> | "this" | "super" | "new" | Literal() )
-}*/
-
-
-/*void CastExpression() :
-{}
-{
-  LOOKAHEAD(2)
-  "(" PrimitiveType() ( "[" "]" )* ")" UnaryExpression()
-|
-  "(" Name() ( "[" "]" )* ")" UnaryExpressionNotPlusMinus()
-}*/
 
 void PrimaryExpression() :
 {}
@@ -622,7 +601,7 @@ void PrimaryPrefix() :
 |
   "joch"
 |
-  "nadrizeny" "." <IDENTIFIER>
+  "forant" "." <IDENTIFIER>
 |
   "(" Expression() ")"
 |
@@ -685,9 +664,9 @@ void AllocationExpression() :
 {}
 {
   LOOKAHEAD(2)
-  "zrob" PrimitiveType() ArrayDimensions()
+  "new" PrimitiveType() ArrayDimensions()
 |
-  "zrob" Name() ( Arguments() | ArrayDimensions() )
+  "new" Name() ( Arguments() | ArrayDimensions() )
 }
 
 /*
@@ -780,9 +759,11 @@ void StatementExpression() :
  */
 {}
 {
-  //LOOKAHEAD( PrimaryExpression() AssignmentOperator() )
-  Assignment()
 
+  LOOKAHEAD( PrimaryExpression() AssignmentOperator() )
+  Assignment()
+|
+  PrimaryExpression()
 }
 
 void SwitchStatement() :
