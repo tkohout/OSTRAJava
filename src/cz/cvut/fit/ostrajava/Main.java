@@ -17,9 +17,13 @@ public class Main {
 
         OSTRAJavaParser jp = new OSTRAJavaParser(fr);
 
+
         try {
 
             jp.CompilationUnit();
+            SimpleNode node = (SimpleNode)jp.rootNode();
+            node.dump("");
+
             System.out.println("OSTRAJava Parser:  Java program parsed successfully.");
         } catch (ParseException e) {
             System.out.println("OSTRAJava Parser:  Encountered errors during parse.");

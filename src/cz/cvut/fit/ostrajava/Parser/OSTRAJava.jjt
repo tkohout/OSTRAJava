@@ -28,40 +28,20 @@
 
 
 options {
+  MULTI=true;
   JAVA_UNICODE_ESCAPE = true;
+  //NODE_EXTENDS="MyNode";
+  TRACK_TOKENS=true;
+  //NODE_DEFAULT_VOID = true;
 }
 
 PARSER_BEGIN(OSTRAJavaParser)
 
 public class OSTRAJavaParser {
 
-  public static void main(String args[]) {
-    OSTRAJavaParser parser;
-    if (args.length == 0) {
-      System.out.println("OSTRAJava Parser:  Reading from standard input . . .");
-      parser = new OSTRAJavaParser(System.in);
-    } else if (args.length == 1) {
-      System.out.println("OSTRAJava Parser:  Reading from file " + args[0] + " . . .");
-      try {
-        parser = new OSTRAJavaParser(new java.io.FileInputStream(args[0]));
-      } catch (java.io.FileNotFoundException e) {
-        System.out.println("OSTRAJava Parser Version:  File " + args[0] + " not found.");
-        return;
-      }
-    } else {
-      System.out.println("OSTRAJava Parser:  Usage is one of:");
-      System.out.println("         java OSTRAJavaParser < inputfile");
-      System.out.println("OR");
-      System.out.println("         java OSTRAJavaParser inputfile");
-      return;
+    public Node rootNode() {
+      return jjtree.rootNode();
     }
-    try {
-      parser.CompilationUnit();
-      System.out.println("OSTRAJava Parser:  Java program parsed successfully.");
-    } catch (ParseException e) {
-      System.out.println("OSTRAJava Parser:  Encountered errors during parse.");
-    }
-  }
 
 }
 
@@ -281,49 +261,40 @@ TOKEN : /* IDENTIFIERS */
  */
 
 
-void CompilationUnit() :
+void CompilationUnit():
 {}
 {
   Begin()
-  ( TypeDeclaration() )*
-  [ BlockStatement() ]
+  ( ClassDeclaration() )*
+  ( BlockStatement() )*
   End()
   <EOF>
 }
 
-void Begin():
+void Begin() #void:
 {}
 {
     "banik" "pyco"
 }
 
-void End():
+void End() #void:
 {}
 {
     "fajront" "pyco"
 }
 
-void TypeDeclaration() :
-{}
-{
-  //LOOKAHEAD( "tryda" )
-  ClassDeclaration()
-
-}
-
-
 /*
  * Declaration syntax follows.
  */
 
-void ClassDeclaration() :
-{}
+void ClassDeclaration() #Class:
+{ Token t; }
 {
-  "tryda" <IDENTIFIER> [ "fagan od" Name() ] /*[ "implements" NameList() ]*/
+  "tryda" t = <IDENTIFIER> {jjtThis.name = t.image;} [ "fagan od" t = <IDENTIFIER> {jjtThis.extending = t.image;} ] /*[ "implements" NameList() ]*/
   "{" ( ClassBodyDeclaration() )* "}"
 }
 
-void ClassBodyDeclaration() :
+void ClassBodyDeclaration() #void:
 {}
 {
 
@@ -372,10 +343,10 @@ void VariableDeclarator() :
   VariableDeclaratorId() [ "=" VariableInitializer() ]
 }
 
-void VariableDeclaratorId() :
-{}
+void VariableDeclaratorId() #Variable:
+{Token t;}
 {
-  <IDENTIFIER> ( "[" "]" )*
+  t = <IDENTIFIER> {jjtThis.value = t.image;} ( "[" "]" )*
 }
 
 void VariableInitializer() :
@@ -393,10 +364,10 @@ void MethodDeclaration() :
   ( Block() | "pyco" )
 }
 
-void MethodDeclarator() :
-{}
+void MethodDeclarator() #Method:
+{Token t;}
 {
-  <IDENTIFIER> FormalParameters()
+  t = <IDENTIFIER> {jjtThis.value = t.image; } FormalParameters()
 }
 
 void FormalParameters() :
@@ -433,31 +404,23 @@ void ExplicitConstructorInvocation() :
  * Type, name and expression syntax follows.
  */
 
-void Type() :
+void Type():
 {}
 {
   ( PrimitiveType() | Name() ) ( "[" "]" )*
 }
 
-void PrimitiveType() :
+void PrimitiveType() #void:
 {}
 {
-/*"bulin"
+"bool" #Bool
 |
-"dryst"
+"string" #String
 |
-"numero"
+ "number"  #Number
 |
-"flojd"
-*/
+ "float"  #Float
 
-"bool"
-|
-"string"
-|
- "number"
-|
- "float"
 }
 
 void ResultType() :
@@ -469,15 +432,9 @@ void ResultType() :
 }
 
 void Name() :
-/*
- * A lookahead of 2 is required below since "Name" can be followed
- * by a ".*" when used in the context of an "ImportDeclaration".
- */
-{}
+{Token t;}
 {
-  <IDENTIFIER>
-  ( LOOKAHEAD(2) "." <IDENTIFIER>
-  )*
+  t = <IDENTIFIER> {jjtThis.value = t.image; }
 }
 
 void NameList() :
