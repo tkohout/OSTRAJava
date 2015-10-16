@@ -99,51 +99,47 @@ TOKEN : /* RESERVED WORDS AND LITERALS */
 | < SUPER: "forant" >
 | < THIS: "joch" >
 | < VOID: "fraj" >
+| < NULL: "chuj" >
+| < TRUE: "fajne" >
+| < FALSE: "nyt" >
+| < NEW: "zrob" >
+| < IF: "kaj" >
+| < ELSEIF: "kajtez" >
+| < ELSE: "boinak" >
+| < WHILE: "dokavad" >
+| < BREAK: "zdybat" >
+| < CONTINUE: "dlabat" >
+| < DO: "rubat" >
+| < TRY: "lajsnut" >
+| < CATCH: "lapnut" >
+| < FINALLY: "fertyk" >
+| < PRINT: "pravit" >
 
 | < INT: "number" >
 | < BOOLEAN: "bool" >
 | < FLOAT: "float" >
 | < STRING: "string" >
-| < NULL: "chuj" >
-| < TRUE: "fajne" >
-| < FALSE: "nyt" >
 
-
-| < ABSTRACT: "abstract" >
-| < BREAK: "break" >
-
+//translate
+| < SWITCH: "switch" >
 | < CASE: "case" >
-| < CATCH: "catch" >
-
-| < CONTINUE: "continue" >
 | < _DEFAULT: "default" >
-| < DO: "do" >
-| < ELSE: "else" >
-
-| < FINAL: "final" >
-| < FINALLY: "finally" >
 | < FOR: "for" >
-| < GOTO: "goto" >
-| < IF: "if" >
-| < IMPLEMENTS: "implements" >
-| < IMPORT: "import" >
 | < INSTANCEOF: "instanceof" >
-
-| < INTERFACE: "interface" >
-| < NEW: "new" >
-| < PACKAGE: "package">
 | < RETURN: "return" >
+
+//?
+| < IMPORT: "import" >
+
+
+
+
+
 //| < SHORT: "short" >
 
-| < SWITCH: "switch" >
-| < SYNCHRONIZED: "synchronized" >
 
 
-| < TRANSIENT: "transient" >
-| < TRY: "try" >
 
-| < VOLATILE: "volatile" >
-| < WHILE: "while" >
 }
 
 TOKEN : /* LITERALS */
@@ -205,7 +201,6 @@ TOKEN : /* SEPARATORS */
 | < RBRACE: "}" >
 | < LBRACKET: "[" >
 | < RBRACKET: "]" >
-| < SEMICOLON: ";" >
 | < COMMA: "," >
 | < DOT: "." >
 }
@@ -289,8 +284,8 @@ void CompilationUnit() :
 {}
 {
   Begin()
-  ( TypeDeclaration() )* |
-  BlockStatement()
+  ( TypeDeclaration() )*
+  [ BlockStatement() ]
   End()
   <EOF>
 }
@@ -425,9 +420,9 @@ void ConstructorDeclaration() :
 void ExplicitConstructorInvocation() :
 {}
 {
-  "joch" Arguments() ";"
+  "joch" Arguments() "pyco"
 |
-  "forant" Arguments() ";"
+  "forant" Arguments() "pyco"
 }
 
 
@@ -521,7 +516,7 @@ void AssignmentOperator() :
 void ConditionalExpression() :
 {}
 {
-  ConditionalOrExpression() 
+  ConditionalOrExpression()
 }
 
 void ConditionalOrExpression() :
@@ -664,9 +659,9 @@ void AllocationExpression() :
 {}
 {
   LOOKAHEAD(2)
-  "new" PrimitiveType() ArrayDimensions()
+  "zrob" PrimitiveType() ArrayDimensions()
 |
-  "new" Name() ( Arguments() | ArrayDimensions() )
+  "zrob" Name() ( Arguments() | ArrayDimensions() )
 }
 
 /*
@@ -694,7 +689,7 @@ void Statement() :
 |
   EmptyStatement()
 |
-  StatementExpression() ";"
+  StatementExpression() "pyco"
 |
   SwitchStatement()
 |
@@ -714,9 +709,9 @@ void Statement() :
 |
   ThrowStatement()
 |
-  SynchronizedStatement()
-|
   TryStatement()
+|
+  PrintStatement()
 }
 
 void LabeledStatement() :
@@ -734,8 +729,8 @@ void Block() :
 void BlockStatement() :
 {}
 {
-  LOOKAHEAD(Type() <IDENTIFIER>)
-  LocalVariableDeclaration() ";"
+  LOOKAHEAD("davaj")
+  LocalVariableDeclaration() "pyco"
 |
   Statement()
 }
@@ -743,13 +738,13 @@ void BlockStatement() :
 void LocalVariableDeclaration() :
 {}
 {
-  Type() VariableDeclarator() ( "," VariableDeclarator() )*
+  "davaj" Type() VariableDeclarator() ( "," VariableDeclarator() )*
 }
 
 void EmptyStatement() :
 {}
 {
-  ";"
+  "pyco"
 }
 
 void StatementExpression() :
@@ -790,19 +785,19 @@ void IfStatement() :
  */
 {}
 {
-  "if" "(" Expression() ")" Statement() [ LOOKAHEAD(1) "else" Statement() ]
+  "kaj" "(" Expression() ")" Statement() ( LOOKAHEAD(2) "kajtez (" Expression() ")" Statement() )* [ LOOKAHEAD(1) "boinak" Statement() ]
 }
 
 void WhileStatement() :
 {}
 {
-  "while" "(" Expression() ")" Statement()
+  "dokavad" "(" Expression() ")" Statement()
 }
 
 void DoStatement() :
 {}
 {
-  "do" Statement() "while" "(" Expression() ")" ";"
+  "rubat" Statement() "dokavad" "(" Expression() ")" "pyco"
 }
 
 void ForStatement() :
@@ -835,32 +830,27 @@ void ForUpdate() :
 void BreakStatement() :
 {}
 {
-  "break" [ <IDENTIFIER> ] ";"
+  "zdybat" [ <IDENTIFIER> ] "pyco"
 }
 
 void ContinueStatement() :
 {}
 {
-  "continue" [ <IDENTIFIER> ] ";"
+  "dlabat" [ <IDENTIFIER> ] "pyco"
 }
 
 void ReturnStatement() :
 {}
 {
-  "return" [ Expression() ] ";"
+  "return" [ Expression() ] "pyco"
 }
 
 void ThrowStatement() :
 {}
 {
-  "mrdnut" Expression() ";"
+  "mrdnut" Expression() "pyco"
 }
 
-void SynchronizedStatement() :
-{}
-{
-  "synchronized" "(" Expression() ")" Block()
-}
 
 void TryStatement() :
 /*
@@ -869,7 +859,13 @@ void TryStatement() :
  */
 {}
 {
-  "try" Block()
-  ( "catch" "(" FormalParameter() ")" Block() )*
-  [ "finally" Block() ]
+  "lajsnut" Block()
+  ( "lapnut" "(" FormalParameter() ")" Block() )*
+  [ "fertyk" Block() ]
+}
+
+void PrintStatement() :
+{}
+{
+  "pravit" Expression() "pyco"
 }

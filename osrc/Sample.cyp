@@ -9,23 +9,45 @@ tryda Kocka fagan od Zvire {
     fraj udelejKotrmelec(number kolikrat) muze mrdnut Cypovina
     {
 
-        number i;
+        davaj number i pyco
 
-        i = k + j;
-        r = k bo l;
+        kaj (neco > 0 bo tamto <= 1 aj tadyto == 1){
 
-        if (neco > 0 bo tamto <= 1 aj tadyto == 1){
+        } kajtez (tamto == 4) {
+
+        } boinak {
 
         }
 
-        //davaj number i = kolikrat pyco
+        i = k + j pyco
 
-        //while (i > 0){
-            //joch.udelejKotrmelec()
-        //}
+        r = k bo l pyco
+
+
+
+        davaj number i = kolikrat pyco
+
+        dokavad (i > 0){
+            joch.udelejKotrmelec() pyco
+        }
+
+
+        pravit "Super" pyco
+
+        lajsnut {
+            davaj string vysledek = nejakaMetoda() pyco
+            kaj (vysledek == chuj){
+                mrdnut zrob Cypovina("Stala se chyba") pyco
+            }
+        } lapnut (Cypovina c){
+            pravit c pyco
+        } fertyk {
+            pravit "Pecka" pyco
+        }
     }
 }
 
-Kocka kocka = new Kocka();
+
+davaj Kocka kocka = zrob Kocka() pyco
 
 fajront pyco
