@@ -455,7 +455,7 @@ void NameList() :
 void Expression() :
 {}
 {
-  LOOKAHEAD( PrimaryExpression() AssignmentOperator() )
+  LOOKAHEAD( PrimaryExpression() "=" )
   Assignment()
 |
   ConditionalExpression()
@@ -464,13 +464,7 @@ void Expression() :
 void Assignment() :
 {}
 {
-  PrimaryExpression() AssignmentOperator() Expression()
-}
-
-void AssignmentOperator() :
-{}
-{
-  "="
+  PrimaryExpression() "=" Expression()
 }
 
 void ConditionalExpression() :
@@ -644,15 +638,15 @@ void Statement() :
 {
   LOOKAHEAD(2)
   Block()
-|
-  EmptyStatement()
+/*|
+  EmptyStatement()*/
 |
   StatementExpression() "pyco"
-|
-  SwitchStatement()
+/*|
+  SwitchStatement()*/
 |
   IfStatement()
-|
+/*|
   WhileStatement()
 |
   DoStatement()
@@ -661,14 +655,14 @@ void Statement() :
 |
   BreakStatement()
 |
-  ContinueStatement()
+  ContinueStatement()*/
 |
   ReturnStatement()
 |
-  ThrowStatement()
+/*  ThrowStatement()
 |
   TryStatement()
-|
+|*/
   PrintStatement()
 }
 
@@ -708,7 +702,7 @@ void StatementExpression() :
 {}
 {
 
-  LOOKAHEAD( PrimaryExpression() AssignmentOperator() )
+  LOOKAHEAD( PrimaryExpression() "=" )
   Assignment()
 |
   PrimaryExpression()

@@ -980,7 +980,7 @@ void Expression() :
 {/*@bgen(jjtree) Expression */
   try {
 /*@egen*/
-  LOOKAHEAD( PrimaryExpression() AssignmentOperator() )
+  LOOKAHEAD( PrimaryExpression() "=" )
   Assignment()
 |
   ConditionalExpression()/*@bgen(jjtree)*/
@@ -1017,7 +1017,7 @@ void Assignment() :
 {/*@bgen(jjtree) Assignment */
   try {
 /*@egen*/
-  PrimaryExpression() AssignmentOperator() Expression()/*@bgen(jjtree)*/
+  PrimaryExpression() "=" Expression()/*@bgen(jjtree)*/
   } catch (Throwable jjte000) {
     if (jjtc000) {
       jjtree.clearNodeScope(jjtn000);
@@ -1032,26 +1032,6 @@ void Assignment() :
       throw (ParseException)jjte000;
     }
     throw (Error)jjte000;
-  } finally {
-    if (jjtc000) {
-      jjtree.closeNodeScope(jjtn000, true);
-      jjtn000.jjtSetLastToken(getToken(0));
-    }
-  }
-/*@egen*/
-}
-
-void AssignmentOperator() :
-{/*@bgen(jjtree) AssignmentOperator */
-  ASTAssignmentOperator jjtn000 = new ASTAssignmentOperator(JJTASSIGNMENTOPERATOR);
-  boolean jjtc000 = true;
-  jjtree.openNodeScope(jjtn000);
-  jjtn000.jjtSetFirstToken(getToken(1));
-/*@egen*/}
-{/*@bgen(jjtree) AssignmentOperator */
-  try {
-/*@egen*/
-  "="/*@bgen(jjtree)*/
   } finally {
     if (jjtc000) {
       jjtree.closeNodeScope(jjtn000, true);
@@ -1806,15 +1786,15 @@ void Statement() :
 /*@egen*/
   LOOKAHEAD(2)
   Block()
-|
-  EmptyStatement()
+/*|
+  EmptyStatement()*/
 |
   StatementExpression() "pyco"
-|
-  SwitchStatement()
+/*|
+  SwitchStatement()*/
 |
   IfStatement()
-|
+/*|
   WhileStatement()
 |
   DoStatement()
@@ -1823,14 +1803,14 @@ void Statement() :
 |
   BreakStatement()
 |
-  ContinueStatement()
+  ContinueStatement()*/
 |
   ReturnStatement()
 |
-  ThrowStatement()
+/*  ThrowStatement()
 |
   TryStatement()
-|
+|*/
   PrintStatement()/*@bgen(jjtree)*/
   } catch (Throwable jjte000) {
     if (jjtc000) {
@@ -1968,7 +1948,7 @@ void StatementExpression() :
   try {
 /*@egen*/
 
-  LOOKAHEAD( PrimaryExpression() AssignmentOperator() )
+  LOOKAHEAD( PrimaryExpression() "=" )
   Assignment()
 |
   PrimaryExpression()/*@bgen(jjtree)*/

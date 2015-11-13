@@ -1,6 +1,7 @@
 package cz.cvut.fit.ostrajava.Compiler;
 
 import cz.cvut.fit.ostrajava.Parser.*;
+import jdk.nashorn.internal.ir.Block;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.util.ArrayList;
@@ -160,7 +161,27 @@ public class OSTRAJavaCompiler {
 
         for (int i=0; i<node.jjtGetNumChildren(); i++) {
             Node child = node.jjtGetChild(i);
-            System.out.println();
+
+            //Everything written with a 'pyco' in the end
+            if (child instanceof ASTStatementExpression){
+                Node statementExpression = ((ASTStatementExpression)child);
+                if (statementExpression.jjtGetChild(0) instanceof ASTAssignment){
+                    byteCode = assignment((ASTAssignment) statementExpression.jjtGetChild(0), byteCode);
+                }
+
+            }else if (child instanceof ASTBlock){
+
+
+            }else if (child instanceof ASTIfStatement){
+
+
+            }else if (child instanceof ASTPrintStatement){
+
+
+            }else if (child instanceof ASTReturnStatement){
+
+
+            }
             /*if (child instanceof ASTLocalVariableDeclaration){
                 byteCode = localVariableDeclaration((ASTLocalVariableDeclaration) child, byteCode);
             }else if (child instanceof ASTStatement){
@@ -169,6 +190,52 @@ public class OSTRAJavaCompiler {
         }
 
         return byteCode;
+    }
+
+    protected ByteCode assignment(ASTAssignment node, ByteCode byteCode) throws CompilerException {
+        //PrimaryExpression -> PrimaryPrefix -> Left
+        Node left = node.jjtGetChild(0).jjtGetChild(0).jjtGetChild(0);
+
+        //We have to go recursively to the bottom of the tree to find the real expression
+        Node right = expression(node.jjtGetChild(1));
+
+        //We are assigning to a variable
+        if (left instanceof ASTName) {
+            if (right instanceof ASTNumberLiteral){
+                String name = ((ASTName) left).jjtGetValue().toString();
+                int position = byteCode.getPositionOfLocalVariable(name);
+
+                if (position == -1){
+                    throw new CompilerException("Trying to assign to an undeclared variable '" + name + "'");
+                }
+
+                byteCode.addInstruction(new Instruction(InstructionSet.PushInteger, ((ASTNumberLiteral) right).jjtGetValue().toString()));
+                byteCode.addInstruction(new Instruction(InstructionSet.StoreInteger, Integer.toString(position)));
+            }else{
+                throw new NotImplementedException();
+            }
+        }else{
+            throw new NotImplementedException();
+        }
+
+
+        return byteCode;
+    }
+
+    protected Node expression(Node node) throws  CompilerException{
+        if (node.jjtGetNumChildren() == 1){
+            return expression(node.jjtGetChild(0));
+        }else if (node.jjtGetNumChildren() == 0){
+            return node;
+        }else{
+            for (int i=1; i<node.jjtGetNumChildren(); i++) {
+                ASTExpression child = (ASTExpression) node.jjtGetChild(i);
+
+            }
+        }
+
+        return null;
+
     }
 
 
