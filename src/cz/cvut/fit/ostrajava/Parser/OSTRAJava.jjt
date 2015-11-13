@@ -30,12 +30,14 @@
 options {
   MULTI=true;
   JAVA_UNICODE_ESCAPE = true;
-  //NODE_EXTENDS="MyNode";
+  //NODE_EXTENDS="OSTRANode";
   TRACK_TOKENS=true;
   //NODE_DEFAULT_VOID = true;
 }
 
 PARSER_BEGIN(OSTRAJavaParser)
+
+package cz.cvut.fit.ostrajava.Parser;
 
 public class OSTRAJavaParser {
 
@@ -340,7 +342,7 @@ void FieldDeclaration() :
 void VariableDeclarator() :
 {}
 {
-  VariableDeclaratorId() [ "=" VariableInitializer() ]
+  VariableDeclaratorId() [ "=" Literal() ]
 }
 
 void VariableDeclaratorId() #Variable:
@@ -571,16 +573,16 @@ void PrimarySuffix() :
   Arguments()
 }
 
-void Literal() :
-{}
+void Literal() #void:
+{Token t;}
 {
-  <INTEGER_LITERAL>
+  t = <INTEGER_LITERAL>  {jjtThis.value = t.image; } #NumberLiteral
 |
-  <FLOATING_POINT_LITERAL>
+  t = <FLOATING_POINT_LITERAL>  {jjtThis.value = t.image; } #FloatLiteral
 |
-  <CHARACTER_LITERAL>
-|
-  <STRING_LITERAL>
+ /* <CHARACTER_LITERAL>
+|*/
+  t = <STRING_LITERAL>  {jjtThis.value = t.image; } #StringLiteral
 |
   BooleanLiteral()
 |
@@ -641,8 +643,6 @@ void Statement() :
 {}
 {
   LOOKAHEAD(2)
-  LabeledStatement()
-|
   Block()
 |
   EmptyStatement()
@@ -672,19 +672,14 @@ void Statement() :
   PrintStatement()
 }
 
-void LabeledStatement() :
-{}
-{
-  <IDENTIFIER> ":" Statement()
-}
 
-void Block() :
+void Block()  :
 {}
 {
   "{" ( BlockStatement() )* "}"
 }
 
-void BlockStatement() :
+void BlockStatement() #void:
 {}
 {
   LOOKAHEAD("toz")

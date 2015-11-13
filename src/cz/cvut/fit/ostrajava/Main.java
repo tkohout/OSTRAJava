@@ -1,5 +1,10 @@
 
+package cz.cvut.fit.ostrajava;
+
 import java.io.*;
+import cz.cvut.fit.ostrajava.Compiler.*;
+import cz.cvut.fit.ostrajava.Parser.*;
+
 
 public class Main {
 
@@ -17,16 +22,22 @@ public class Main {
 
         OSTRAJavaParser jp = new OSTRAJavaParser(fr);
 
-
         try {
 
             jp.CompilationUnit();
-            SimpleNode node = (SimpleNode)jp.rootNode();
+
+            //Parse
+            ASTCompilationUnit node = (ASTCompilationUnit)jp.rootNode();
             node.dump("");
+
+            //Compile
+            OSTRAJavaCompiler compiler = new OSTRAJavaCompiler(node);
+            compiler.compile();
+
 
             System.out.println("OSTRAJava Parser:  Java program parsed successfully.");
         } catch (ParseException e) {
-            System.out.println("OSTRAJava Parser:  Encountered errors during parse.");
+            System.out.println("OSTRAJava Parser:  Encountered errors during parsing.");
             throw e;
         }
 
