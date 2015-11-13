@@ -20,4 +20,20 @@ public class Instruction {
         this.instruction = instruction;
         this.operands = operands;
     }
+
+    public List<String> getOperands() {
+        return operands;
+    }
+
+    public void setOperands(List<String> operands) {
+        this.operands = operands;
+    }
+
+    public InstructionSet getInstruction() {
+        return instruction;
+    }
+
+    public void setInstruction(InstructionSet instruction) {
+        this.instruction = instruction;
+    }
 }

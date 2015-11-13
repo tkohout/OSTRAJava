@@ -1,5 +1,7 @@
 package cz.cvut.fit.ostrajava.Compiler;
 
+import com.sun.media.jfxmedia.effects.EqualizerBand;
+import com.sun.tools.corba.se.idl.constExpr.Not;
 import cz.cvut.fit.ostrajava.Parser.*;
 import jdk.nashorn.internal.ir.Block;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
@@ -173,8 +175,7 @@ public class OSTRAJavaCompiler {
 
 
             }else if (child instanceof ASTIfStatement){
-
-
+                byteCode = ifStatement((ASTIfStatement)child, byteCode);
             }else if (child instanceof ASTPrintStatement){
 
 
@@ -193,11 +194,11 @@ public class OSTRAJavaCompiler {
     }
 
     protected ByteCode assignment(ASTAssignment node, ByteCode byteCode) throws CompilerException {
-        //PrimaryExpression -> PrimaryPrefix -> Left
+        //Assignee -> AssignmentPrefix -> Left
         Node left = node.jjtGetChild(0).jjtGetChild(0).jjtGetChild(0);
 
         //We have to go recursively to the bottom of the tree to find the real expression
-        Node right = expression(node.jjtGetChild(1));
+        Node right = simplifyExpression(node.jjtGetChild(1));
 
         //We are assigning to a variable
         if (left instanceof ASTName) {
@@ -222,20 +223,77 @@ public class OSTRAJavaCompiler {
         return byteCode;
     }
 
-    protected Node expression(Node node) throws  CompilerException{
-        if (node.jjtGetNumChildren() == 1){
-            return expression(node.jjtGetChild(0));
-        }else if (node.jjtGetNumChildren() == 0){
-            return node;
-        }else{
-            for (int i=1; i<node.jjtGetNumChildren(); i++) {
-                ASTExpression child = (ASTExpression) node.jjtGetChild(i);
+    protected ByteCode ifStatement(ASTIfStatement node, ByteCode byteCode) throws CompilerException {
 
+        //The conditions
+        for (int i=0; i<node.jjtGetNumChildren(); i+=2) {
+            //Else Statement
+            if (i == node.jjtGetNumChildren()-1){
+                throw new NotImplementedException();
+            //If or else-if statement
+            }else{
+                byteCode = expression(node.jjtGetChild(i), byteCode);
+
+                int ifPosition = byteCode.getLastInstructionPosition();
+
+                ASTBlock block = (ASTBlock) node.jjtGetChild(i+1);
+            }
+
+        }
+        return byteCode;
+    }
+
+    //Traverse through the expression tree and simplify it so that the expression children are the immediate children
+    protected Node simplifyExpression(Node node) throws  CompilerException{
+        if (node.jjtGetNumChildren() == 1){
+            return simplifyExpression(node.jjtGetChild(0));
+        }else if (node.jjtGetNumChildren() > 1){
+            //Go recursively through the children
+            for (int i=0; i<node.jjtGetNumChildren(); i++) {
+                Node child = simplifyExpression(node.jjtGetChild(i));
+                //Replace the old expression
+                node.jjtAddChild(child, i);
             }
         }
+        //Return node if there are no more children
+        return node;
+    }
 
-        return null;
+    protected ByteCode expression(Node node, ByteCode byteCode) throws CompilerException{
+        node = simplifyExpression(node);
 
+        if (node instanceof ASTEqualityExpression) {
+            binaryExpression(node, byteCode);
+        }else if (node instanceof ASTName){
+            String name = ((ASTName) node).jjtGetValue().toString();
+            int position = byteCode.getPositionOfLocalVariable(name);
+
+            if (position == -1){
+                throw new CompilerException("Variable '" + name + "' is not declared");
+            }
+
+            byteCode.addInstruction(new Instruction(InstructionSet.LoadInteger, Integer.toString(position)));
+        }else if (node instanceof ASTNumberLiteral){
+            String value = ((ASTNumberLiteral) node).jjtGetValue().toString();
+            byteCode.addInstruction(new Instruction(InstructionSet.PushInteger, value));
+        }else{
+            throw new NotImplementedException();
+        }
+
+        return byteCode;
+    }
+
+    protected ByteCode binaryExpression(Node node, ByteCode byteCode) throws CompilerException{
+        expression(node.jjtGetChild(0), byteCode);
+        expression(node.jjtGetChild(1), byteCode);
+
+        if (node instanceof ASTEqualityExpression) {
+            byteCode.addInstruction(new Instruction(InstructionSet.IfCompareNotEqualInteger, "?"));
+        }else{
+            throw new NotImplementedException();
+        }
+
+        return byteCode;
     }
 
 

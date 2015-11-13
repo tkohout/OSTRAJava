@@ -38,5 +38,22 @@ public class ByteCode {
         return pos;
     }
 
+    public int getLastInstructionPosition(){
+        return instructions.size() - 1;
+    }
 
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+
+        for (Instruction i: instructions){
+            sb.append(i.getInstruction() + " ");
+            for (String operand: i.getOperands()){
+                sb.append(operand + " ");
+            }
+            sb.append("\n");
+        }
+
+        return sb.toString();
+    }
 }

@@ -464,7 +464,29 @@ void Expression() :
 void Assignment() :
 {}
 {
-  PrimaryExpression() "=" Expression()
+  Assignee() "=" Expression()
+}
+
+void Assignee():
+{}
+{
+    AssigneePrefix() (AssigneeSuffix() )*
+}
+
+void AssigneePrefix() :
+{}
+{
+  Name()
+|
+  "joch"
+|
+  "forant" "." <IDENTIFIER>
+}
+
+void AssigneeSuffix() :
+{Token t;}
+{
+  "." t = <IDENTIFIER> {jjtThis.value = t.image; }
 }
 
 void ConditionalExpression() :
@@ -732,7 +754,7 @@ void IfStatement() :
  */
 {}
 {
-  "kaj" "(" Expression() ")" Statement() ( LOOKAHEAD(2) "kajtez (" Expression() ")" Statement() )* [ LOOKAHEAD(1) "boinak" Statement() ]
+  "kaj" "(" Expression() ")" Block() ( LOOKAHEAD(2) "kajtez (" Expression() ")" Block() )* [ LOOKAHEAD(1) "boinak" Block() ]
 }
 
 void WhileStatement() :
