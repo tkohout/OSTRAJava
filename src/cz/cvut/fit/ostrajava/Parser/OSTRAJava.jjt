@@ -489,6 +489,8 @@ void AssigneeSuffix() :
   "." t = <IDENTIFIER> {jjtThis.value = t.image; }
 }
 
+
+
 void ConditionalExpression() :
 {}
 {
@@ -498,31 +500,31 @@ void ConditionalExpression() :
 void ConditionalOrExpression() :
 {}
 {
-  ConditionalAndExpression() ( "bo" ConditionalAndExpression() )*
+  ConditionalAndExpression() ( "bo" #OrOperator ConditionalAndExpression() )*
 }
 
 void ConditionalAndExpression() :
 {}
 {
-  EqualityExpression() ( "aj" EqualityExpression() )*
+  EqualityExpression() ( "aj" #AndOperator EqualityExpression() )*
 }
 
 void EqualityExpression() :
 {}
 {
-  InstanceOfExpression() ( ( "==" | "!=" ) InstanceOfExpression() )*
+  RelationalExpression() ( ( "==" #EqualOperator | "!=" #NotEqualOperator ) RelationalExpression() )*
 }
 
-void InstanceOfExpression() :
+/*void InstanceOfExpression() :
 {}
 {
   RelationalExpression() [ "instanceof" Type() ]
-}
+}*/
 
 void RelationalExpression() :
 {}
 {
-  AdditiveExpression() ( ( "<" | ">" | "<=" | ">=" ) AdditiveExpression() )*
+  AdditiveExpression() ( ( "<" #LessThanOperator | ">" #GreaterThanOperator | "<=" #LessThanOrEqualOperator | ">=" #GreaterThanOrEqualOperator ) AdditiveExpression() )*
 }
 
 
@@ -530,13 +532,15 @@ void RelationalExpression() :
 void AdditiveExpression() :
 {}
 {
-  MultiplicativeExpression() ( ( "+" | "-" ) MultiplicativeExpression() )*
+  MultiplicativeExpression() (  ("+" #PlusOperator | "-" #MinusOperator ) MultiplicativeExpression() )*
 }
+
+
 
 void MultiplicativeExpression() :
 {}
 {
-  UnaryExpression() ( ( "*" | "/" | "%" ) UnaryExpression() )*
+  UnaryExpression() ( ( "*" #MultiplyOperator | "/" #DivideOperator | "%" #ModuloOperator ) UnaryExpression() )*
 }
 
 void UnaryExpression() :

@@ -15,8 +15,9 @@ public class ByteCode {
         localVars = new LinkedHashMap<String, String>();
     }
 
-    public void addInstruction(Instruction inst){
+    public Instruction addInstruction(Instruction inst){
         instructions.add(inst);
+        return inst;
     }
 
     public int addLocalVariable(String name, String value){
@@ -38,6 +39,14 @@ public class ByteCode {
         return pos;
     }
 
+    public Instruction getInstruction(int position){
+        return instructions.get(position);
+    }
+
+    public Instruction getLastInstruction(){
+        return getInstruction(getLastInstructionPosition());
+    }
+
     public int getLastInstructionPosition(){
         return instructions.size() - 1;
     }
@@ -46,12 +55,14 @@ public class ByteCode {
     public String toString() {
         StringBuilder sb = new StringBuilder();
 
+        int in = 0;
         for (Instruction i: instructions){
-            sb.append(i.getInstruction() + " ");
+            sb.append(in + ": " + i.getInstruction() + " ");
             for (String operand: i.getOperands()){
                 sb.append(operand + " ");
             }
             sb.append("\n");
+            in++;
         }
 
         return sb.toString();

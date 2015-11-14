@@ -32,46 +32,58 @@ public interface OSTRAJavaParserTreeConstants
   public int JJTASSIGNEESUFFIX = 26;
   public int JJTCONDITIONALEXPRESSION = 27;
   public int JJTCONDITIONALOREXPRESSION = 28;
-  public int JJTCONDITIONALANDEXPRESSION = 29;
-  public int JJTEQUALITYEXPRESSION = 30;
-  public int JJTINSTANCEOFEXPRESSION = 31;
-  public int JJTRELATIONALEXPRESSION = 32;
-  public int JJTADDITIVEEXPRESSION = 33;
-  public int JJTMULTIPLICATIVEEXPRESSION = 34;
-  public int JJTUNARYEXPRESSION = 35;
-  public int JJTUNARYEXPRESSIONNOTPLUSMINUS = 36;
-  public int JJTPRIMARYEXPRESSION = 37;
-  public int JJTPRIMARYPREFIX = 38;
-  public int JJTPRIMARYSUFFIX = 39;
-  public int JJTNUMBERLITERAL = 40;
-  public int JJTFLOATLITERAL = 41;
-  public int JJTSTRINGLITERAL = 42;
-  public int JJTBOOLEANLITERAL = 43;
-  public int JJTNULLLITERAL = 44;
-  public int JJTARGUMENTS = 45;
-  public int JJTARGUMENTLIST = 46;
-  public int JJTALLOCATIONEXPRESSION = 47;
-  public int JJTARRAYDIMENSIONS = 48;
-  public int JJTSTATEMENT = 49;
-  public int JJTBLOCK = 50;
-  public int JJTLOCALVARIABLEDECLARATION = 51;
-  public int JJTEMPTYSTATEMENT = 52;
-  public int JJTSTATEMENTEXPRESSION = 53;
-  public int JJTSWITCHSTATEMENT = 54;
-  public int JJTSWITCHLABEL = 55;
-  public int JJTIFSTATEMENT = 56;
-  public int JJTWHILESTATEMENT = 57;
-  public int JJTDOSTATEMENT = 58;
-  public int JJTFORSTATEMENT = 59;
-  public int JJTFORINIT = 60;
-  public int JJTSTATEMENTEXPRESSIONLIST = 61;
-  public int JJTFORUPDATE = 62;
-  public int JJTBREAKSTATEMENT = 63;
-  public int JJTCONTINUESTATEMENT = 64;
-  public int JJTRETURNSTATEMENT = 65;
-  public int JJTTHROWSTATEMENT = 66;
-  public int JJTTRYSTATEMENT = 67;
-  public int JJTPRINTSTATEMENT = 68;
+  public int JJTOROPERATOR = 29;
+  public int JJTCONDITIONALANDEXPRESSION = 30;
+  public int JJTANDOPERATOR = 31;
+  public int JJTEQUALITYEXPRESSION = 32;
+  public int JJTEQUALOPERATOR = 33;
+  public int JJTNOTEQUALOPERATOR = 34;
+  public int JJTRELATIONALEXPRESSION = 35;
+  public int JJTLESSTHANOPERATOR = 36;
+  public int JJTGREATERTHANOPERATOR = 37;
+  public int JJTLESSTHANOREQUALOPERATOR = 38;
+  public int JJTGREATERTHANOREQUALOPERATOR = 39;
+  public int JJTADDITIVEEXPRESSION = 40;
+  public int JJTPLUSOPERATOR = 41;
+  public int JJTMINUSOPERATOR = 42;
+  public int JJTMULTIPLICATIVEEXPRESSION = 43;
+  public int JJTMULTIPLYOPERATOR = 44;
+  public int JJTDIVIDEOPERATOR = 45;
+  public int JJTMODULOOPERATOR = 46;
+  public int JJTUNARYEXPRESSION = 47;
+  public int JJTUNARYEXPRESSIONNOTPLUSMINUS = 48;
+  public int JJTPRIMARYEXPRESSION = 49;
+  public int JJTPRIMARYPREFIX = 50;
+  public int JJTPRIMARYSUFFIX = 51;
+  public int JJTNUMBERLITERAL = 52;
+  public int JJTFLOATLITERAL = 53;
+  public int JJTSTRINGLITERAL = 54;
+  public int JJTBOOLEANLITERAL = 55;
+  public int JJTNULLLITERAL = 56;
+  public int JJTARGUMENTS = 57;
+  public int JJTARGUMENTLIST = 58;
+  public int JJTALLOCATIONEXPRESSION = 59;
+  public int JJTARRAYDIMENSIONS = 60;
+  public int JJTSTATEMENT = 61;
+  public int JJTBLOCK = 62;
+  public int JJTLOCALVARIABLEDECLARATION = 63;
+  public int JJTEMPTYSTATEMENT = 64;
+  public int JJTSTATEMENTEXPRESSION = 65;
+  public int JJTSWITCHSTATEMENT = 66;
+  public int JJTSWITCHLABEL = 67;
+  public int JJTIFSTATEMENT = 68;
+  public int JJTWHILESTATEMENT = 69;
+  public int JJTDOSTATEMENT = 70;
+  public int JJTFORSTATEMENT = 71;
+  public int JJTFORINIT = 72;
+  public int JJTSTATEMENTEXPRESSIONLIST = 73;
+  public int JJTFORUPDATE = 74;
+  public int JJTBREAKSTATEMENT = 75;
+  public int JJTCONTINUESTATEMENT = 76;
+  public int JJTRETURNSTATEMENT = 77;
+  public int JJTTHROWSTATEMENT = 78;
+  public int JJTTRYSTATEMENT = 79;
+  public int JJTPRINTSTATEMENT = 80;
 
 
   public String[] jjtNodeName = {
@@ -104,12 +116,24 @@ public interface OSTRAJavaParserTreeConstants
     "AssigneeSuffix",
     "ConditionalExpression",
     "ConditionalOrExpression",
+    "OrOperator",
     "ConditionalAndExpression",
+    "AndOperator",
     "EqualityExpression",
-    "InstanceOfExpression",
+    "EqualOperator",
+    "NotEqualOperator",
     "RelationalExpression",
+    "LessThanOperator",
+    "GreaterThanOperator",
+    "LessThanOrEqualOperator",
+    "GreaterThanOrEqualOperator",
     "AdditiveExpression",
+    "PlusOperator",
+    "MinusOperator",
     "MultiplicativeExpression",
+    "MultiplyOperator",
+    "DivideOperator",
+    "ModuloOperator",
     "UnaryExpression",
     "UnaryExpressionNotPlusMinus",
     "PrimaryExpression",
@@ -146,4 +170,4 @@ public interface OSTRAJavaParserTreeConstants
     "PrintStatement",
   };
 }
-/* JavaCC - OriginalChecksum=6dd11b63182763ca8ff6776275b963cf (do not edit this line) */
+/* JavaCC - OriginalChecksum=3e57be2354c954ae5984ce27c9c7e81b (do not edit this line) */

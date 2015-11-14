@@ -4,6 +4,12 @@ package cz.cvut.fit.ostrajava.Parser;
 
 public
 class ASTAdditiveExpression extends SimpleNode {
+  public enum Operator{
+    Plus, Minus
+  }
+
+  public Operator operator;
+
   public ASTAdditiveExpression(int id) {
     super(id);
   }
