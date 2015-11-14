@@ -11,7 +11,7 @@ public class  Test {
         int i = 0;
         int j = 0;
 
-        if (j < i || (i > j && i == 4) || 1>i){
+        if (j < i && (i > j || i == 4)){
             foo();
         }else{
             boo();

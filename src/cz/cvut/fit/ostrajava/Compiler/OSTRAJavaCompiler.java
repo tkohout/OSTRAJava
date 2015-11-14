@@ -289,10 +289,8 @@ public class OSTRAJavaCompiler {
 
     protected ByteCode expression(Node node, ByteCode byteCode) throws CompilerException{
         if (node.jjtGetNumChildren() > 1) {
-            if (node instanceof ASTConditionalOrExpression || node instanceof ASTConditionalAndExpression) {
-                boolExpression(node, byteCode);
-            }else if (node instanceof ASTRelationalExpression || node instanceof ASTEqualityExpression) {
-                compareExpression(node, byteCode);
+            if (node instanceof ASTConditionalOrExpression || node instanceof ASTConditionalAndExpression || node instanceof ASTRelationalExpression || node instanceof ASTEqualityExpression) {
+                ifExpression(node, byteCode);
             }else if (node instanceof ASTAdditiveExpression || node instanceof ASTMultiplicativeExpression) {
                 arithmeticExpression(node, byteCode);
             }
@@ -378,8 +376,10 @@ public class OSTRAJavaCompiler {
     protected List<Instruction> ifExpression(Node node, ByteCode byteCode) throws CompilerException {
         if (node instanceof ASTEqualityExpression || node instanceof ASTRelationalExpression){
             return compareExpression(node, byteCode);
-        }else if (node instanceof ASTConditionalOrExpression || node instanceof  ASTConditionalAndExpression){
-            return boolExpression(node, byteCode);
+        }else if (node instanceof ASTConditionalOrExpression){
+            return orExpression((ASTConditionalOrExpression)node, byteCode);
+        }else if (node instanceof  ASTConditionalAndExpression){
+            return andExpression((ASTConditionalAndExpression)node, byteCode);
         }else{
             throw new NotImplementedException();
         }
@@ -430,25 +430,72 @@ public class OSTRAJavaCompiler {
     }
 
     protected List<Instruction> boolExpression(Node node, ByteCode byteCode) throws CompilerException {
-        List<Instruction> instructions = new ArrayList<>();
+        List<Instruction> toBlockInstructions = new ArrayList<>();
+        boolean lastChildAnd = false;
+        //Instruction that will skip the execution block if passed
+        List<Instruction> endBlockInstruction = new ArrayList<>();
 
         for (int i = 0; i < node.jjtGetNumChildren(); i += 2) {
             Node child = node.jjtGetChild(i );
-            ifExpression(child, byteCode);
+            List<Instruction> childInstructions = ifExpression(child, byteCode);
 
-            instructions.add(byteCode.getLastInstruction());
+
+            if (node instanceof ASTConditionalOrExpression) {
+                //In nested AND expression
+                if (child instanceof ASTConditionalAndExpression) {
+
+                    //It's the last -> send all instructions to the end of the block
+                    if (i == node.jjtGetNumChildren() - 1) {
+                        lastChildAnd = true;
+                        endBlockInstruction.addAll(childInstructions);
+                        //It's not the last -> send all instructions to the next condition
+                    } else {
+                        Iterator<Instruction> itr = childInstructions.iterator();
+
+                        while (itr.hasNext()) {
+                            Instruction instruction = itr.next();
+
+                            if (itr.hasNext()) {
+                                instruction.setOperand(0, Integer.toString(byteCode.getLastInstructionPosition() + 1));
+                            } else {
+                                toBlockInstructions.add(instruction);
+                                instruction.invert();
+                            }
+                        }
+                    }
+
+                } else {
+                    toBlockInstructions.addAll(childInstructions);
+                }
+            }else if (node instanceof ASTConditionalAndExpression) {
+
+                //In nested AND expression
+                if (child instanceof ASTConditionalOrExpression) {
+
+                    //It's the last
+                    if (i == node.jjtGetNumChildren() - 1) {
+                        lastChildAnd = true;
+                        endBlockInstruction.addAll(childInstructions);
+
+                    } else {
+                        endBlockInstruction.addAll(childInstructions);
+                    }
+
+                } else {
+                    toBlockInstructions.addAll(childInstructions);
+                }
+            }
         }
 
-        Iterator<Instruction> itr = instructions.iterator();
+        Iterator<Instruction> itr = toBlockInstructions.iterator();
 
 
-        //Instruction that will skip the execution block if passed
-        List<Instruction> endBlockInstruction = new ArrayList<>();
+
 
         while(itr.hasNext()) {
             Instruction instruction = itr.next();
             if (node instanceof ASTConditionalOrExpression) {
-                if (itr.hasNext()) {
+                if (itr.hasNext() || lastChildAnd) {
                     instruction.setOperand(0, Integer.toString(byteCode.getLastInstructionPosition()+1));
                 }else{
                     instruction.invert();
@@ -463,6 +510,128 @@ public class OSTRAJavaCompiler {
         //byteCode.addInstruction(new Instruction(InstructionSet.GoTo, "?"));
         //instructions.add(instruction);
         //byteCode.addInstruction(instruction);
+
+        return endBlockInstruction;
+    }
+
+
+    protected List<Node> mergeConditionals(Node node) {
+        List<Node> merged = new ArrayList<>();
+
+        for (int i = 0; i < node.jjtGetNumChildren(); i += 1) {
+            Node child = node.jjtGetChild(i );
+
+            if ((node instanceof ASTConditionalOrExpression && child instanceof ASTConditionalOrExpression )
+                    || (node instanceof ASTConditionalAndExpression && child instanceof ASTConditionalAndExpression ) ){
+                merged.addAll(mergeConditionals(child));
+            }else{
+                merged.add(child);
+            }
+        }
+
+        return merged;
+    }
+
+    protected List<Instruction> orExpression(ASTConditionalOrExpression node, ByteCode byteCode) throws CompilerException {
+
+        //Instructions that should go to execution block if passed
+        List<Instruction> toBlockInstructions = new ArrayList<>();
+
+        //Indicates whether last child is an nested AND
+        boolean lastChildAnd = false;
+
+        //Instruction that will skip the execution block if passed
+        List<Instruction> endBlockInstruction = new ArrayList<>();
+
+        //Merge together same conditionals for easier computation (e.g. ( x or ( y or z) )
+        List<Node> children = mergeConditionals(node);
+
+        for (int i = 0; i < children.size(); i += 2) {
+            Node child = children.get(i);
+
+            List<Instruction> childInstructions = ifExpression(child, byteCode);
+
+                //In nested AND expression
+                if (child instanceof ASTConditionalAndExpression) {
+
+                    //It's the last, every instruction leads to the end
+                    if (i == node.jjtGetNumChildren() - 1) {
+                        lastChildAnd = true;
+                        endBlockInstruction.addAll(childInstructions);
+
+                    //It's not the last, every instruction goes to next condition. Last instruction goes to block if passed
+                    } else {
+                        Iterator<Instruction> itr = childInstructions.iterator();
+
+                        while (itr.hasNext()) {
+                            Instruction instruction = itr.next();
+
+                            if (itr.hasNext()) {
+                                instruction.setOperand(0, Integer.toString(byteCode.getLastInstructionPosition() + 1));
+                            } else {
+                                toBlockInstructions.add(instruction);
+                                instruction.invert();
+                            }
+                        }
+                    }
+
+                //It's simple condition
+                } else {
+                    toBlockInstructions.addAll(childInstructions);
+                }
+        }
+
+        Iterator<Instruction> itr = toBlockInstructions.iterator();
+
+        while(itr.hasNext()) {
+            Instruction instruction = itr.next();
+
+            //Not last or the AND is the last
+            if (itr.hasNext() || lastChildAnd) {
+                //Go to the code
+                instruction.setOperand(0, Integer.toString(byteCode.getLastInstructionPosition() + 1));
+            } else {
+                //Invert last instruction and send it to the end
+                instruction.invert();
+                endBlockInstruction.add(instruction);
+            }
+
+        }
+
+        return endBlockInstruction;
+    }
+
+    protected List<Instruction> andExpression(ASTConditionalAndExpression node, ByteCode byteCode) throws CompilerException {
+        List<Instruction> instructions = new ArrayList<>();
+
+        //Instruction that will skip the execution block if passed
+        List<Instruction> endBlockInstruction = new ArrayList<>();
+
+        //Merge together same conditionals for easier computation (e.g. ( x and ( y and z) )
+        List<Node> children = mergeConditionals(node);
+
+        for (int i = 0; i < children.size(); i += 2) {
+            Node child = children.get(i);
+            List<Instruction> childInstructions = ifExpression(child, byteCode);
+
+                //In nested AND expression
+                if (child instanceof ASTConditionalOrExpression) {
+                    endBlockInstruction.addAll(childInstructions);
+                } else {
+                    instructions.addAll(childInstructions);
+                }
+
+        }
+
+        Iterator<Instruction> itr = instructions.iterator();
+
+        while(itr.hasNext()) {
+            Instruction instruction = itr.next();
+
+            //Invert instruction and send it to end block
+            instruction.invert();
+            endBlockInstruction.add(instruction);
+        }
 
         return endBlockInstruction;
     }

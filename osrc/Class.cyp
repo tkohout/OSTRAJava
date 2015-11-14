@@ -9,7 +9,7 @@ tryda Ostrava {
         toz number i, j pyco
         i = 25 pyco
 
-        kaj (i == 1 bo i > j) {
+        kaj (i == 1 aj (i == 4 bo (i > j aj i < j) ) aj i == 2 ) {
             i = i + 1 * 4 / 10 % 4 - 5 pyco
         } kajtez (i == 2){
             i = i + j pyco
