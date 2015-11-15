@@ -6,6 +6,7 @@ import cz.cvut.fit.ostrajava.Parser.*;
 import jdk.nashorn.internal.ir.Block;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
+import javax.management.relation.RelationException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -20,22 +21,23 @@ public class OSTRAJavaCompiler {
         this.node = node;
     }
 
-    public void compile() throws CompilerException {
+    public List<ClassFile> compile() throws CompilerException {
         if (node.jjtGetNumChildren() == 0){
             throw new CompilerException("No classes to compile");
         }
 
         int i = 0;
-
+        List<ClassFile> classFiles = new ArrayList<>();
         do {
             node = (SimpleNode)node.jjtGetChild(i);
             if (node instanceof ASTClass){
-                compileClass((ASTClass)node);
+                classFiles.add(compileClass((ASTClass)node));
             }
 
             i++;
         }while(i < node.jjtGetNumChildren());
 
+        return classFiles;
     }
 
 
@@ -100,7 +102,7 @@ public class OSTRAJavaCompiler {
     protected Method methodDeclaration(ASTMethodDeclaration node) throws CompilerException {
         String returnType = "void", name = null;
         List<String> args = null;
-
+        ByteCode byteCode = new ByteCode();
         for (int i=0; i<node.jjtGetNumChildren(); i++) {
             Node child = node.jjtGetChild(i);
 
@@ -115,7 +117,7 @@ public class OSTRAJavaCompiler {
                 ASTFormalParameters params = (ASTFormalParameters)child.jjtGetChild(0);
                 args = formalParameters(params);
             }else if (child instanceof ASTBlock){
-                methodBlock((ASTBlock) child);
+                methodBlock((ASTBlock) child, byteCode);
             }
         }
 
@@ -124,6 +126,8 @@ public class OSTRAJavaCompiler {
         }
 
         Method method = new Method(name, args, returnType);
+        method.setByteCode(byteCode);
+
         return method;
     }
 
@@ -142,8 +146,8 @@ public class OSTRAJavaCompiler {
         return args;
     }
 
-    protected ByteCode methodBlock(ASTBlock node) throws CompilerException {
-        ByteCode byteCode = new ByteCode();
+    protected ByteCode methodBlock(ASTBlock node, ByteCode byteCode) throws CompilerException {
+
         //TODO: So far it's the same, if future it will probably need to load arguments etc...
         return block(node, byteCode);
     }
@@ -206,14 +210,7 @@ public class OSTRAJavaCompiler {
         Node right = simplifyExpression(node.jjtGetChild(1));
 
         //We are assigning to a variable
-        if (left instanceof ASTName) {
-
-            //Creates bytecode for the expression
-            expression(right, byteCode);
-
-            //TODO: check if we assigning to compatible types
-            /*if (right instanceof ASTNumberLiteral){
-            }*/
+        if (isVariable(left)) {
 
             String name = ((ASTName) left).jjtGetValue().toString();
             int position = byteCode.getPositionOfLocalVariable(name);
@@ -222,7 +219,77 @@ public class OSTRAJavaCompiler {
                 throw new CompilerException("Trying to assign to an undeclared variable '" + name + "'");
             }
 
-            byteCode.addInstruction(new Instruction(InstructionSet.StoreInteger, Integer.toString(position)));
+            Type type = byteCode.getTypeOfLocalVariable(name);
+
+            //If the expression is a condition we have to evaluate it
+            if (isConditionalExpression(right)){
+                if (type != Type.Boolean){
+                    throw new CompilerException("Trying to assign boolean expression to variable '" + name + "' of type " + type);
+                }
+
+                //Creates bytecode for the expression
+                List<Instruction> ifInstructions = expression(right, byteCode);
+
+                evaluateIfExpression(right, byteCode.getLastInstruction());
+
+                //If we success set variable to TRUE
+                byteCode.addInstruction(new Instruction(InstructionSet.PushInteger, "1"));
+                byteCode.addInstruction(new Instruction(InstructionSet.GoTo, Integer.toString(byteCode.getLastInstructionPosition()+2)));
+                //Else set it to false
+                byteCode.addInstruction(new Instruction(InstructionSet.PushInteger, "0"));
+
+                //Set end block instructions to go to false
+                for (Instruction instr: ifInstructions) {
+                    instr.setOperand(0, Integer.toString(byteCode.getLastInstructionPosition()));
+                }
+            }else if (isNumberLiteral(right) || isAdditiveExpression(right) || isMultiplicativeExpression(right)){
+                if (type != Type.Number){
+                    throw new CompilerException("Trying to assign Number to a variable '" + name + "' of type " + type);
+                }
+
+                expression(right, byteCode);
+                byteCode.addInstruction(new Instruction(InstructionSet.StoreInteger, Integer.toString(position)));
+
+            }else if (isBooleanLiteral(right)) {
+                if (type != Type.Boolean) {
+                    throw new CompilerException("Trying to assign Boolean to a variable '" + name + "' of type " + type);
+                }
+
+                expression(right, byteCode);
+                byteCode.addInstruction(new Instruction(InstructionSet.StoreInteger, Integer.toString(position)));
+            }else if (isVariable(right)){
+                String rightName = ((ASTName)right).jjtGetValue().toString();
+
+                int rightPosition = byteCode.getPositionOfLocalVariable(name);
+
+                if (rightPosition == -1){
+                    throw new CompilerException("Variable '" + rightName + "' is undeclared");
+                }
+
+                Type rightType = byteCode.getTypeOfLocalVariable(rightName);
+
+                if (rightType != type){
+                    throw new CompilerException("Trying to assign variable '" + rightName +  "' of type " + rightType + " to a variable '" + name + "' of type " + type);
+                }
+
+                expression(right, byteCode);
+
+                if (type == Type.Reference) {
+                    byteCode.addInstruction(new Instruction(InstructionSet.StoreReference, Integer.toString(position)));
+                }else{
+                    byteCode.addInstruction(new Instruction(InstructionSet.StoreInteger, Integer.toString(position)));
+                }
+            }else if (isAllocationExpression(right)){
+                if (type != Type.Reference) {
+                    throw new CompilerException("Trying to assign Object to a variable '" + name + "' of type " + type);
+                }
+
+                expression(right, byteCode);
+                byteCode.addInstruction(new Instruction(InstructionSet.StoreReference, Integer.toString(position)));
+            }else{
+                throw new NotImplementedException();
+            }
+
         }else{
             throw new NotImplementedException();
         }
@@ -248,6 +315,8 @@ public class OSTRAJavaCompiler {
 
                 //If-expression skip block instructions
                 List<Instruction> endBlockInstructions = ifExpression(child, byteCode);
+                evaluateIfExpression(child, byteCode.getLastInstruction());
+
 
                 ASTBlock block = (ASTBlock) node.jjtGetChild(i+1);
                 block(block, byteCode);
@@ -271,6 +340,13 @@ public class OSTRAJavaCompiler {
         return byteCode;
     }
 
+    protected void evaluateIfExpression(Node node, Instruction lastInstruction) throws CompilerException {
+        //When it's single if expression we have to invert last member
+        if (isRelationalExpression(node) || isEqualityExpression(node)){
+            lastInstruction.invert();
+        }
+    }
+
     //Traverse through the expression tree and simplify it so that the expression children are the immediate children
     protected Node simplifyExpression(Node node) throws  CompilerException{
         if (node.jjtGetNumChildren() == 1){
@@ -287,98 +363,55 @@ public class OSTRAJavaCompiler {
         return node;
     }
 
-    protected ByteCode expression(Node node, ByteCode byteCode) throws CompilerException{
+    protected List<Instruction> expression(Node node, ByteCode byteCode) throws CompilerException{
         if (node.jjtGetNumChildren() > 1) {
-            if (node instanceof ASTConditionalOrExpression || node instanceof ASTConditionalAndExpression || node instanceof ASTRelationalExpression || node instanceof ASTEqualityExpression) {
-                ifExpression(node, byteCode);
-            }else if (node instanceof ASTAdditiveExpression || node instanceof ASTMultiplicativeExpression) {
+            if (isConditionalExpression(node)) {
+                return ifExpression(node, byteCode);
+            }else if (isArithmeticExpression(node)) {
                 arithmeticExpression(node, byteCode);
+            }else if (isAllocationExpression(node)) {
+                allocationExpression((ASTAllocationExpression)node, byteCode);
             }
-        }else if (node instanceof ASTName){
+        }else if (isVariable(node)){
             String name = ((ASTName) node).jjtGetValue().toString();
             int position = byteCode.getPositionOfLocalVariable(name);
+            Type type = byteCode.getTypeOfLocalVariable(name);
 
             if (position == -1){
                 throw new CompilerException("Variable '" + name + "' is not declared");
             }
 
-            byteCode.addInstruction(new Instruction(InstructionSet.LoadInteger, Integer.toString(position)));
-        }else if (node instanceof ASTNumberLiteral){
+            if (type == Type.Number || type == Type.Boolean) {
+                byteCode.addInstruction(new Instruction(InstructionSet.LoadInteger, Integer.toString(position)));
+            }else if (type == Type.Reference){
+                byteCode.addInstruction(new Instruction(InstructionSet.LoadReference, Integer.toString(position)));
+            }else{
+                throw new NotImplementedException();
+            }
+        }else if (isNumberLiteral(node)){
             String value = ((ASTNumberLiteral) node).jjtGetValue().toString();
             byteCode.addInstruction(new Instruction(InstructionSet.PushInteger, value));
         }else{
             throw new NotImplementedException();
         }
 
-        return byteCode;
+        return null;
     }
 
-    /*protected List<Instruction> multipleExpression(Node node, ByteCode byteCode) throws CompilerException{
-        List<Instruction> instructions = new ArrayList<>();
+    protected void allocationExpression(ASTAllocationExpression node, ByteCode byteCode) throws CompilerException {
+        String name = ((ASTName)node.jjtGetChild(0)).jjtGetValue().toString();
 
-        Node first = node.jjtGetChild(0);
-        expression(first, byteCode);
+        //TODO: add invocation of constructor
 
-        for (int i=1; i<node.jjtGetNumChildren(); i+=2) {
-            Node operator = node.jjtGetChild(i);
-            Node child = node.jjtGetChild(i+1);
-
-            expression(child, byteCode);
-
-            Instruction instruction = null;
-
-            if (node instanceof ASTConditionalOrExpression) {
-
-            }else if (node instanceof ASTEqualityExpression) {
-                if (operator instanceof ASTEqualOperator) {
-                    instruction = new Instruction(InstructionSet.IfCompareEqualInteger, "?");
-                }else{
-                    instruction = new Instruction(InstructionSet.IfCompareNotEqualInteger, "?");
-                }
-            }else if (node instanceof ASTRelationalExpression) {
-
-                    if (operator instanceof ASTGreaterThanOperator){
-                        instruction = new Instruction(InstructionSet.IfCompareGreaterThanInteger, "?");
-                    }else if (operator instanceof ASTGreaterThanOrEqualOperator){
-                        instruction = new Instruction(InstructionSet.IfCompareGreaterThanOrEqualInteger, "?");
-                    }else if (operator instanceof ASTLessThanOperator){
-                        instruction = new Instruction(InstructionSet.IfCompareLessThanInteger, "?");
-                    }else if (operator instanceof ASTLessThanOrEqualOperator){
-                        instruction = new Instruction(InstructionSet.IfCompareLessThanOrEqualInteger, "?");
-                    }
-
-
-            }else if (node instanceof ASTAdditiveExpression) {
-                if (operator instanceof ASTPlusOperator) {
-                    instruction = new Instruction(InstructionSet.AddInteger);
-                }else{
-                    instruction = new Instruction(InstructionSet.SubstractInteger);
-                }
-            }else if (node instanceof ASTMultiplicativeExpression) {
-                if (operator instanceof ASTMultiplyOperator) {
-                    instruction = new Instruction(InstructionSet.MultiplyInteger);
-                }else if (operator instanceof  ASTDivideOperator){
-                    instruction = new Instruction(InstructionSet.DivideInteger);
-                }else if (operator instanceof ASTModuloOperator){
-                    instruction = new Instruction(InstructionSet.ModuloInteger);
-                }
-            }else{
-                throw new NotImplementedException();
-            }
-
-            instructions.add(instruction);
-            byteCode.addInstruction(instruction);
-        }
-
-        return instructions;
-    }*/
+        byteCode.addInstruction(new Instruction(InstructionSet.New, name));
+    }
 
     protected List<Instruction> ifExpression(Node node, ByteCode byteCode) throws CompilerException {
-        if (node instanceof ASTEqualityExpression || node instanceof ASTRelationalExpression){
+        if (isEqualityExpression(node)|| isRelationalExpression(node)){
             return compareExpression(node, byteCode);
-        }else if (node instanceof ASTConditionalOrExpression){
+        }else if (isOrExpression(node)) {
             return orExpression((ASTConditionalOrExpression)node, byteCode);
-        }else if (node instanceof  ASTConditionalAndExpression){
+        }else if (isAndExpression(node)){
             return andExpression((ASTConditionalAndExpression)node, byteCode);
         }else{
             throw new NotImplementedException();
@@ -399,13 +432,13 @@ public class OSTRAJavaCompiler {
 
             Instruction instruction = null;
 
-            if (node instanceof ASTEqualityExpression) {
+            if (isEqualityExpression(node)) {
                 if (operator instanceof ASTEqualOperator) {
                     instruction = new Instruction(InstructionSet.IfCompareEqualInteger, "?");
                 } else {
                     instruction = new Instruction(InstructionSet.IfCompareNotEqualInteger, "?");
                 }
-            } else if (node instanceof ASTRelationalExpression) {
+            } else if (isRelationalExpression(node)) {
 
                 if (operator instanceof ASTGreaterThanOperator) {
                     instruction = new Instruction(InstructionSet.IfCompareGreaterThanInteger, "?");
@@ -429,100 +462,13 @@ public class OSTRAJavaCompiler {
         return instructions;
     }
 
-    protected List<Instruction> boolExpression(Node node, ByteCode byteCode) throws CompilerException {
-        List<Instruction> toBlockInstructions = new ArrayList<>();
-        boolean lastChildAnd = false;
-        //Instruction that will skip the execution block if passed
-        List<Instruction> endBlockInstruction = new ArrayList<>();
-
-        for (int i = 0; i < node.jjtGetNumChildren(); i += 2) {
-            Node child = node.jjtGetChild(i );
-            List<Instruction> childInstructions = ifExpression(child, byteCode);
-
-
-            if (node instanceof ASTConditionalOrExpression) {
-                //In nested AND expression
-                if (child instanceof ASTConditionalAndExpression) {
-
-                    //It's the last -> send all instructions to the end of the block
-                    if (i == node.jjtGetNumChildren() - 1) {
-                        lastChildAnd = true;
-                        endBlockInstruction.addAll(childInstructions);
-                        //It's not the last -> send all instructions to the next condition
-                    } else {
-                        Iterator<Instruction> itr = childInstructions.iterator();
-
-                        while (itr.hasNext()) {
-                            Instruction instruction = itr.next();
-
-                            if (itr.hasNext()) {
-                                instruction.setOperand(0, Integer.toString(byteCode.getLastInstructionPosition() + 1));
-                            } else {
-                                toBlockInstructions.add(instruction);
-                                instruction.invert();
-                            }
-                        }
-                    }
-
-                } else {
-                    toBlockInstructions.addAll(childInstructions);
-                }
-            }else if (node instanceof ASTConditionalAndExpression) {
-
-                //In nested AND expression
-                if (child instanceof ASTConditionalOrExpression) {
-
-                    //It's the last
-                    if (i == node.jjtGetNumChildren() - 1) {
-                        lastChildAnd = true;
-                        endBlockInstruction.addAll(childInstructions);
-
-                    } else {
-                        endBlockInstruction.addAll(childInstructions);
-                    }
-
-                } else {
-                    toBlockInstructions.addAll(childInstructions);
-                }
-            }
-        }
-
-        Iterator<Instruction> itr = toBlockInstructions.iterator();
-
-
-
-
-        while(itr.hasNext()) {
-            Instruction instruction = itr.next();
-            if (node instanceof ASTConditionalOrExpression) {
-                if (itr.hasNext() || lastChildAnd) {
-                    instruction.setOperand(0, Integer.toString(byteCode.getLastInstructionPosition()+1));
-                }else{
-                    instruction.invert();
-                    endBlockInstruction.add(instruction);
-                }
-            } else if (node instanceof ASTConditionalAndExpression) {
-                instruction.invert();
-                endBlockInstruction.add(instruction);
-            }
-        }
-
-        //byteCode.addInstruction(new Instruction(InstructionSet.GoTo, "?"));
-        //instructions.add(instruction);
-        //byteCode.addInstruction(instruction);
-
-        return endBlockInstruction;
-    }
-
-
     protected List<Node> mergeConditionals(Node node) {
         List<Node> merged = new ArrayList<>();
 
         for (int i = 0; i < node.jjtGetNumChildren(); i += 1) {
             Node child = node.jjtGetChild(i );
 
-            if ((node instanceof ASTConditionalOrExpression && child instanceof ASTConditionalOrExpression )
-                    || (node instanceof ASTConditionalAndExpression && child instanceof ASTConditionalAndExpression ) ){
+            if ((isOrExpression(node) && isOrExpression(child)) || (isAndExpression(node) && isAndExpression(child) ) ){
                 merged.addAll(mergeConditionals(child));
             }else{
                 merged.add(child);
@@ -552,7 +498,7 @@ public class OSTRAJavaCompiler {
             List<Instruction> childInstructions = ifExpression(child, byteCode);
 
                 //In nested AND expression
-                if (child instanceof ASTConditionalAndExpression) {
+                if (isAndExpression(child)) {
 
                     //It's the last, every instruction leads to the end
                     if (i == node.jjtGetNumChildren() - 1) {
@@ -615,7 +561,7 @@ public class OSTRAJavaCompiler {
             List<Instruction> childInstructions = ifExpression(child, byteCode);
 
                 //In nested AND expression
-                if (child instanceof ASTConditionalOrExpression) {
+                if (isOrExpression(child)){
                     endBlockInstruction.addAll(childInstructions);
                 } else {
                     instructions.addAll(childInstructions);
@@ -648,13 +594,13 @@ public class OSTRAJavaCompiler {
 
             Instruction instruction = null;
 
-            if (node instanceof ASTAdditiveExpression) {
+            if (isAdditiveExpression(node)) {
                 if (operator instanceof ASTPlusOperator) {
                     instruction = new Instruction(InstructionSet.AddInteger);
                 } else {
                     instruction = new Instruction(InstructionSet.SubstractInteger);
                 }
-            } else if (node instanceof ASTMultiplicativeExpression) {
+            } else if (isMultiplicativeExpression(node)) {
                 if (operator instanceof ASTMultiplyOperator) {
                     instruction = new Instruction(InstructionSet.MultiplyInteger);
                 } else if (operator instanceof ASTDivideOperator) {
@@ -693,17 +639,35 @@ public class OSTRAJavaCompiler {
                 valueString = value.jjtGetValue().toString();
             }
 
-            if (typeNode instanceof ASTNumber){
-                if (value != null){
-                    if (!(value instanceof ASTNumberLiteral)){
+            if (typeNode instanceof ASTNumber) {
+                if (value != null) {
+                    if (!(isNumberLiteral(value))) {
                         throw new CompilerException("Assigning Non-Number literal to a Number type variable");
                     }
-                }else{
+                } else {
                     //Default value for integer
                     valueString = "0";
                 }
 
-                int position = byteCode.addLocalVariable(name, valueString);
+                int position = byteCode.addLocalVariable(name, Type.Number);
+
+                if (position == -1) {
+                    throw new CompilerException("Variable '" + name + "' has been already declared");
+                }
+
+                byteCode.addInstruction(new Instruction(InstructionSet.PushInteger, valueString));
+                byteCode.addInstruction(new Instruction(InstructionSet.StoreInteger, Integer.toString(position)));
+            }else if (typeNode instanceof ASTBool){
+                if (value != null){
+                    if (!(isBooleanLiteral(value))){
+                        throw new CompilerException("Assigning Non-Bool literal to a Bool type variable");
+                    }
+                }else{
+                    //Default value for boolean
+                    valueString = "0";
+                }
+
+                int position = byteCode.addLocalVariable(name, Type.Boolean);
 
                 if (position == -1){
                     throw new CompilerException("Variable '" + name + "' has been already declared");
@@ -711,8 +675,20 @@ public class OSTRAJavaCompiler {
 
                 byteCode.addInstruction(new Instruction(InstructionSet.PushInteger, valueString));
                 byteCode.addInstruction(new Instruction(InstructionSet.StoreInteger, Integer.toString(position)));
-            }else{
-                throw new NotImplementedException();
+
+            //It's class
+            }else if (typeNode instanceof ASTName){
+                if (value != null){
+                    throw new CompilerException("Assigning Literal to a Object type variable");
+                }else{
+                    //No default value for objects?
+                }
+
+                int position = byteCode.addLocalVariable(name, Type.Reference);
+
+                if (position == -1) {
+                    throw new CompilerException("Variable '" + name + "' has been already declared");
+                }
             }
 
         }
@@ -720,4 +696,54 @@ public class OSTRAJavaCompiler {
         return byteCode;
     }
 
+    boolean isConditionalExpression(Node node){
+        return isEqualityExpression(node) || isRelationalExpression(node) || isOrExpression(node) || isAndExpression(node);
+    }
+
+    boolean isOrExpression(Node node){
+        return node instanceof ASTConditionalOrExpression;
+    }
+
+    boolean isAndExpression(Node node){
+        return node instanceof ASTConditionalAndExpression;
+    }
+
+    boolean isEqualityExpression(Node node){
+        return node instanceof ASTEqualityExpression;
+    }
+
+    boolean isRelationalExpression(Node node){
+        return node instanceof ASTRelationalExpression;
+    }
+
+    boolean isArithmeticExpression(Node node){
+        return isAdditiveExpression(node) || isMultiplicativeExpression(node);
+    }
+
+    boolean isAdditiveExpression(Node node){
+        return node instanceof ASTAdditiveExpression;
+    }
+    boolean isMultiplicativeExpression(Node node){
+        return node instanceof ASTMultiplicativeExpression;
+    }
+
+    boolean isVariable(Node node){
+        return node instanceof ASTName;
+    }
+
+    boolean isLiteral(Node node){
+        return isNumberLiteral(node) || isBooleanLiteral(node);
+    }
+
+    boolean isNumberLiteral(Node node){
+        return node instanceof ASTNumberLiteral;
+    }
+
+    boolean isBooleanLiteral(Node node){
+        return node instanceof ASTBooleanLiteral;
+    }
+
+    boolean isAllocationExpression(Node node){
+        return node instanceof ASTAllocationExpression;
+    }
 }

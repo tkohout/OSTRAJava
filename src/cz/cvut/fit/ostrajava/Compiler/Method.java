@@ -9,6 +9,7 @@ public class Method {
     protected String name;
     protected List<String> args;
     protected String returnType;
+    protected ByteCode byteCode;
 
     public Method(String name, List<String> args, String returnType) {
         this.name = name;
@@ -40,6 +41,12 @@ public class Method {
         this.name = name;
     }
 
+    public ByteCode getByteCode() {
+        return byteCode;
+    }
 
+    public void setByteCode(ByteCode byteCode) {
+        this.byteCode = byteCode;
+    }
 
 }

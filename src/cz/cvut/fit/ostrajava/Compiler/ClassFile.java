@@ -18,6 +18,7 @@ public class ClassFile {
     protected List<Field> fields;
     protected List<Method> methods;
 
+
     public ClassFile(String className, String superName){
         this.className = className;
         this.superName = superName;
@@ -66,6 +67,7 @@ public class ClassFile {
     public void setFlags(List<String> flags) {
         this.flags = flags;
     }
+
 
 
     @Override

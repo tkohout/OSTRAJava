@@ -7,6 +7,11 @@ tryda Ostrava {
     fraj rynek(number arg1, string arg2, D arg3){
 
         toz number i, j pyco
+
+        toz bool b pyco
+
+        b = (i == 1 aj (i == 4 bo 1<5) ) pyco
+
         i = 25 pyco
 
         kaj (i == 1 aj (i == 4 bo (i > j aj i < j) ) aj i == 2 ) {

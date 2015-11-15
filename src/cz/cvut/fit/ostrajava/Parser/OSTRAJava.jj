@@ -33,7 +33,7 @@ options {
   JAVA_UNICODE_ESCAPE = true;
                              
                     
-  //NODE_DEFAULT_VOID = true;
+  STATIC = false;
 }
 
 PARSER_BEGIN(OSTRAJavaParser)
@@ -41,7 +41,7 @@ PARSER_BEGIN(OSTRAJavaParser)
 package cz.cvut.fit.ostrajava.Parser;
 
 public class OSTRAJavaParser/*@bgen(jjtree)*/implements OSTRAJavaParserTreeConstants/*@egen*/ {/*@bgen(jjtree)*/
-  protected static JJTOSTRAJavaParserState jjtree = new JJTOSTRAJavaParserState();
+  protected JJTOSTRAJavaParserState jjtree = new JJTOSTRAJavaParserState();
 
 /*@egen*/
 
@@ -1017,7 +1017,7 @@ void Assignment() :
 {/*@bgen(jjtree) Assignment */
   try {
 /*@egen*/
-  Assignee() "=" Expression()/*@bgen(jjtree)*/
+  Assignee() "=" AdditiveExpression()/*@bgen(jjtree)*/
   } catch (Throwable jjte000) {
     if (jjtc000) {
       jjtree.clearNodeScope(jjtn000);
@@ -1973,10 +1973,10 @@ void AllocationExpression() :
 {/*@bgen(jjtree) AllocationExpression */
   try {
 /*@egen*/
-  LOOKAHEAD(2)
+/*  LOOKAHEAD(2)
   "zrob" PrimitiveType() ArrayDimensions()
-|
-  "zrob" Name() ( Arguments() | ArrayDimensions() )/*@bgen(jjtree)*/
+|*/
+  "zrob" Name()  Arguments()/*@bgen(jjtree)*/
   } catch (Throwable jjte000) {
     if (jjtc000) {
       jjtree.clearNodeScope(jjtn000);
@@ -1997,7 +1997,7 @@ void AllocationExpression() :
       jjtn000.jjtSetLastToken(getToken(0));
     }
   }
-/*@egen*/
+/*@egen*/ /*| ArrayDimensions()*/
 }
 
 /*
@@ -2054,10 +2054,10 @@ void Statement() :
   try {
 /*@egen*/
   LOOKAHEAD(2)
-  Block()
-/*|
-  EmptyStatement()*/
+ /* Block()
 |
+  EmptyStatement()
+|*/
   StatementExpression() "pyco"
 /*|
   SwitchStatement()*/

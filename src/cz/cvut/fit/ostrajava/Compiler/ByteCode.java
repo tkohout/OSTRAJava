@@ -8,11 +8,11 @@ import java.util.*;
 public class ByteCode {
 
     protected List<Instruction> instructions;
-    protected Map<String, String> localVars;
+    protected Map<String, Variable> localVars;
 
     public ByteCode() {
         instructions = new ArrayList<Instruction>();
-        localVars = new LinkedHashMap<String, String>();
+        localVars = new LinkedHashMap<String, Variable>();
     }
 
     public Instruction addInstruction(Instruction inst){
@@ -20,18 +20,21 @@ public class ByteCode {
         return inst;
     }
 
-    public int addLocalVariable(String name, String value){
+    public int addLocalVariable(String name, Type type){
         if (localVars.containsKey(name)){
             return -1;
         }
 
+        Variable var = new Variable(name, type);
+
         int pos = localVars.size();
-        localVars.put(name, value);
+        localVars.put(name, var);
         return pos;
     }
 
-    public String getValueOfLocalVariable(String name){
-        return localVars.get(name);
+    public Type getTypeOfLocalVariable(String name){
+        Variable var = localVars.get(name);
+        return var.getType();
     }
 
     public int getPositionOfLocalVariable(String name){
