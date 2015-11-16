@@ -1,21 +1,15 @@
 banik pyco
 
 tryda Ostrava {
-    fraj rynek(){
+    fraj rynek(number i, number y){
         toz A a pyco
 
         a = zrob A() pyco
 
-        a.foo() pyco
+        a.foo(i, y) pyco
 
-        foo() pyco
+        joch.boo() pyco
 
-        /*toz A a pyco
-        toz B b pyco
-
-        a = zrob A() pyco
-        b = a pyco
-        */
         davaj pyco
     }
 

@@ -10,7 +10,7 @@ import java.util.*;
  * Created by tomaskohout on 11/12/15.
  */
 public class OSTRAJavaCompiler {
-    final String THIS_VARIABLE = "this";
+    final String THIS_VARIABLE = "joch";
 
     protected SimpleNode node;
 
@@ -332,10 +332,8 @@ public class OSTRAJavaCompiler {
             prefix = new ASTThis(prefix.getId());
         }
 
-        if (prefix instanceof ASTName) {
+        if (prefix instanceof ASTName || prefix instanceof ASTThis) {
             expression(prefix, bytecode);
-        }else if (prefix instanceof ASTThis){
-            loadThis(bytecode);
         }else{
             throw new NotImplementedException();
         }
@@ -384,15 +382,7 @@ public class OSTRAJavaCompiler {
         return;
     }
 
-    protected void loadThis(ByteCode byteCode){
-        byteCode.getPositionOfLocalVariable(THIS_VARIABLE);
-        //This is always stored as first reference
-        byteCode.addInstruction(new Instruction(InstructionSet.LoadReference, "0"));
-    }
 
-    protected void loadSuper(ByteCode byteCode){
-        //TODO: load super
-    }
 
     protected void arguments(Node node, ByteCode byteCode) throws CompilerException {
         for (int i=0; i<node.jjtGetNumChildren(); i++) {
@@ -481,22 +471,27 @@ public class OSTRAJavaCompiler {
             }else if (isAllocationExpression(node)) {
                 allocationExpression((ASTAllocationExpression)node, byteCode);
             }
-        }else if (isVariable(node)){
+        }else if (isVariable(node)) {
             String name = ((ASTName) node).jjtGetValue().toString();
             int position = byteCode.getPositionOfLocalVariable(name);
-            Type type = byteCode.getTypeOfLocalVariable(name);
 
-            if (position == -1){
+            if (position == -1) {
                 throw new CompilerException("Variable '" + name + "' is not declared");
             }
 
+            Type type = byteCode.getTypeOfLocalVariable(name);
+
+
             if (type == Type.Number() || type == Type.Boolean()) {
                 byteCode.addInstruction(new Instruction(InstructionSet.LoadInteger, Integer.toString(position)));
-            }else if (type.isReference()){
+            } else if (type.isReference()) {
                 byteCode.addInstruction(new Instruction(InstructionSet.LoadReference, Integer.toString(position)));
-            }else{
+            } else {
                 throw new NotImplementedException();
             }
+        }else if (node instanceof ASTThis){
+            int position = byteCode.getPositionOfLocalVariable(THIS_VARIABLE);
+            byteCode.addInstruction(new Instruction(InstructionSet.LoadReference,Integer.toString(position)));
         }else if (isNumberLiteral(node)){
             String value = ((ASTNumberLiteral) node).jjtGetValue().toString();
             byteCode.addInstruction(new Instruction(InstructionSet.PushInteger, value));
