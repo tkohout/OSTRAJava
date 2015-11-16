@@ -98,10 +98,10 @@ TOKEN : /* RESERVED WORDS AND LITERALS */
 | < PRINT: "pravit" >
 | < RETURN: "davaj" >
 
-| < INT: "number" >
-| < BOOLEAN: "bool" >
-| < FLOAT: "float" >
-| < STRING: "string" >
+| < INT: "cyslo" >
+| < BOOLEAN: "bul" >
+| < FLOAT: "cyslo_desetinne" >
+| < STRING: "dryst" >
 
 //translate
 | < SWITCH: "switch" >
@@ -300,13 +300,15 @@ void ClassBodyDeclaration() #void:
 {}
 {
 
-  LOOKAHEAD( Name() "(" )
-  ConstructorDeclaration()
-|
-  LOOKAHEAD( MethodDeclarationLookahead() )
-  MethodDeclaration()
-|
+  //LOOKAHEAD( Name() "(" )
+  //ConstructorDeclaration()
+//|
+  //LOOKAHEAD( MethodDeclarationLookahead() )
+
+  LOOKAHEAD("toz")
   FieldDeclaration()
+  |
+  MethodDeclaration()
 }
 
 // This production is to determine lookahead only.
@@ -342,7 +344,7 @@ void FieldDeclaration() :
 void VariableDeclarator() :
 {}
 {
-  VariableDeclaratorId() [ "=" Literal() ]
+  Name() [ "=" PrimaryExpression() ]
 }
 
 void VariableDeclaratorId() #Variable:
@@ -362,8 +364,17 @@ void VariableInitializer() :
 void MethodDeclaration() :
 {}
 {
-  ResultType() MethodDeclarator() [ "muze mrdnut" NameList() ]
+  MethodHeader()
   ( Block() | "pyco" )
+}
+
+void MethodHeader() #void:
+{}
+{
+    LOOKAHEAD(ResultType() <IDENTIFIER> "(")
+    ResultType() MethodDeclarator() [ "muze mrdnut" NameList() ]
+    |
+    MethodDeclarator() [ "muze mrdnut" NameList() ]
 }
 
 void MethodDeclarator() #Method:
@@ -415,20 +426,20 @@ void Type():
 void PrimitiveType() #void:
 {}
 {
-"bool" #Bool
+"bul" #Bool
 |
-"string" #String
+"dryst" #String
 |
- "number"  #Number
+ "cyslo"  #Number
 |
- "float"  #Float
+ "cyslo_desetinne"  #Float
 
 }
 
 void ResultType() :
 {}
 {
-  "fraj"
+"fraj"
 |
   Type()
 }

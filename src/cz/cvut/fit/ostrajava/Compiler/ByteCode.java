@@ -37,6 +37,11 @@ public class ByteCode {
         return var.getType();
     }
 
+    public Variable getVariable(String name){
+        Variable var = localVars.get(name);
+        return var;
+    }
+
     public int getPositionOfLocalVariable(String name){
         int pos = (new ArrayList<String>(localVars.keySet())).indexOf(name);
         return pos;

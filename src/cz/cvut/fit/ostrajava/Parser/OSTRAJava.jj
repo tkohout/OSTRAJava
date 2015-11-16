@@ -102,10 +102,10 @@ TOKEN : /* RESERVED WORDS AND LITERALS */
 | < PRINT: "pravit" >
 | < RETURN: "davaj" >
 
-| < INT: "number" >
-| < BOOLEAN: "bool" >
-| < FLOAT: "float" >
-| < STRING: "string" >
+| < INT: "cyslo" >
+| < BOOLEAN: "bul" >
+| < FLOAT: "cyslo_desetinne" >
+| < STRING: "dryst" >
 
 //translate
 | < SWITCH: "switch" >
@@ -360,13 +360,15 @@ void ClassBodyDeclaration()      :
 {}
 {
 
-  LOOKAHEAD( Name() "(" )
-  ConstructorDeclaration()
-|
-  LOOKAHEAD( MethodDeclarationLookahead() )
-  MethodDeclaration()
-|
+  //LOOKAHEAD( Name() "(" )
+  //ConstructorDeclaration()
+//|
+  //LOOKAHEAD( MethodDeclarationLookahead() )
+
+  LOOKAHEAD("toz")
   FieldDeclaration()
+  |
+  MethodDeclaration()
 }
 
 // This production is to determine lookahead only.
@@ -465,7 +467,7 @@ void VariableDeclarator() :
 {/*@bgen(jjtree) VariableDeclarator */
   try {
 /*@egen*/
-  VariableDeclaratorId() [ "=" Literal() ]/*@bgen(jjtree)*/
+  Name() [ "=" PrimaryExpression() ]/*@bgen(jjtree)*/
   } catch (Throwable jjte000) {
     if (jjtc000) {
       jjtree.clearNodeScope(jjtn000);
@@ -555,7 +557,7 @@ void MethodDeclaration() :
 {/*@bgen(jjtree) MethodDeclaration */
   try {
 /*@egen*/
-  ResultType() MethodDeclarator() [ "muze mrdnut" NameList() ]
+  MethodHeader()
   ( Block() | "pyco" )/*@bgen(jjtree)*/
   } catch (Throwable jjte000) {
     if (jjtc000) {
@@ -578,6 +580,15 @@ void MethodDeclaration() :
     }
   }
 /*@egen*/
+}
+
+void MethodHeader()      :
+{}
+{
+    LOOKAHEAD(ResultType() <IDENTIFIER> "(")
+    ResultType() MethodDeclarator() [ "muze mrdnut" NameList() ]
+    |
+    MethodDeclarator() [ "muze mrdnut" NameList() ]
 }
 
 void MethodDeclarator()        :
@@ -805,7 +816,7 @@ void PrimitiveType()      :
 }
 try {
 /*@egen*/
-"bool"/*@bgen(jjtree)*/
+"bul"/*@bgen(jjtree)*/
 } finally {
   if (jjtc001) {
     jjtree.closeNodeScope(jjtn001, true);
@@ -822,7 +833,7 @@ try {
 }
 try {
 /*@egen*/
-"string"/*@bgen(jjtree)*/
+"dryst"/*@bgen(jjtree)*/
 } finally {
   if (jjtc002) {
     jjtree.closeNodeScope(jjtn002, true);
@@ -839,7 +850,7 @@ try {
  }
  try {
 /*@egen*/
- "number"/*@bgen(jjtree)*/
+ "cyslo"/*@bgen(jjtree)*/
  } finally {
    if (jjtc003) {
      jjtree.closeNodeScope(jjtn003, true);
@@ -856,7 +867,7 @@ try {
  }
  try {
 /*@egen*/
- "float"/*@bgen(jjtree)*/
+ "cyslo_desetinne"/*@bgen(jjtree)*/
  } finally {
    if (jjtc004) {
      jjtree.closeNodeScope(jjtn004, true);
@@ -875,31 +886,31 @@ void ResultType() :
   jjtn000.jjtSetFirstToken(getToken(1));
 /*@egen*/}
 {/*@bgen(jjtree) ResultType */
-  try {
+try {
 /*@egen*/
-  "fraj"
+"fraj"
 |
   Type()/*@bgen(jjtree)*/
-  } catch (Throwable jjte000) {
-    if (jjtc000) {
-      jjtree.clearNodeScope(jjtn000);
-      jjtc000 = false;
-    } else {
-      jjtree.popNode();
-    }
-    if (jjte000 instanceof RuntimeException) {
-      throw (RuntimeException)jjte000;
-    }
-    if (jjte000 instanceof ParseException) {
-      throw (ParseException)jjte000;
-    }
-    throw (Error)jjte000;
-  } finally {
-    if (jjtc000) {
-      jjtree.closeNodeScope(jjtn000, true);
-      jjtn000.jjtSetLastToken(getToken(0));
-    }
+} catch (Throwable jjte000) {
+  if (jjtc000) {
+    jjtree.clearNodeScope(jjtn000);
+    jjtc000 = false;
+  } else {
+    jjtree.popNode();
   }
+  if (jjte000 instanceof RuntimeException) {
+    throw (RuntimeException)jjte000;
+  }
+  if (jjte000 instanceof ParseException) {
+    throw (ParseException)jjte000;
+  }
+  throw (Error)jjte000;
+} finally {
+  if (jjtc000) {
+    jjtree.closeNodeScope(jjtn000, true);
+    jjtn000.jjtSetLastToken(getToken(0));
+  }
+}
 /*@egen*/
 }
 

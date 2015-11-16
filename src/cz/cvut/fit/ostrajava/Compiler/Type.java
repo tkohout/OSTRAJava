@@ -89,6 +89,10 @@ public class Type {
 
     @Override
     public String toString() {
-        return this.type.toString();
+        if (isReference()){
+            return this.className;
+        }else {
+            return this.type.toString();
+        }
     }
 }

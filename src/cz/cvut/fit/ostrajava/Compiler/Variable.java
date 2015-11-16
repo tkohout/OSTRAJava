@@ -6,6 +6,7 @@ package cz.cvut.fit.ostrajava.Compiler;
 public class Variable {
     protected String name;
     protected Type type;
+    protected boolean initialized = false;
 
     public Variable(String name, Type type) {
         this.name = name;
@@ -26,5 +27,13 @@ public class Variable {
 
     public void setType(Type type) {
         this.type = type;
+    }
+
+    public boolean isInitialized() {
+        return initialized;
+    }
+
+    public void setInitialized(boolean initialized) {
+        this.initialized = initialized;
     }
 }

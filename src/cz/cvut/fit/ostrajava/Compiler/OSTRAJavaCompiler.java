@@ -1,5 +1,6 @@
 package cz.cvut.fit.ostrajava.Compiler;
 
+import com.sun.tools.corba.se.idl.constExpr.Not;
 import cz.cvut.fit.ostrajava.Parser.*;
 import jdk.nashorn.internal.runtime.regexp.joni.constants.Arguments;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
@@ -181,14 +182,7 @@ public class OSTRAJavaCompiler {
 
             //Everything written with a 'pyco' in the end
             if (child instanceof ASTStatementExpression){
-                Node statementExpression = ((ASTStatementExpression)child);
-                //It's an assignment
-                if (statementExpression.jjtGetChild(0) instanceof ASTAssignment){
-                    assignment((ASTAssignment) statementExpression.jjtGetChild(0), byteCode);
-                //It's a call
-                }else if (statementExpression.jjtGetChild(0) instanceof ASTPrimaryExpression){
-                    call(statementExpression.jjtGetChild(0), byteCode);
-                }
+                statementExpression((ASTStatementExpression) child, byteCode);
 
             }else if (child instanceof ASTBlock){
 
@@ -212,12 +206,29 @@ public class OSTRAJavaCompiler {
         return byteCode;
     }
 
-    protected ByteCode assignment(ASTAssignment node, ByteCode byteCode) throws CompilerException {
-        //Assignee -> AssignmentPrefix -> Left
-        Node left = node.jjtGetChild(0).jjtGetChild(0).jjtGetChild(0);
+    protected void statementExpression(ASTStatementExpression node, ByteCode byteCode) throws CompilerException {
 
-        //We have to go recursively to the bottom of the tree to find the real expression
-        Node right = simplifyExpression(node.jjtGetChild(1));
+        //It's an assignment
+        if (node.jjtGetChild(0) instanceof ASTAssignment){
+            Node assignmentNode = (ASTAssignment) node.jjtGetChild(0);
+
+            //Assignee -> AssignmentPrefix -> Left
+            Node left = assignmentNode.jjtGetChild(0).jjtGetChild(0).jjtGetChild(0);
+
+            Node right = assignmentNode.jjtGetChild(1);
+
+            assignment(left, right, byteCode);
+            //It's a call
+        }else if (node.jjtGetChild(0) instanceof ASTPrimaryExpression){
+            call(node.jjtGetChild(0), byteCode);
+        }else{
+            throw new NotImplementedException();
+        }
+    }
+
+    protected ByteCode assignment(Node left, Node right, ByteCode byteCode) throws CompilerException {
+
+        right = simplifyExpression(right);
 
         //We are assigning to a variable
         if (isVariable(left)) {
@@ -279,7 +290,10 @@ public class OSTRAJavaCompiler {
                 Type rightType = byteCode.getTypeOfLocalVariable(rightName);
 
                 if (rightType != type){
-                    throw new CompilerException("Trying to assign variable '" + rightName +  "' of type " + rightType + " to a variable '" + name + "' of type " + type);
+                    //Don't type control when it's both references (They can inherit from each other, check it in runtime)
+                    if (!type.isReference() && !rightType.isReference()) {
+                        throw new CompilerException("Trying to assign variable '" + rightName + "' of type " + rightType + " to a variable '" + name + "' of type " + type);
+                    }
                 }
 
                 expression(right, byteCode);
@@ -725,24 +739,18 @@ public class OSTRAJavaCompiler {
 
 
     protected ByteCode localVariableDeclaration(ASTLocalVariableDeclaration node, ByteCode byteCode) throws CompilerException {
-
-
         //First child is Type
         Type type = type((ASTType) node.jjtGetChild(0));
 
         //Second and others (There can be more fields declared) are names
         for (int i=1; i<node.jjtGetNumChildren(); i++) {
             ASTVariableDeclarator declarator = (ASTVariableDeclarator) node.jjtGetChild(i);
-            String name = ((ASTVariable) declarator.jjtGetChild(0)).jjtGetValue().toString();
+
+            ASTName nameNode = ((ASTName) declarator.jjtGetChild(0));
+            String name = nameNode.jjtGetValue().toString();
 
             String valueString = null;
             SimpleNode value = null;
-
-            //We also assigned value
-            if (declarator.jjtGetNumChildren() > 1) {
-                value = (SimpleNode) declarator.jjtGetChild(1);
-                valueString = value.jjtGetValue().toString();
-            }
 
             int position = byteCode.addLocalVariable(name, type);
 
@@ -750,41 +758,11 @@ public class OSTRAJavaCompiler {
                 throw new CompilerException("Variable '" + name + "' has been already declared");
             }
 
-            if (type == Type.Number()) {
-                if (value != null) {
-                    if (!(isNumberLiteral(value))) {
-                        throw new CompilerException("Assigning Non-Number literal to a Number type variable");
-                    }
-                } else {
-                    //Default value for integer
-                    valueString = "0";
-                }
-
-                byteCode.addInstruction(new Instruction(InstructionSet.PushInteger, valueString));
-                byteCode.addInstruction(new Instruction(InstructionSet.StoreInteger, Integer.toString(position)));
-            }else if (type == Type.Boolean()){
-                if (value != null){
-                    if (!(isBooleanLiteral(value))){
-                        throw new CompilerException("Assigning Non-Bool literal to a Bool type variable");
-                    }
-                }else{
-                    //Default value for boolean
-                    valueString = "0";
-                }
-
-                byteCode.addInstruction(new Instruction(InstructionSet.PushInteger, valueString));
-                byteCode.addInstruction(new Instruction(InstructionSet.StoreInteger, Integer.toString(position)));
-
-            //It's class
-            }else if (type.isReference()){
-                if (value != null){
-                    throw new CompilerException("Assigning Literal to a Object type variable");
-                }else{
-                    //No default value for objects?
-                    //TODO: maybe put null there?
-                }
+            //We also assigned value
+            if (declarator.jjtGetNumChildren() > 1) {
+                value = (SimpleNode) declarator.jjtGetChild(1);
+                assignment(nameNode, value, byteCode);
             }
-
         }
 
         return byteCode;
