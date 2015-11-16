@@ -1,20 +1,17 @@
 package cz.cvut.fit.ostrajava.Compiler;
 
-import com.sun.media.jfxmedia.effects.EqualizerBand;
-import com.sun.tools.corba.se.idl.constExpr.Not;
 import cz.cvut.fit.ostrajava.Parser.*;
-import jdk.nashorn.internal.ir.Block;
+import jdk.nashorn.internal.runtime.regexp.joni.constants.Arguments;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
-import javax.management.relation.RelationException;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 /**
  * Created by tomaskohout on 11/12/15.
  */
 public class OSTRAJavaCompiler {
+    final String THIS_VARIABLE = "this";
+
     protected SimpleNode node;
 
     public OSTRAJavaCompiler(ASTCompilationUnit node){
@@ -52,7 +49,7 @@ public class OSTRAJavaCompiler {
             if (child instanceof ASTFieldDeclaration){
                 fields.addAll(fieldDeclaration((ASTFieldDeclaration)child));
             }else if (child instanceof ASTMethodDeclaration){
-                Method method = methodDeclaration((ASTMethodDeclaration)child);
+                Method method = methodDeclaration((ASTMethodDeclaration)child, node.getName());
                 classFile.addMethod(method);
             }
         }
@@ -62,7 +59,7 @@ public class OSTRAJavaCompiler {
     }
 
     protected List<Field> fieldDeclaration(ASTFieldDeclaration node) throws CompilerException {
-        String type;
+        Type type;
 
         //First child is Type
         type = type((ASTType)node.jjtGetChild(0));
@@ -79,29 +76,31 @@ public class OSTRAJavaCompiler {
         return fields;
     }
 
-    protected String type(ASTType node) throws CompilerException {
-        String typeString;
+    protected Type type(ASTType node) throws CompilerException {
+        Type type;
 
-        Node type = node.jjtGetChild(0);
+        Node typeNode = node.jjtGetChild(0);
 
-        if (type instanceof ASTBool){
-            typeString = "bool";
-        }else if (type instanceof  ASTNumber){
-            typeString = "number";
-        }else if (type instanceof  ASTString){
-            typeString = "string";
-        }else if (type instanceof  ASTName){
-            typeString = (String)((ASTName) type).jjtGetValue();
+        if (typeNode instanceof ASTBool){
+            type = Type.Boolean();
+        }else if (typeNode instanceof  ASTNumber){
+            type = Type.Number();
+        }else if (typeNode instanceof  ASTString){
+            type = Type.String();
+        }else if (typeNode instanceof  ASTName){
+            String className = (String)((ASTName) typeNode).jjtGetValue();
+            type = Type.Reference(className);
         }else{
-            throw new CompilerException("Unexpected type of field " + type );
+            throw new CompilerException("Unexpected type of field " + typeNode );
         }
 
-        return typeString;
+        return type;
     }
 
-    protected Method methodDeclaration(ASTMethodDeclaration node) throws CompilerException {
-        String returnType = "void", name = null;
-        List<String> args = null;
+    protected Method methodDeclaration(ASTMethodDeclaration node, String className) throws CompilerException {
+        Type returnType = Type.Void();
+        String name = null;
+        List<Type> args = new ArrayList<>();
         ByteCode byteCode = new ByteCode();
         for (int i=0; i<node.jjtGetNumChildren(); i++) {
             Node child = node.jjtGetChild(i);
@@ -112,10 +111,16 @@ public class OSTRAJavaCompiler {
                     returnType = type((ASTType)resultType.jjtGetChild(0));
                 }
             }else if (child instanceof ASTMethod){
+
+
                 name = ((ASTMethod) child).jjtGetValue().toString();
 
+                //Add This as first argument
+                byteCode.addLocalVariable(THIS_VARIABLE, Type.Reference(className));
+
+                //Add the rest of arguments
                 ASTFormalParameters params = (ASTFormalParameters)child.jjtGetChild(0);
-                args = formalParameters(params);
+                args = formalParameters(params, byteCode);
             }else if (child instanceof ASTBlock){
                 methodBlock((ASTBlock) child, byteCode);
             }
@@ -131,16 +136,17 @@ public class OSTRAJavaCompiler {
         return method;
     }
 
-    protected List<String> formalParameters(ASTFormalParameters node) throws CompilerException {
-        List<String> args = new ArrayList<String>();
+    protected List<Type> formalParameters(ASTFormalParameters node, ByteCode byteCode) throws CompilerException {
+        List<Type> args = new ArrayList<>();
 
         for (int i=0; i<node.jjtGetNumChildren(); i++) {
             ASTFormalParameter param = (ASTFormalParameter)node.jjtGetChild(i);
-            String type = type((ASTType) param.jjtGetChild(0));
-            //we don't care about the name
-            //String name =  ((ASTVariable)param.jjtGetChild(1)).jjtGetValue().toString();
+            Type type = type((ASTType) param.jjtGetChild(0));
+
+            String name = ((ASTVariable) param.jjtGetChild(1)).jjtGetValue().toString();
 
             args.add(type);
+            byteCode.addLocalVariable(name, type);
         }
 
         return args;
@@ -148,7 +154,7 @@ public class OSTRAJavaCompiler {
 
     protected ByteCode methodBlock(ASTBlock node, ByteCode byteCode) throws CompilerException {
 
-        //TODO: So far it's the same, if future it will probably need to load arguments etc...
+        //TODO: So far it's the same, in future it will probably need to load arguments etc...
         return block(node, byteCode);
     }
 
@@ -176,8 +182,12 @@ public class OSTRAJavaCompiler {
             //Everything written with a 'pyco' in the end
             if (child instanceof ASTStatementExpression){
                 Node statementExpression = ((ASTStatementExpression)child);
+                //It's an assignment
                 if (statementExpression.jjtGetChild(0) instanceof ASTAssignment){
-                    byteCode = assignment((ASTAssignment) statementExpression.jjtGetChild(0), byteCode);
+                    assignment((ASTAssignment) statementExpression.jjtGetChild(0), byteCode);
+                //It's a call
+                }else if (statementExpression.jjtGetChild(0) instanceof ASTPrimaryExpression){
+                    call(statementExpression.jjtGetChild(0), byteCode);
                 }
 
             }else if (child instanceof ASTBlock){
@@ -223,7 +233,7 @@ public class OSTRAJavaCompiler {
 
             //If the expression is a condition we have to evaluate it
             if (isConditionalExpression(right)){
-                if (type != Type.Boolean){
+                if (type != Type.Boolean()){
                     throw new CompilerException("Trying to assign boolean expression to variable '" + name + "' of type " + type);
                 }
 
@@ -243,7 +253,7 @@ public class OSTRAJavaCompiler {
                     instr.setOperand(0, Integer.toString(byteCode.getLastInstructionPosition()));
                 }
             }else if (isNumberLiteral(right) || isAdditiveExpression(right) || isMultiplicativeExpression(right)){
-                if (type != Type.Number){
+                if (type != Type.Number()){
                     throw new CompilerException("Trying to assign Number to a variable '" + name + "' of type " + type);
                 }
 
@@ -251,7 +261,7 @@ public class OSTRAJavaCompiler {
                 byteCode.addInstruction(new Instruction(InstructionSet.StoreInteger, Integer.toString(position)));
 
             }else if (isBooleanLiteral(right)) {
-                if (type != Type.Boolean) {
+                if (type != Type.Boolean()) {
                     throw new CompilerException("Trying to assign Boolean to a variable '" + name + "' of type " + type);
                 }
 
@@ -274,13 +284,13 @@ public class OSTRAJavaCompiler {
 
                 expression(right, byteCode);
 
-                if (type == Type.Reference) {
+                if (type.isReference()) {
                     byteCode.addInstruction(new Instruction(InstructionSet.StoreReference, Integer.toString(position)));
                 }else{
                     byteCode.addInstruction(new Instruction(InstructionSet.StoreInteger, Integer.toString(position)));
                 }
             }else if (isAllocationExpression(right)){
-                if (type != Type.Reference) {
+                if (!type.isReference()) {
                     throw new CompilerException("Trying to assign Object to a variable '" + name + "' of type " + type);
                 }
 
@@ -297,6 +307,105 @@ public class OSTRAJavaCompiler {
 
         return byteCode;
     }
+
+    protected void call(Node node, ByteCode bytecode) throws CompilerException{
+        if (node.jjtGetNumChildren() <= 1){
+            throw new CompilerException("Expected function call");
+        }
+
+        //Can either be object / object field / method name
+        List<Node> objects = new ArrayList<>();
+
+        //List of methods to call
+        Map<String, List<Node>> methods = new LinkedHashMap<>();
+
+
+        //PrimaryPrefix -> This / Super / Name
+        Node prefix = (Node) node.jjtGetChild(0).jjtGetChild(0);
+
+        //It is simple method call
+        if (node.jjtGetNumChildren() == 2){
+            //Add method name
+            objects.add(prefix);
+
+            //Set prefix as This
+            prefix = new ASTThis(prefix.getId());
+        }
+
+        if (prefix instanceof ASTName) {
+            expression(prefix, bytecode);
+        }else if (prefix instanceof ASTThis){
+            loadThis(bytecode);
+        }else{
+            throw new NotImplementedException();
+        }
+
+
+        for (int i=1; i<node.jjtGetNumChildren(); i++) {
+            Node suffix = (ASTPrimarySuffix) node.jjtGetChild(i);
+            Node child = suffix.jjtGetChild(0);
+
+            //it's arguments
+            if (child instanceof ASTArguments){
+
+                if (objects.size() == 0){
+                    throw new CompilerException("Unexpected argument list");
+                }
+
+                //Get last object (which is actually method name) and remove from the list
+                Node method = objects.get(objects.size() - 1);
+                objects.remove(objects.size() - 1);
+
+                String methodName = "";
+
+                if (method instanceof ASTName) {
+                    methodName = ((ASTName) method).jjtGetValue().toString();
+                }else{
+                    throw new CompilerException("Unexpected call of this() or super() in non-constructor method");
+                }
+
+                //Suffix -> Arguments
+                arguments(child, bytecode);
+
+                bytecode.addInstruction(new Instruction(InstructionSet.InvokeVirtual, methodName));
+            //it's object or object in field
+            }else if (child instanceof ASTName){
+                objects.add(child);
+            }
+        }
+
+        //If there are fields on the object
+        //TODO: Make it work with fields e.g.: this.foo.goo.boo()
+        if (objects.size() > 1){
+            throw new NotImplementedException();
+        }
+
+
+        return;
+    }
+
+    protected void loadThis(ByteCode byteCode){
+        byteCode.getPositionOfLocalVariable(THIS_VARIABLE);
+        //This is always stored as first reference
+        byteCode.addInstruction(new Instruction(InstructionSet.LoadReference, "0"));
+    }
+
+    protected void loadSuper(ByteCode byteCode){
+        //TODO: load super
+    }
+
+    protected void arguments(Node node, ByteCode byteCode) throws CompilerException {
+        for (int i=0; i<node.jjtGetNumChildren(); i++) {
+            Node child = node.jjtGetChild(i);
+            child = simplifyExpression(child);
+
+            expression(child, byteCode);
+
+            //TODO: evaluate bool expressions
+        }
+    }
+
+
 
     protected ByteCode ifStatement(ASTIfStatement node, ByteCode byteCode) throws CompilerException {
 
@@ -381,9 +490,9 @@ public class OSTRAJavaCompiler {
                 throw new CompilerException("Variable '" + name + "' is not declared");
             }
 
-            if (type == Type.Number || type == Type.Boolean) {
+            if (type == Type.Number() || type == Type.Boolean()) {
                 byteCode.addInstruction(new Instruction(InstructionSet.LoadInteger, Integer.toString(position)));
-            }else if (type == Type.Reference){
+            }else if (type.isReference()){
                 byteCode.addInstruction(new Instruction(InstructionSet.LoadReference, Integer.toString(position)));
             }else{
                 throw new NotImplementedException();
@@ -624,7 +733,7 @@ public class OSTRAJavaCompiler {
 
 
         //First child is Type
-        Node typeNode = node.jjtGetChild(0).jjtGetChild(0);
+        Type type = type((ASTType) node.jjtGetChild(0));
 
         //Second and others (There can be more fields declared) are names
         for (int i=1; i<node.jjtGetNumChildren(); i++) {
@@ -634,12 +743,19 @@ public class OSTRAJavaCompiler {
             String valueString = null;
             SimpleNode value = null;
 
+            //We also assigned value
             if (declarator.jjtGetNumChildren() > 1) {
                 value = (SimpleNode) declarator.jjtGetChild(1);
                 valueString = value.jjtGetValue().toString();
             }
 
-            if (typeNode instanceof ASTNumber) {
+            int position = byteCode.addLocalVariable(name, type);
+
+            if (position == -1) {
+                throw new CompilerException("Variable '" + name + "' has been already declared");
+            }
+
+            if (type == Type.Number()) {
                 if (value != null) {
                     if (!(isNumberLiteral(value))) {
                         throw new CompilerException("Assigning Non-Number literal to a Number type variable");
@@ -649,15 +765,9 @@ public class OSTRAJavaCompiler {
                     valueString = "0";
                 }
 
-                int position = byteCode.addLocalVariable(name, Type.Number);
-
-                if (position == -1) {
-                    throw new CompilerException("Variable '" + name + "' has been already declared");
-                }
-
                 byteCode.addInstruction(new Instruction(InstructionSet.PushInteger, valueString));
                 byteCode.addInstruction(new Instruction(InstructionSet.StoreInteger, Integer.toString(position)));
-            }else if (typeNode instanceof ASTBool){
+            }else if (type == Type.Boolean()){
                 if (value != null){
                     if (!(isBooleanLiteral(value))){
                         throw new CompilerException("Assigning Non-Bool literal to a Bool type variable");
@@ -667,27 +777,16 @@ public class OSTRAJavaCompiler {
                     valueString = "0";
                 }
 
-                int position = byteCode.addLocalVariable(name, Type.Boolean);
-
-                if (position == -1){
-                    throw new CompilerException("Variable '" + name + "' has been already declared");
-                }
-
                 byteCode.addInstruction(new Instruction(InstructionSet.PushInteger, valueString));
                 byteCode.addInstruction(new Instruction(InstructionSet.StoreInteger, Integer.toString(position)));
 
             //It's class
-            }else if (typeNode instanceof ASTName){
+            }else if (type.isReference()){
                 if (value != null){
                     throw new CompilerException("Assigning Literal to a Object type variable");
                 }else{
                     //No default value for objects?
-                }
-
-                int position = byteCode.addLocalVariable(name, Type.Reference);
-
-                if (position == -1) {
-                    throw new CompilerException("Variable '" + name + "' has been already declared");
+                    //TODO: maybe put null there?
                 }
             }
 

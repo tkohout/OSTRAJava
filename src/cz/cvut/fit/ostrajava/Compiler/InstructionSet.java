@@ -21,7 +21,9 @@ enum InstructionSet {
     IfCompareGreaterThanInteger("if_icmpgt"),
     IfCompareLessThanOrEqualInteger("if_icmple"),
     IfCompareLessThanInteger("if_icmplt"),
-    GoTo("goto")
+    GoTo("goto"),
+    InvokeVirtual("invokevirtual"),
+    InvokeSpecial("invokespecial")
     ;
 
     private String abbr;

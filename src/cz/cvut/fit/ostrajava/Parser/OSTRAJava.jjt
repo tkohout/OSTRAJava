@@ -574,9 +574,9 @@ void PrimaryPrefix() :
 |
   Name()
 |
-  "joch"
+  "joch" #This
 |
-  "forant" "." <IDENTIFIER>
+  "forant" /*"." <IDENTIFIER>*/ #Super
 |
   "(" Expression() ")"
 |
@@ -584,11 +584,11 @@ void PrimaryPrefix() :
 }
 
 void PrimarySuffix() :
-{}
+{Token t;}
 {
-  "[" Expression() "]"
-|
-  "." <IDENTIFIER>
+//  "[" Expression() "]"
+//|
+  "." Name()
 |
   Arguments()
 }
@@ -623,13 +623,13 @@ void NullLiteral() :
   "chuj"
 }
 
-void Arguments() :
+void Arguments():
 {}
 {
   "(" [ ArgumentList() ] ")"
 }
 
-void ArgumentList() :
+void ArgumentList() #void:
 {}
 {
   Expression() ( "," Expression() )*

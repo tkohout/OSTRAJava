@@ -16,7 +16,11 @@ public class  Test {
     }
 
     public void testNew(){
-        List<String> obj;
+        Test obj;
+        obj = new Test();
+        obj.foo(1);
+
+
         //obj = new ArrayList<>();
         /*Object obj2 = new Object();
 
@@ -29,7 +33,7 @@ public class  Test {
         i = j;
     }
 
-    public void foo(){};
+    public void foo(int i){};
     public void boo(){};
 
 

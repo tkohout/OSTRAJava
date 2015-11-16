@@ -8,9 +8,9 @@ import java.util.List;
 public class Field {
     protected List<String> flags;
     protected String name;
-    protected String type;
+    protected Type type;
 
-    public Field(String name, String type){
+    public Field(String name, Type type){
         this.name = name;
         this.type = type;
     }

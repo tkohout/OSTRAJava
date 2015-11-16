@@ -7,29 +7,29 @@ import java.util.List;
  */
 public class Method {
     protected String name;
-    protected List<String> args;
-    protected String returnType;
+    protected List<Type> args;
+    protected Type returnType;
     protected ByteCode byteCode;
 
-    public Method(String name, List<String> args, String returnType) {
+    public Method(String name, List<Type> args, Type returnType) {
         this.name = name;
         this.args = args;
         this.returnType = returnType;
     }
 
-    public String getReturnType() {
+    public Type getReturnType() {
         return returnType;
     }
 
-    public void setReturnType(String returnType) {
+    public void setReturnType(Type returnType) {
         this.returnType = returnType;
     }
 
-    public List<String> getArgs() {
+    public List<Type> getArgs() {
         return args;
     }
 
-    public void setArgs(List<String> args) {
+    public void setArgs(List<Type> args) {
         this.args = args;
     }
 

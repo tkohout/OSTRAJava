@@ -1705,10 +1705,40 @@ void PrimaryPrefix() :
   Literal()
 |
   Name()
-|
-  "joch"
-|
-  "forant" "." <IDENTIFIER>
+|/*@bgen(jjtree) This */
+  {
+    ASTThis jjtn001 = new ASTThis(JJTTHIS);
+    boolean jjtc001 = true;
+    jjtree.openNodeScope(jjtn001);
+    jjtn001.jjtSetFirstToken(getToken(1));
+  }
+  try {
+/*@egen*/
+  "joch"/*@bgen(jjtree)*/
+  } finally {
+    if (jjtc001) {
+      jjtree.closeNodeScope(jjtn001, true);
+      jjtn001.jjtSetLastToken(getToken(0));
+    }
+  }
+/*@egen*/      
+|/*@bgen(jjtree) Super */
+  {
+    ASTSuper jjtn002 = new ASTSuper(JJTSUPER);
+    boolean jjtc002 = true;
+    jjtree.openNodeScope(jjtn002);
+    jjtn002.jjtSetFirstToken(getToken(1));
+  }
+  try {
+/*@egen*/
+  "forant"/*@bgen(jjtree)*/
+  } finally {
+    if (jjtc002) {
+      jjtree.closeNodeScope(jjtn002, true);
+      jjtn002.jjtSetLastToken(getToken(0));
+    }
+  }
+/*@egen*/                            
 |
   "(" Expression() ")"
 |
@@ -1738,17 +1768,17 @@ void PrimaryPrefix() :
 
 void PrimarySuffix() :
 {/*@bgen(jjtree) PrimarySuffix */
-  ASTPrimarySuffix jjtn000 = new ASTPrimarySuffix(JJTPRIMARYSUFFIX);
-  boolean jjtc000 = true;
-  jjtree.openNodeScope(jjtn000);
-  jjtn000.jjtSetFirstToken(getToken(1));
-/*@egen*/}
+ ASTPrimarySuffix jjtn000 = new ASTPrimarySuffix(JJTPRIMARYSUFFIX);
+ boolean jjtc000 = true;
+ jjtree.openNodeScope(jjtn000);
+ jjtn000.jjtSetFirstToken(getToken(1));
+/*@egen*/Token t;}
 {/*@bgen(jjtree) PrimarySuffix */
   try {
 /*@egen*/
-  "[" Expression() "]"
-|
-  "." <IDENTIFIER>
+//  "[" Expression() "]"
+//|
+  "." Name()
 |
   Arguments()/*@bgen(jjtree)*/
   } catch (Throwable jjte000) {
@@ -1895,7 +1925,7 @@ void NullLiteral() :
 /*@egen*/
 }
 
-void Arguments() :
+void Arguments():
 {/*@bgen(jjtree) Arguments */
   ASTArguments jjtn000 = new ASTArguments(JJTARGUMENTS);
   boolean jjtc000 = true;
@@ -1929,38 +1959,10 @@ void Arguments() :
 /*@egen*/
 }
 
-void ArgumentList() :
-{/*@bgen(jjtree) ArgumentList */
-  ASTArgumentList jjtn000 = new ASTArgumentList(JJTARGUMENTLIST);
-  boolean jjtc000 = true;
-  jjtree.openNodeScope(jjtn000);
-  jjtn000.jjtSetFirstToken(getToken(1));
-/*@egen*/}
-{/*@bgen(jjtree) ArgumentList */
-  try {
-/*@egen*/
-  Expression() ( "," Expression() )*/*@bgen(jjtree)*/
-  } catch (Throwable jjte000) {
-    if (jjtc000) {
-      jjtree.clearNodeScope(jjtn000);
-      jjtc000 = false;
-    } else {
-      jjtree.popNode();
-    }
-    if (jjte000 instanceof RuntimeException) {
-      throw (RuntimeException)jjte000;
-    }
-    if (jjte000 instanceof ParseException) {
-      throw (ParseException)jjte000;
-    }
-    throw (Error)jjte000;
-  } finally {
-    if (jjtc000) {
-      jjtree.closeNodeScope(jjtn000, true);
-      jjtn000.jjtSetLastToken(getToken(0));
-    }
-  }
-/*@egen*/
+void ArgumentList()      :
+{}
+{
+  Expression() ( "," Expression() )*
 }
 
 void AllocationExpression() :
