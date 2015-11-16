@@ -148,6 +148,11 @@ public class OSTRAJavaCompiler {
 
             args.add(type);
             byteCode.addLocalVariable(name, type);
+
+            //TODO: This might be a problem
+            //We conclude that the variables are initialized
+            Variable var = byteCode.getVariable(name);
+            var.setInitialized(true);
         }
 
         return args;
@@ -239,6 +244,10 @@ public class OSTRAJavaCompiler {
             if (position == -1){
                 throw new CompilerException("Trying to assign to an undeclared variable '" + name + "'");
             }
+
+            //Initialize the variable
+            Variable var = byteCode.getVariable(name);
+            var.setInitialized(true);
 
             Type type = byteCode.getTypeOfLocalVariable(name);
 
@@ -495,6 +504,11 @@ public class OSTRAJavaCompiler {
 
             Type type = byteCode.getTypeOfLocalVariable(name);
 
+            Variable var = byteCode.getVariable(name);
+
+            if (!var.isInitialized()){
+                throw new CompilerException("Variable '" + name + "' is not initialized");
+            }
 
             if (type == Type.Number() || type == Type.Boolean()) {
                 byteCode.addInstruction(new Instruction(InstructionSet.LoadInteger, Integer.toString(position)));
