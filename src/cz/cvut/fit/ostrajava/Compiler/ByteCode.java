@@ -42,9 +42,18 @@ public class ByteCode {
         return var;
     }
 
+    public Variable getVariable(int index){
+        Variable var = localVars.get(variablesKeySet().get(index));
+        return var;
+    }
+
     public int getPositionOfLocalVariable(String name){
-        int pos = (new ArrayList<String>(localVars.keySet())).indexOf(name);
+        int pos = variablesKeySet().indexOf(name);
         return pos;
+    }
+
+    protected List<String> variablesKeySet(){
+       return new ArrayList<String>(localVars.keySet());
     }
 
     public Instruction getInstruction(int position){
