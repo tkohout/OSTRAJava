@@ -3,7 +3,7 @@ package cz.cvut.fit.ostrajava.Compiler;
 /**
  * Created by tomaskohout on 11/12/15.
  */
-enum InstructionSet {
+public enum InstructionSet {
     StoreInteger("istore"),
     LoadInteger("iload"),
     AddInteger("iadd"),

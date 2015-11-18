@@ -37,12 +37,16 @@ public class ByteCode {
         return var.getType();
     }
 
-    public Variable getVariable(String name){
+    public Variable getLocalVariable(String name){
         Variable var = localVars.get(name);
         return var;
     }
 
-    public Variable getVariable(int index){
+    public int getNumberOfLocalVariables(){
+        return localVars.size();
+    }
+
+    public Variable getLocalVariable(int index){
         Variable var = localVars.get(variablesKeySet().get(index));
         return var;
     }
@@ -66,6 +70,10 @@ public class ByteCode {
 
     public int getLastInstructionPosition(){
         return instructions.size() - 1;
+    }
+
+    public List<Instruction> getInstructions() {
+        return instructions;
     }
 
     @Override

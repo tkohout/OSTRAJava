@@ -1,8 +1,6 @@
 package cz.cvut.fit.ostrajava.Compiler;
 
-import com.sun.tools.corba.se.idl.constExpr.Not;
 import cz.cvut.fit.ostrajava.Parser.*;
-import jdk.nashorn.internal.runtime.regexp.joni.constants.Arguments;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.util.*;
@@ -148,6 +146,9 @@ public class OSTRAJavaCompiler {
         }
 
         Method method = new Method(name, args, returnType);
+
+        //TODO: Variables should get out of bytecode
+        method.setLocalVariablesCount(byteCode.getNumberOfLocalVariables());
         method.setByteCode(byteCode);
 
         return method;
@@ -166,8 +167,8 @@ public class OSTRAJavaCompiler {
             byteCode.addLocalVariable(name, type);
 
             //TODO: This might be a problem
-            //We conclude that the variables are initialized
-            Variable var = byteCode.getVariable(name);
+            //We conclude that the arguments are initialized
+            Variable var = byteCode.getLocalVariable(name);
             var.setInitialized(true);
         }
 
@@ -262,7 +263,7 @@ public class OSTRAJavaCompiler {
             }
 
             //Initialize the variable
-            Variable var = byteCode.getVariable(name);
+            Variable var = byteCode.getLocalVariable(name);
 
 
             Type type = byteCode.getTypeOfLocalVariable(name);
@@ -577,7 +578,7 @@ public class OSTRAJavaCompiler {
             throw new CompilerException("Variable '" + name + "' is not declared");
         }
 
-        Variable var = byteCode.getVariable(name);
+        Variable var = byteCode.getLocalVariable(name);
         Type type = byteCode.getTypeOfLocalVariable(name);
 
         if (!var.isInitialized()){

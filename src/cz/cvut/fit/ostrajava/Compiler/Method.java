@@ -10,6 +10,7 @@ public class Method {
     protected List<Type> args;
     protected Type returnType;
     protected ByteCode byteCode;
+    protected int localVariablesCount =  0;
 
     public Method(String name, List<Type> args, Type returnType) {
         this.name = name;
@@ -49,4 +50,11 @@ public class Method {
         this.byteCode = byteCode;
     }
 
+    public int getLocalVariablesCount() {
+        return localVariablesCount;
+    }
+
+    public void setLocalVariablesCount(int localVariablesCount) {
+        this.localVariablesCount = localVariablesCount;
+    }
 }

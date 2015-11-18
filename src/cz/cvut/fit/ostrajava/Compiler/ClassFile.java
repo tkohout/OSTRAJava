@@ -32,6 +32,16 @@ public class ClassFile {
         return methods;
     }
 
+    public Method getMethod(String name) {
+        for (Method method : methods){
+            if (method.getName().equals(name)){
+                return method;
+            }
+        }
+
+        return null;
+    }
+
     public void addMethod(Method method) {
         this.methods.add(method);
     }
