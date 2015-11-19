@@ -486,7 +486,8 @@ public class OSTRAJavaCompiler {
 
 
     protected void arguments(Node node, ByteCode byteCode) throws CompilerException {
-        for (int i=0; i<node.jjtGetNumChildren(); i++) {
+        //Put arguments on stack in reverse order
+        for (int i=node.jjtGetNumChildren()-1; i>=0; i--) {
             Node child = node.jjtGetChild(i);
             child = simplifyExpression(child);
             List<Instruction> instructions = expression(child, byteCode);

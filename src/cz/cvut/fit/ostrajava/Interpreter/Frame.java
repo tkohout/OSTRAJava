@@ -32,8 +32,6 @@ public class Frame {
         //Arguments and this ref counted in locals
         localVariablesCount = method.getLocalVariablesCount();
 
-        //for (int i = 0; i<)
-
         count = getStackOffset();
 
     }

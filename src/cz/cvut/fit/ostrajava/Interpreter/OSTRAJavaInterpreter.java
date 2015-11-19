@@ -139,7 +139,22 @@ public class OSTRAJavaInterpreter {
                     //Return to one instruction after this
                     int returnAddress = instructions.getCurrentPosition() + 1;
 
+
+                    //Pop arguments from the caller stack
+                    int numberOfArgs = method.getArgs().size();
+                    int[] argValues = new int[numberOfArgs];
+
+                    for (int i = 0; i<numberOfArgs; i++){
+                        argValues[i] = stack.currentFrame().pop();
+                    }
+
                     stack.newFrame(returnAddress, objectRef, method);
+
+                    //Store arguments as variables in callee stack
+                    for (int i = 0; i<numberOfArgs; i++){
+                        //Start with 1 index - 0 is reserved for This
+                        stack.currentFrame().storeVariable(i+1, argValues[i]);
+                    }
 
                     //Go to the method bytecode start
                     instructions.goTo(method.getInstructionPosition());

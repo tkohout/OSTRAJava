@@ -3,21 +3,12 @@ banik pyco
 tryda Ostrava {
 
     rynek(){
-        toz cyslo a = 0 pyco
-        toz cyslo b = pocitaj() pyco
+        toz cyslo a = 5 pyco
+        toz cyslo b = pocitaj(a, 4) pyco
     }
 
-    cyslo pocitaj(){
-        toz cyslo a = 14 pyco
-        a = a + 2 pyco
-
-        kaj (a == 5){
-            a = a * 2 pyco
-        } boinak{
-            a = a / 2 pyco
-        }
-
-        davaj a pyco
+    cyslo pocitaj(cyslo a, cyslo b){
+        davaj a - b pyco
     }
 
 }
