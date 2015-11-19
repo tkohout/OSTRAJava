@@ -24,7 +24,7 @@ public class ParseException extends Exception {
    * This constructor is used by the method "generateParseException"
    * in the generated parser.  Calling this constructor generates
    * a new object of this type with the fields "currentToken",
-   * "expectedTokenSequences", and "tokenImage" set.
+   * "expectedTokenSequences", and "tokenImage" setBytes.
    */
   public ParseException(Token currentTokenVal,
                         int[][] expectedTokenSequencesVal,

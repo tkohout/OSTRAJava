@@ -157,7 +157,7 @@ public class OSTRAJavaCompiler {
 
         Method method = new Method(name, args, returnType);
 
-        //TODO: Variables should get out of bytecode
+        //TODO: Variables should getBytes out of bytecode
         method.setLocalVariablesCount(byteCode.getNumberOfLocalVariables());
         method.setByteCode(byteCode);
 
@@ -535,7 +535,7 @@ public class OSTRAJavaCompiler {
 
         }
 
-        //Go through all goto instruction and set them to the end
+        //Go through all goto instruction and setBytes them to the end
         for (Instruction i : gotoInstructions){
             i.setOperand(0, Integer.toString(byteCode.getLastInstructionPosition() + 1));
         }
@@ -555,10 +555,10 @@ public class OSTRAJavaCompiler {
         //Negate the last if
         evaluateIfExpression(node, byteCode.getLastInstruction());
 
-        //If we success set variable to TRUE
+        //If we success setBytes variable to TRUE
         byteCode.addInstruction(new Instruction(InstructionSet.PushInteger, "1"));
         byteCode.addInstruction(new Instruction(InstructionSet.GoTo, Integer.toString(byteCode.getLastInstructionPosition()+3)));
-        //Else set it to false
+        //Else setBytes it to false
         byteCode.addInstruction(new Instruction(InstructionSet.PushInteger, "0"));
 
         //Set end block instructions to go to false

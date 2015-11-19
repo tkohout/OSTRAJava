@@ -12,15 +12,16 @@ public class Frame {
     final int LOCAL_VAR_BYTE_SIZE = 4;
     final int INT_SIZE = 4;
 
-    protected byte[] byteArray;
-    protected int pointer;
+    protected ByteBuffer byteArray;
+    protected int maxSize;
+    protected int count;
     protected int localVariablesCount = 0;
 
 
-    public Frame(int size, int returnAddress, int thisReference, Method method){
-        byteArray = new byte[size];
-
-        pointer = 0;
+    public Frame(int size, int returnAddress, int thisReference, Method method) throws InterpreterException {
+        byteArray = ByteBuffer.allocate(size);
+        maxSize = size;
+        count = 0;
 
         //Save return address
         push(returnAddress);
@@ -28,86 +29,67 @@ public class Frame {
         //Push this as a first variable
         push(thisReference);
 
+        //Arguments and this ref counted in locals
         localVariablesCount = method.getLocalVariablesCount();
 
         //for (int i = 0; i<)
 
-        //Arguments are also counted there
-        pointer = RETURN_ADDRESS_SIZE + localVariablesCount * LOCAL_VAR_BYTE_SIZE;
+        count = getStackOffset();
 
     }
 
-    public void push(int i){
-        byte[] bytes = intToByteArray(i);
-        pushBytes(bytes);
+
+    public void push(int i) throws InterpreterException {
+        if (count + INT_SIZE >= maxSize){
+            throw new InterpreterException("Stack overflow");
+        }
+        setBytes(count, i);
+        count += INT_SIZE;
     }
 
-    public int pop(){
-        byte[] bytes = popBytes(INT_SIZE);
-        int res = intFromByteArray(bytes);
-        return res;
+    public int pop() throws InterpreterException {
+        if (count - INT_SIZE < getStackOffset()){
+            throw new InterpreterException("Out of bounds");
+        }
+        count -= INT_SIZE;
+        return getBytes(count);
+    }
+
+    public void setBytes(int from, int i){
+        byteArray.putInt(from, i);
+    }
+
+    public int getBytes(int from){
+        int index = from;
+        int i = byteArray.getInt(index);
+        return i;
     }
 
     public void storeVariable(int index, int value) throws InterpreterException {
         if (index > localVariablesCount - 1 ){
             throw new InterpreterException("Trying to store to non-existent variable");
         }
-        setBytes(getVariablePosition(index), INT_SIZE, intToByteArray(value));
+        setBytes(getVariablePosition(index), value);
     }
 
     public int loadVariable(int index) throws InterpreterException {
         if (index > localVariablesCount - 1 ){
             throw new InterpreterException("Trying to load non-existent variable");
         }
-        return intFromByteArray(getBytes(getVariablePosition(index), INT_SIZE));
-    }
-
-
-    protected void pushBytes(byte[] bytes){
-
-        setBytes(pointer, bytes.length, bytes);
-        //TODO: Overflow check
-        pointer += bytes.length;
-    }
-
-    protected byte[] getBytes(int from, int size){
-        byte[] bytes = new byte[size];
-        for (int i = 0; i<size; i++){
-            bytes[i] = byteArray[from + i];
-        }
-        return bytes;
-    }
-
-    protected void setBytes(int from, int size, byte[] bytes){
-        for (int i = 0; i<size; i++){
-            byteArray[from + i]= bytes[i];
-        }
-    }
-
-    protected byte[] popBytes(int size){
-        byte[] bytes = getBytes(pointer-size, size);
-        //TODO: Negative check
-        pointer-=size;
-        return bytes;
+        return getBytes(getVariablePosition(index));
     }
 
     protected int getVariablePosition(int index){
         return RETURN_ADDRESS_SIZE + index * LOCAL_VAR_BYTE_SIZE;
     }
 
-    protected byte[] intToByteArray(int i){
-        return ByteBuffer.allocate(INT_SIZE).putInt(i).array();
-    }
-
-    protected int intFromByteArray(byte[] bytes){
-        return ByteBuffer.allocate(INT_SIZE).put(bytes).getInt(0);
-    }
-
     protected int getReturnAddress(){
-        return intFromByteArray(getBytes(0, 4));
+        return getBytes(0);
     }
 
-
+    protected int getStackOffset() {
+        return RETURN_ADDRESS_SIZE + localVariablesCount * LOCAL_VAR_BYTE_SIZE;
+    }
 
     @Override
     public String toString() {
@@ -120,10 +102,8 @@ public class Frame {
         for (int i=0; i < localVariablesCount; i++){
             int start = getVariablePosition(i);
 
-            byte[] bytes = getBytes(start, LOCAL_VAR_BYTE_SIZE);
-
             //TODO: right now just INT
-            int var = intFromByteArray(bytes);
+            int var = getBytes(start);
 
             sb.append("Var " + i + ": " + var + "\n");
         }
@@ -131,8 +111,8 @@ public class Frame {
         sb.append("-----------\n");
 
         //Show values on stack
-        for (int j=localVariablesCount*LOCAL_VAR_BYTE_SIZE; j < pointer; j++){
-            sb.append(byteArray[j] + " ");
+        for (int j=getStackOffset(); j < count; j++){
+            sb.append(byteArray.get(j)+ " ");
         }
 
         return sb.toString();

@@ -1,6 +1,7 @@
 package cz.cvut.fit.ostrajava.Interpreter;
 
 import cz.cvut.fit.ostrajava.Compiler.Instruction;
+import cz.cvut.fit.ostrajava.Compiler.InstructionSet;
 import cz.cvut.fit.ostrajava.Compiler.Method;
 
 import java.util.ArrayList;
@@ -25,10 +26,30 @@ public class Instructions{
             for (Method method: c.getMethods()){
                 int position = instructionList.size();
 
-                instructionList.addAll(method.getByteCode().getInstructions());
+                List<Instruction> instructions = method.getByteCode().getInstructions();
+
+                //We have to change instructions positions relatively to the method
+                for (Instruction inst: instructions){
+                    switch (inst.getInstruction()){
+                        case GoTo:
+                        case IfCompareLessThanInteger:
+                        case IfCompareLessThanOrEqualInteger:
+                        case IfCompareGreaterThanInteger:
+                        case IfCompareGreaterThanOrEqualInteger:
+                        case IfCompareEqualInteger:
+                        case IfCompareNotEqualInteger:
+                            int operand = Integer.parseInt(inst.getOperand(0));
+                            inst.setOperand(0,Integer.toString(operand + position));
+                            break;
+                    }
+                }
+
+                instructionList.addAll(instructions);
 
                 //Keep reference to method start position
                 ((InterpretedMethod) method).setInstructionPosition(position);
+
+
             }
         }
     }

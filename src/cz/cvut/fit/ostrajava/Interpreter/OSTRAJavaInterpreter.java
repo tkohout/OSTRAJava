@@ -71,6 +71,7 @@ public class OSTRAJavaInterpreter {
         //Move from one instruction to next
         while (itr.hasNext()){
             Instruction instruction = itr.next();
+
             executeInstruction(instruction, stack);
         }
 
@@ -83,6 +84,8 @@ public class OSTRAJavaInterpreter {
             case PushInteger:
             case StoreInteger:
             case LoadInteger:
+            case StoreReference:
+            case LoadReference:
                 executeStackInstruction(instruction, stack);
                 break;
             case AddInteger:
@@ -200,6 +203,19 @@ public class OSTRAJavaInterpreter {
                 stack.currentFrame().push(var);
             }
             break;
+
+            //TODO: so far it's the same
+            case StoreReference: {
+                int var = stack.currentFrame().pop();
+                stack.currentFrame().storeVariable(Integer.parseInt(instruction.getOperand(0)), var);
+            }
+            break;
+            case LoadReference: {
+                int var = stack.currentFrame().loadVariable(Integer.parseInt(instruction.getOperand(0)));
+                stack.currentFrame().push(var);
+            }
+            break;
+
         }
     }
 
@@ -266,6 +282,7 @@ public class OSTRAJavaInterpreter {
     }
 
     public void executeGoToInstruction(Instruction instruction, Stack stack) throws InterpreterException {
+
         int jumpTo = Integer.parseInt(instruction.getOperand(0));
         instructions.goTo(jumpTo);
     }
