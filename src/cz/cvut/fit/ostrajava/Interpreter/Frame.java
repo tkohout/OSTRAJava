@@ -8,17 +8,34 @@ import java.nio.ByteBuffer;
  * Created by tomaskohout on 11/17/15.
  */
 public class Frame {
-
-    //TODO: All types have same size?
+    final int RETURN_ADDRESS_SIZE = 4;
     final int LOCAL_VAR_BYTE_SIZE = 4;
     final int INT_SIZE = 4;
-
-
 
     protected byte[] byteArray;
     protected int pointer;
     protected int localVariablesCount = 0;
 
+
+    public Frame(int size, int returnAddress, int thisReference, Method method){
+        byteArray = new byte[size];
+
+        pointer = 0;
+
+        //Save return address
+        push(returnAddress);
+
+        //Push this as a first variable
+        push(thisReference);
+
+        localVariablesCount = method.getLocalVariablesCount();
+
+        //for (int i = 0; i<)
+
+        //Arguments are also counted there
+        pointer = RETURN_ADDRESS_SIZE + localVariablesCount * LOCAL_VAR_BYTE_SIZE;
+
+    }
 
     public void push(int i){
         byte[] bytes = intToByteArray(i);
@@ -75,7 +92,7 @@ public class Frame {
     }
 
     protected int getVariablePosition(int index){
-        return index * LOCAL_VAR_BYTE_SIZE;
+        return RETURN_ADDRESS_SIZE + index * LOCAL_VAR_BYTE_SIZE;
     }
 
     protected byte[] intToByteArray(int i){
@@ -86,32 +103,22 @@ public class Frame {
         return ByteBuffer.allocate(INT_SIZE).put(bytes).getInt(0);
     }
 
-
-
-    public Frame(int size, int returnAddress, int thisReference, Method method){
-        byteArray = new byte[size];
-
-        pointer = 0;
-
-        //Save return address
-        //push(returnAddress);
-
-        push(thisReference);
-
-        localVariablesCount = method.getLocalVariablesCount();
-
-        //Arguments are also counted there
-        pointer = localVariablesCount * LOCAL_VAR_BYTE_SIZE;
-
+    protected int getReturnAddress(){
+        return intFromByteArray(getBytes(0, 4));
     }
+
+
 
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
 
+        sb.append(getReturnAddress() + "\n");
+        sb.append("-----------\n");
+
         //Show local variables
         for (int i=0; i < localVariablesCount; i++){
-            int start = i*LOCAL_VAR_BYTE_SIZE;
+            int start = getVariablePosition(i);
 
             byte[] bytes = getBytes(start, LOCAL_VAR_BYTE_SIZE);
 

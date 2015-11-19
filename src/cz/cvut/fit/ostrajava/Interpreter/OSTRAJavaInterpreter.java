@@ -1,12 +1,12 @@
 package cz.cvut.fit.ostrajava.Interpreter;
 
 import cz.cvut.fit.ostrajava.Compiler.*;
+import cz.cvut.fit.ostrajava.Compiler.Class;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-
-import static cz.cvut.fit.ostrajava.Compiler.InstructionSet.*;
 
 /**
  * Created by tomaskohout on 11/17/15.
@@ -17,80 +17,100 @@ public class OSTRAJavaInterpreter {
     final String MAIN_METHOD_NAME = "rynek";
     final int FRAMES_NUMBER = 64;
     final int FRAME_STACK_SIZE = 256;
+    final int MAX_HEAP_OBJECTS = 256;
+
+    final int END_RETURN_ADDRESS = -1;
 
 
-    List<ClassFile> compiledClassFiles;
-
+    ClassPool classPool;
     Stack stack;
+    Heap heap;
+    Instructions instructions;
 
-    public OSTRAJavaInterpreter(List<ClassFile> compiledClassFiles){
-        this.compiledClassFiles= compiledClassFiles;
+
+    public OSTRAJavaInterpreter(List<Class> compiledClasses) throws InterpreterException, LookupException {
         this.stack = new Stack(FRAMES_NUMBER, FRAME_STACK_SIZE);
+        this.classPool = new ClassPool(compiledClasses);
+        this.heap = new Heap(MAX_HEAP_OBJECTS);
+        this.instructions = new Instructions(classPool);
     }
 
 
     public void run() throws InterpreterException {
-        ClassFile mainClass = findMainClass(compiledClassFiles);
-        Method mainMethod = mainClass.getMethod(MAIN_METHOD_NAME);
 
-        if (mainMethod == null){
-            throw new InterpreterException("Main method '" + MAIN_METHOD_NAME + "' is missing");
+        InterpretedClass mainClass = null;
+        InterpretedMethod mainMethod = null;
+
+        try {
+            mainClass = classPool.lookupClass(MAIN_CLASS_NAME);
+        } catch (LookupException e) {
+            throw new InterpreterException("Main class not found. The name has to be '" + MAIN_CLASS_NAME + "'");
         }
 
-        interpret(mainMethod);
+        try {
+            mainMethod = mainClass.lookupMethod(MAIN_METHOD_NAME);
+        }catch (LookupException e) {
+                throw new InterpreterException("Main method not found. The name has to be '" + MAIN_METHOD_NAME + "'");
+        }
+
+        int objectPointer = heap.alloc(mainClass);
+
+        //Create new frame for main method
+        stack.newFrame(END_RETURN_ADDRESS, objectPointer, mainMethod);
+
+        //Find instructions for main method
+        int mainMethodPosition = mainMethod.getInstructionPosition();
+        interpret(mainMethodPosition);
     }
 
-    public void interpret(Method method) throws InterpreterException{
+    public void interpret(int startingPosition) throws InterpreterException{
+        instructions.goTo(startingPosition);
 
-        //Create new frame for method
-        stack.newFrame(0, 0, method);
-
-        ByteCode byteCode = method.getByteCode();
-        List<Instruction> instructions = byteCode.getInstructions();
-
-        int position = 0;
-        int instruction_size = instructions.size();
+        Iterator<Instruction> itr = instructions.getIterator();
 
         //Move from one instruction to next
-        while (position >= 0 && position < instruction_size){
-            Instruction instruction = instructions.get(position);
-            position = executeInstruction(position, instruction, stack);
+        while (itr.hasNext()){
+            Instruction instruction = itr.next();
+            executeInstruction(instruction, stack);
         }
-
-        //int res = frame.loadVariable(1);
-
 
         return;
     }
 
-    public int executeInstruction(int position, Instruction instruction, Stack stack) throws InterpreterException{
+    public void executeInstruction(Instruction instruction, Stack stack) throws InterpreterException{
 
         switch (instruction.getInstruction()) {
             case PushInteger:
             case StoreInteger:
             case LoadInteger:
-                return executeStackInstruction(position, instruction, stack);
-
+                executeStackInstruction(instruction, stack);
+                break;
             case AddInteger:
             case SubstractInteger:
             case MultiplyInteger:
             case DivideInteger:
             case ModuloInteger:
-                return executeArithmeticInstruction(position, instruction, stack);
-
+                executeArithmeticInstruction(instruction, stack);
+                break;
             case IfCompareEqualInteger:
             case IfCompareNotEqualInteger:
             case IfCompareLessThanInteger:
             case IfCompareLessThanOrEqualInteger:
             case IfCompareGreaterThanInteger:
             case IfCompareGreaterThanOrEqualInteger:
-                return executeCompareInstruction(position, instruction, stack);
+                executeCompareInstruction(instruction, stack);
+                break;
             case GoTo:
-                return executeGoToInstruction(position, instruction, stack);
+                executeGoToInstruction(instruction, stack);
+                break;
             case ReturnVoid:
             case ReturnReference:
             case ReturnInteger:
-                return executeReturnInstruction(position, instruction, stack);
+                executeReturnInstruction(instruction, stack);
+                break;
+            case InvokeVirtual:
+                executeInvokeInstruction(instruction, stack);
+                break;
             default:
                 throw new NotImplementedException();
         }
@@ -98,17 +118,53 @@ public class OSTRAJavaInterpreter {
 
     }
 
-    public int executeReturnInstruction(int position, Instruction instruction, Stack stack) throws InterpreterException{
+    public void executeInvokeInstruction(Instruction instruction, Stack stack) throws InterpreterException{
+        switch (instruction.getInstruction()) {
+            case InvokeVirtual:
+                //The method name is directly in instruction
+                String methodName = instruction.getOperand(0);
+
+                //Get object the method is called on
+                int objectRef = stack.currentFrame().pop();
+                Object object = heap.load(objectRef);
+
+                InterpretedClass objectClass = object.loadClass(classPool);
+
+                try {
+                    InterpretedMethod method = objectClass.lookupMethod(methodName);
+
+                    //Return to one instruction after this
+                    int returnAddress = instructions.getCurrentPosition() + 1;
+
+                    stack.newFrame(returnAddress, objectRef, method);
+
+                    //Go to the method bytecode start
+                    instructions.goTo(method.getInstructionPosition());
+
+                } catch (LookupException e) {
+                    throw new InterpreterException("Calling non-existing method " + methodName);
+                }
+
+
+                break;
+        }
+    }
+
+    public void executeReturnInstruction(Instruction instruction, Stack stack) throws InterpreterException{
+
+        int returnAddress = stack.currentFrame().getReturnAddress();
+
         switch (instruction.getInstruction()) {
             case ReturnVoid:
                 stack.deleteCurrentFrame();
             break;
             case ReturnInteger: {
                 int var = stack.currentFrame().pop();
+
                 //Remove current frame
                 stack.deleteCurrentFrame();
 
-                //Push it on the calling frame
+                //Push return value on the calling frame
                 stack.currentFrame().push(var);
             }
             break;
@@ -124,10 +180,11 @@ public class OSTRAJavaInterpreter {
             }
             break;
         }
-        return -1;
+
+        instructions.goTo(returnAddress);
     }
 
-    public int executeStackInstruction(int position, Instruction instruction, Stack stack) throws InterpreterException{
+    public void executeStackInstruction(Instruction instruction, Stack stack) throws InterpreterException{
         switch (instruction.getInstruction()) {
             case PushInteger: {
                 stack.currentFrame().push(Integer.parseInt(instruction.getOperand(0)));
@@ -144,10 +201,9 @@ public class OSTRAJavaInterpreter {
             }
             break;
         }
-        return position+1;
     }
 
-    public int executeArithmeticInstruction(int position, Instruction instruction, Stack stack) throws InterpreterException{
+    public void executeArithmeticInstruction(Instruction instruction, Stack stack) throws InterpreterException{
         int b = stack.currentFrame().pop();
         int a = stack.currentFrame().pop();
 
@@ -173,11 +229,9 @@ public class OSTRAJavaInterpreter {
                 stack.currentFrame().push(a % b);
                break;
         }
-
-        return position+1;
     }
 
-    public int executeCompareInstruction(int position, Instruction instruction, Stack stack) throws InterpreterException {
+    public void executeCompareInstruction(Instruction instruction, Stack stack) throws InterpreterException {
         int b = stack.currentFrame().pop();
         int a = stack.currentFrame().pop();
 
@@ -206,23 +260,17 @@ public class OSTRAJavaInterpreter {
                 break;
         }
 
-        return  (condition) ? operand : position+1;
-    }
-
-    public int executeGoToInstruction(int position, Instruction instruction, Stack stack) throws InterpreterException {
-        int jumpTo = Integer.parseInt(instruction.getOperand(0));
-        return  jumpTo;
-    }
-
-    public ClassFile findMainClass(List<ClassFile> classFiles) throws InterpreterException {
-        for (ClassFile classFile:classFiles){
-            if (classFile.getClassName().toLowerCase().equals(MAIN_CLASS_NAME)) {
-                return classFile;
-            }
+        if (condition){
+            instructions.goTo(operand);
         }
-
-        throw new InterpreterException("Main class not found (Name of the class has to be '" + MAIN_CLASS_NAME + "')");
     }
+
+    public void executeGoToInstruction(Instruction instruction, Stack stack) throws InterpreterException {
+        int jumpTo = Integer.parseInt(instruction.getOperand(0));
+        instructions.goTo(jumpTo);
+    }
+
+
 
 
 }

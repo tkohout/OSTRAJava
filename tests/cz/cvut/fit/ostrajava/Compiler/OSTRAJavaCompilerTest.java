@@ -5,7 +5,6 @@ import cz.cvut.fit.ostrajava.Parser.ASTCompilationUnit;
 import cz.cvut.fit.ostrajava.Parser.OSTRAJavaParser;
 import cz.cvut.fit.ostrajava.Parser.ParseException;
 import org.junit.Test;
-import sun.misc.IOUtils;
 
 import java.io.*;
 import java.util.List;
@@ -84,11 +83,11 @@ public class OSTRAJavaCompilerTest {
 
         //Compile
         OSTRAJavaCompiler compiler = new OSTRAJavaCompiler(node);
-        List<ClassFile> classfiles = compiler.compile();
+        List<Class> classfiles = compiler.compile();
 
         assertTrue(classfiles.size() == 1);
 
-        ClassFile clazz = classfiles.get(0);
+        Class clazz = classfiles.get(0);
 
         assertTrue(clazz.getMethods().size() == 1);
 

@@ -3,6 +3,11 @@ banik pyco
 tryda Ostrava {
 
     rynek(){
+        toz cyslo a = 0 pyco
+        pocitaj() pyco
+    }
+
+    pocitaj(){
         toz cyslo a = 14 pyco
         toz cyslo b, c, d pyco
 

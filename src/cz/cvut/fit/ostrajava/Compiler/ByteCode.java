@@ -82,11 +82,7 @@ public class ByteCode {
 
         int in = 0;
         for (Instruction i: instructions){
-            sb.append(in + ": " + i.getInstruction() + " ");
-            for (String operand: i.getOperands()){
-                sb.append(operand + " ");
-            }
-            sb.append("\n");
+            sb.append(in + ": " + i + "\n");
             in++;
         }
 

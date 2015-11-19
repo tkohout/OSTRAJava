@@ -6,7 +6,7 @@ import java.util.List;
 /**
  * Created by tomaskohout on 11/12/15.
  */
-public class ClassFile {
+public class Class {
 
     final String MAGIC_HEADER = "BANIK";
 
@@ -19,7 +19,7 @@ public class ClassFile {
     protected List<Method> methods;
 
 
-    public ClassFile(String className, String superName){
+    public Class(String className, String superName){
         this.className = className;
         this.superName = superName;
 
@@ -30,16 +30,6 @@ public class ClassFile {
 
     public List<Method> getMethods() {
         return methods;
-    }
-
-    public Method getMethod(String name) {
-        for (Method method : methods){
-            if (method.getName().equals(name)){
-                return method;
-            }
-        }
-
-        return null;
     }
 
     public void addMethod(Method method) {
@@ -68,6 +58,10 @@ public class ClassFile {
 
     public void setFields(List<Field> fields) {
         this.fields = fields;
+    }
+
+    public void addFields(Field field) {
+        this.fields.add(field);
     }
 
     public List<String> getFlags() {

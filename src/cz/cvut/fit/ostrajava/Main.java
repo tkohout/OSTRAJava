@@ -5,6 +5,7 @@ import java.io.*;
 import java.util.List;
 
 import cz.cvut.fit.ostrajava.Compiler.*;
+import cz.cvut.fit.ostrajava.Compiler.Class;
 import cz.cvut.fit.ostrajava.Interpreter.OSTRAJavaInterpreter;
 import cz.cvut.fit.ostrajava.Parser.*;
 
@@ -35,9 +36,9 @@ public class Main {
 
             //Compile
             OSTRAJavaCompiler compiler = new OSTRAJavaCompiler(node);
-            List<ClassFile> classFileList = compiler.compile();
+            List<Class> classList = compiler.compile();
 
-            OSTRAJavaInterpreter interpreter = new OSTRAJavaInterpreter(classFileList);
+            OSTRAJavaInterpreter interpreter = new OSTRAJavaInterpreter(classList);
             interpreter.run();
 
             System.out.println("OSTRAJava Parser:  Java program parsed successfully.");

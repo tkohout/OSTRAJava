@@ -2,7 +2,6 @@ package cz.cvut.fit.ostrajava.Compiler;
 
 import cz.cvut.fit.ostrajava.Parser.*;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
-import sun.rmi.rmic.iiop.ValueType;
 
 import java.util.*;
 
@@ -18,29 +17,29 @@ public class OSTRAJavaCompiler {
         this.node = node;
     }
 
-    public List<ClassFile> compile() throws CompilerException {
+    public List<Class> compile() throws CompilerException {
         if (node.jjtGetNumChildren() == 0){
             throw new CompilerException("No classes to compile");
         }
 
         int i = 0;
-        List<ClassFile> classFiles = new ArrayList<>();
+        List<Class> aClasses = new ArrayList<>();
         do {
             node = (SimpleNode)node.jjtGetChild(i);
             if (node instanceof ASTClass){
-                classFiles.add(compileClass((ASTClass)node));
+                aClasses.add(compileClass((ASTClass)node));
             }
 
             i++;
         }while(i < node.jjtGetNumChildren());
 
-        return classFiles;
+        return aClasses;
     }
 
 
-    protected ClassFile compileClass(ASTClass node) throws CompilerException {
+    protected Class compileClass(ASTClass node) throws CompilerException {
 
-        ClassFile classFile = new ClassFile(node.getName(), node.getExtending());
+        Class aClass = new Class(node.getName(), node.getExtending());
         List<Field> fields = new ArrayList<Field>();
 
         for (int i=0; i<node.jjtGetNumChildren(); i++){
@@ -50,12 +49,12 @@ public class OSTRAJavaCompiler {
                 fields.addAll(fieldDeclaration((ASTFieldDeclaration)child));
             }else if (child instanceof ASTMethodDeclaration){
                 Method method = methodDeclaration((ASTMethodDeclaration)child, node.getName());
-                classFile.addMethod(method);
+                aClass.addMethod(method);
             }
         }
 
-        classFile.setFields(fields);
-        return classFile;
+        aClass.setFields(fields);
+        return aClass;
     }
 
     protected List<Field> fieldDeclaration(ASTFieldDeclaration node) throws CompilerException {
@@ -420,22 +419,18 @@ public class OSTRAJavaCompiler {
         List<Node> objects = new ArrayList<>();
 
         //PrimaryPrefix -> This / Super / Name
-        Node prefix = (Node) node.jjtGetChild(0);
+        Node caller = (Node) node.jjtGetChild(0);
 
         //It is simple method call
         if (node.jjtGetNumChildren() == 2){
             //Add method name
-            objects.add(prefix);
+            objects.add(caller);
 
             //Set prefix as This
-            prefix = new ASTThis(prefix.getId());
+            caller = new ASTThis(caller.getId());
         }
 
-        if (prefix instanceof ASTName || prefix instanceof ASTThis) {
-            expression(prefix, bytecode);
-        }else{
-            throw new NotImplementedException();
-        }
+
 
 
         for (int i=1; i<node.jjtGetNumChildren(); i++) {
@@ -462,6 +457,14 @@ public class OSTRAJavaCompiler {
 
                 //Suffix -> Arguments
                 arguments(child, bytecode);
+
+
+                //Evaluate the caller
+                if (caller instanceof ASTName || caller instanceof ASTThis) {
+                    expression(caller, bytecode);
+                }else{
+                    throw new NotImplementedException();
+                }
 
                 bytecode.addInstruction(new Instruction(InstructionSet.InvokeVirtual, methodName));
                 //it's object or object in field

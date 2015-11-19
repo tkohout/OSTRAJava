@@ -79,4 +79,16 @@ public class Instruction {
 
         this.instruction = newInst;
     }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+
+        sb.append( this.getInstruction() + " ");
+        for (String operand: this.getOperands()){
+            sb.append(operand + " ");
+        }
+
+        return sb.toString();
+    }
 }
