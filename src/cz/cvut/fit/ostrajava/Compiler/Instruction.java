@@ -29,6 +29,9 @@ public class Instruction {
     public List<String> getOperands() {
         return operands;
     }
+    public String getOperand(int index) {
+        return operands.get(index);
+    }
 
     public void setOperands(List<String> operands) {
         this.operands = operands;

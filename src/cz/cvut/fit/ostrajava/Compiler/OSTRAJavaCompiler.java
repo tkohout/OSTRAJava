@@ -2,6 +2,7 @@ package cz.cvut.fit.ostrajava.Compiler;
 
 import cz.cvut.fit.ostrajava.Parser.*;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
+import sun.rmi.rmic.iiop.ValueType;
 
 import java.util.*;
 
@@ -122,7 +123,7 @@ public class OSTRAJavaCompiler {
                 args = formalParameters(params, byteCode);
             }else if (child instanceof ASTBlock){
                 try{
-                    methodBlock((ASTBlock) child, byteCode);
+                    methodBlock((ASTBlock) child, name,returnType, byteCode);
                 //Check if the return type matches
                 } catch (ReturnException e) {
                     Node value = e.getValue();
@@ -130,9 +131,19 @@ public class OSTRAJavaCompiler {
                         if (returnType != Type.Void()){
                             throw new CompilerException("Method '" + name + "' must return non-void value");
                         }
+
+                        byteCode.addInstruction(new Instruction(InstructionSet.ReturnVoid));
                     }else{
                         try {
                             typeCheck(returnType, value, byteCode);
+
+                            if (returnType == Type.Number() || returnType == Type.Boolean()){
+                                byteCode.addInstruction(new Instruction(InstructionSet.ReturnInteger));
+                            }else if (returnType.isReference()){
+                                byteCode.addInstruction(new Instruction(InstructionSet.ReturnReference));
+                            }else{
+                                throw new NotImplementedException();
+                            }
                         }catch(TypeException te){
                             throw new CompilerException("Returning incompatible type in method '" + name + "': " + te.getMessage());
                         }
@@ -175,10 +186,35 @@ public class OSTRAJavaCompiler {
         return args;
     }
 
-    protected void methodBlock(ASTBlock node, ByteCode byteCode) throws CompilerException,ReturnException {
-        block(node, byteCode);
-        //On the end of a method is always empty return
-        throw new ReturnException(null);
+    protected void methodBlock(ASTBlock node, String name, Type returnType, ByteCode byteCode) throws CompilerException,ReturnException {
+        try{
+            block(node, byteCode);
+            //On the end of a method is always empty return
+            returnStatement(null, byteCode);
+        } catch (ReturnException e) {
+            Node value = e.getValue();
+            if (value == null){
+                if (returnType != Type.Void()){
+                    throw new CompilerException("Method '" + name + "' must return non-void value");
+                }
+
+                byteCode.addInstruction(new Instruction(InstructionSet.ReturnVoid));
+            }else{
+                try {
+                    typeCheck(returnType, value, byteCode);
+
+                    if (returnType == Type.Number() || returnType == Type.Boolean()){
+                        byteCode.addInstruction(new Instruction(InstructionSet.ReturnInteger));
+                    }else if (returnType.isReference()){
+                        byteCode.addInstruction(new Instruction(InstructionSet.ReturnReference));
+                    }else{
+                        throw new NotImplementedException();
+                    }
+                }catch(TypeException te){
+                    throw new CompilerException("Returning incompatible type in method '" + name + "': " + te.getMessage());
+                }
+            }
+        }
     }
 
     protected void block(ASTBlock node, ByteCode byteCode) throws CompilerException,ReturnException {
@@ -202,13 +238,13 @@ public class OSTRAJavaCompiler {
             if (child instanceof ASTStatementExpression){
                 statementExpression((ASTStatementExpression) child, byteCode);
             }else if (child instanceof ASTIfStatement){
-                ifStatement((ASTIfStatement)child, byteCode);
+                ifStatement((ASTIfStatement) child, byteCode);
             }else if (child instanceof ASTBlock){
                 throw new NotImplementedException();
             }else if (child instanceof ASTPrintStatement){
                 throw new NotImplementedException();
             }else if (child instanceof ASTReturnStatement){
-                returnStatement((ASTReturnStatement) child, byteCode);
+                returnStatement(child, byteCode);
             }else{
                 throw new NotImplementedException();
             }
@@ -234,10 +270,9 @@ public class OSTRAJavaCompiler {
         }
     }
 
-    protected void returnStatement(ASTReturnStatement node, ByteCode byteCode) throws CompilerException,ReturnException {
-        Node child = null;
-        if (node.jjtGetNumChildren() == 1){
-            child = simplifyExpression(node.jjtGetChild(0));
+    protected void returnStatement(Node child, ByteCode byteCode) throws CompilerException,ReturnException {
+        if (child != null){
+            child = simplifyExpression(child);
             List<Instruction> ifInstructions = expression(child, byteCode);
 
             if (isConditionalExpression(child)) {
@@ -331,43 +366,46 @@ public class OSTRAJavaCompiler {
         byteCode.addInstruction(new Instruction(instruction, Integer.toString(variableIndex)));
     }
 
-    protected void typeCheck(Type type, Node value, ByteCode byteCode) throws TypeException, CompilerException{
-
+    protected Type getTypeForExpression(Node value, ByteCode byteCode) throws CompilerException{
         if (isConditionalExpression(value) || isBooleanLiteral(value)){
-            if (type != Type.Boolean()){
-                throw new TypeException("Trying to assign Boolean to type " + type);
-            }
+            return Type.Boolean();
             //TODO: Additive might be also for Strings in future
         }else if (isNumberLiteral(value) || isAdditiveExpression(value) || isMultiplicativeExpression(value)){
-            if (type != Type.Number()){
-                throw new TypeException("Trying to assign Number to type " + type);
-            }
+            return Type.Number();
         }else if (isVariable(value)){
             String rightName = ((ASTName)value).jjtGetValue().toString();
 
             int rightPosition = byteCode.getPositionOfLocalVariable(rightName);
-
             if (rightPosition == -1){
                 throw new CompilerException("Variable '" + rightName + "' is undeclared");
             }
-
-            Type rightType = byteCode.getTypeOfLocalVariable(rightName);
-
-            if (rightType != type){
-                //Don't type control when it's both references (They can inherit from each other, check it in runtime)
-                if (!type.isReference() || !rightType.isReference()) {
-                    throw new TypeException("Trying to assign variable '" + rightName + "' of type " + rightType + " to type " + type);
-                }
-            }
-
+            return byteCode.getTypeOfLocalVariable(rightName);
         }else if (isAllocationExpression(value) || isThis(value) || isSuper(value)) {
-            if (!type.isReference()) {
-                throw new TypeException("Trying to assign Reference to type " + type);
-            }
+            //Any reference (Might need fixing)
+            return Type.Reference("");
         }else if (isCallExpression(value)){
+            return null;
             //TODO: we don't know return type of the method, how to check it? In runtime probably
         }else{
             throw new NotImplementedException();
+        }
+    }
+
+    protected void typeCheck(Type type, Node value, ByteCode byteCode) throws TypeException, CompilerException{
+        Type valueType = getTypeForExpression(value, byteCode);
+
+        //We are not able to determine the type (Method call)
+        if (valueType == null){
+            return;
+        }
+
+        //Don't type control when it's both references (They can inherit from each other)
+        if (type.isReference() && valueType.isReference()) {
+            return;
+        }
+
+        if (valueType != type){
+            throw new TypeException("Trying to assign '" + valueType  + "' to '" + type + "')");
         }
     }
 

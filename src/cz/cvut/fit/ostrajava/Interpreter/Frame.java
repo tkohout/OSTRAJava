@@ -17,6 +17,7 @@ public class Frame {
 
     protected byte[] byteArray;
     protected int pointer;
+    protected int localVariablesCount = 0;
 
 
     public void push(int i){
@@ -29,6 +30,21 @@ public class Frame {
         int res = intFromByteArray(bytes);
         return res;
     }
+
+    public void storeVariable(int index, int value) throws InterpreterException {
+        if (index > localVariablesCount - 1 ){
+            throw new InterpreterException("Trying to store to non-existent variable");
+        }
+        setBytes(getVariablePosition(index), INT_SIZE, intToByteArray(value));
+    }
+
+    public int loadVariable(int index) throws InterpreterException {
+        if (index > localVariablesCount - 1 ){
+            throw new InterpreterException("Trying to load non-existent variable");
+        }
+        return intFromByteArray(getBytes(getVariablePosition(index), INT_SIZE));
+    }
+
 
     protected void pushBytes(byte[] bytes){
 
@@ -58,14 +74,6 @@ public class Frame {
         return bytes;
     }
 
-    protected void storeVariable(int index, int value){
-        setBytes(getVariablePosition(index), INT_SIZE, intToByteArray(value));
-    }
-
-    protected int loadVariable(int index){
-        return intFromByteArray(getBytes(getVariablePosition(index), INT_SIZE));
-    }
-
     protected int getVariablePosition(int index){
         return index * LOCAL_VAR_BYTE_SIZE;
     }
@@ -86,10 +94,40 @@ public class Frame {
         pointer = 0;
 
         //Save return address
-        push(returnAddress);
+        //push(returnAddress);
+
+        push(thisReference);
+
+        localVariablesCount = method.getLocalVariablesCount();
 
         //Arguments are also counted there
-        pointer = method.getLocalVariablesCount() * LOCAL_VAR_BYTE_SIZE;
+        pointer = localVariablesCount * LOCAL_VAR_BYTE_SIZE;
 
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+
+        //Show local variables
+        for (int i=0; i < localVariablesCount; i++){
+            int start = i*LOCAL_VAR_BYTE_SIZE;
+
+            byte[] bytes = getBytes(start, LOCAL_VAR_BYTE_SIZE);
+
+            //TODO: right now just INT
+            int var = intFromByteArray(bytes);
+
+            sb.append("Var " + i + ": " + var + "\n");
+        }
+
+        sb.append("-----------\n");
+
+        //Show values on stack
+        for (int j=localVariablesCount*LOCAL_VAR_BYTE_SIZE; j < pointer; j++){
+            sb.append(byteArray[j] + " ");
+        }
+
+        return sb.toString();
     }
 }

@@ -23,7 +23,10 @@ public enum InstructionSet {
     IfCompareLessThanInteger("if_icmplt"),
     GoTo("goto"),
     InvokeVirtual("invokevirtual"),
-    InvokeSpecial("invokespecial")
+    InvokeSpecial("invokespecial"),
+    ReturnReference("areturn"),
+    ReturnInteger("ireturn"),
+    ReturnVoid("return")
     ;
 
     private String abbr;
