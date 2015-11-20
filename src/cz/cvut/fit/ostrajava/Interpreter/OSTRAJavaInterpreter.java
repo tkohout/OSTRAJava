@@ -114,12 +114,29 @@ public class OSTRAJavaInterpreter {
             case InvokeVirtual:
                 executeInvokeInstruction(instruction, stack);
                 break;
+            case New:
+                executeNewInstruction(instruction, stack);
+                break;
             default:
                 throw new NotImplementedException();
         }
 
 
     }
+
+    public void executeNewInstruction(Instruction instruction, Stack stack) throws InterpreterException {
+        String className = instruction.getOperand(0);
+        try {
+            InterpretedClass objectClass = classPool.lookupClass(className);
+
+            int reference = heap.alloc(objectClass);
+            stack.currentFrame().push(reference);
+
+        } catch (LookupException e) {
+            throw new InterpreterException("Trying to instantiate non-existent class '" + className + "'");
+        }
+    }
+
 
     public void executeInvokeInstruction(Instruction instruction, Stack stack) throws InterpreterException{
         switch (instruction.getInstruction()) {
@@ -136,7 +153,7 @@ public class OSTRAJavaInterpreter {
                 try {
                     InterpretedMethod method = objectClass.lookupMethod(methodName);
 
-                    //Return to one instruction after this
+                    //Return to next instruction
                     int returnAddress = instructions.getCurrentPosition() + 1;
 
 
@@ -152,7 +169,7 @@ public class OSTRAJavaInterpreter {
 
                     //Store arguments as variables in callee stack
                     for (int i = 0; i<numberOfArgs; i++){
-                        //Start with 1 index - 0 is reserved for This
+                        //Start with 1 index, 0 is reserved for This
                         stack.currentFrame().storeVariable(i+1, argValues[i]);
                     }
 

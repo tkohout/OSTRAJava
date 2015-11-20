@@ -279,7 +279,6 @@ void CompilationUnit():
 /*@egen*/
   Begin()
   ( ClassDeclaration() )*
-  ( BlockStatement() )*
   End()
   <EOF>/*@bgen(jjtree)*/
   } catch (Throwable jjte000) {

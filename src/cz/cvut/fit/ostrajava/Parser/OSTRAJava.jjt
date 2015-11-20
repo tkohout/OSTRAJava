@@ -268,7 +268,6 @@ void CompilationUnit():
 {
   Begin()
   ( ClassDeclaration() )*
-  ( BlockStatement() )*
   End()
   <EOF>
 }

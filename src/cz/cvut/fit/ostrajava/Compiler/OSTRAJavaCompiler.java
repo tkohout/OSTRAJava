@@ -25,9 +25,9 @@ public class OSTRAJavaCompiler {
         int i = 0;
         List<Class> aClasses = new ArrayList<>();
         do {
-            node = (SimpleNode)node.jjtGetChild(i);
-            if (node instanceof ASTClass){
-                aClasses.add(compileClass((ASTClass)node));
+            Node child = node.jjtGetChild(i);
+            if (child instanceof ASTClass){
+                aClasses.add(compileClass((ASTClass)child));
             }
 
             i++;

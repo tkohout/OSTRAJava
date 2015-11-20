@@ -54,6 +54,10 @@ public class InterpretedClass extends Class {
             }
         }
 
+        if (superClass != null) {
+            return superClass.lookupMethod(name);
+        }
+
         throw new LookupException("Method '" + name + "' not found");
     }
 

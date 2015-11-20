@@ -2,6 +2,7 @@
 package cz.cvut.fit.ostrajava;
 
 import java.io.*;
+import java.util.ArrayList;
 import java.util.List;
 
 import cz.cvut.fit.ostrajava.Compiler.*;
@@ -15,36 +16,47 @@ public class Main {
     public static void main(String[] args) throws Exception
     {
         Reader fr = null;
-        if (args.length == 2) {
-            fr = new InputStreamReader(new FileInputStream(new File(args[0])), args[1]);
-        }else if (args.length == 1) {
-            fr = new InputStreamReader(new FileInputStream(new File(args[0])));
-        }else {
+
+        if (args.length == 0) {
             System.out.println("Include filename in the arguments");
             return;
         }
 
-        OSTRAJavaParser jp = new OSTRAJavaParser(fr);
+        OSTRAJavaParser jp = null;
 
-        try {
+        List<Class> classList = new ArrayList<>();
 
-            jp.CompilationUnit();
+        for (String fileName: args) {
 
-            //Parse
-            ASTCompilationUnit node = (ASTCompilationUnit)jp.rootNode();
-            node.dump("");
+            fr = new InputStreamReader(new FileInputStream(new File(fileName)));
 
-            //Compile
-            OSTRAJavaCompiler compiler = new OSTRAJavaCompiler(node);
-            List<Class> classList = compiler.compile();
+            if (jp == null){
+                jp = new OSTRAJavaParser(fr);
+            }else{
+                jp.ReInit(fr);
+            }
 
-            OSTRAJavaInterpreter interpreter = new OSTRAJavaInterpreter(classList);
-            interpreter.run();
+            try {
 
-            System.out.println("OSTRAJava Parser:  Java program parsed successfully.");
-        } catch (ParseException e) {
-            System.out.println("OSTRAJava Parser:  Encountered errors during parsing.");
-            throw e;
+                //Parse
+                jp.CompilationUnit();
+                ASTCompilationUnit node = (ASTCompilationUnit) jp.rootNode();
+
+                //Compile
+                OSTRAJavaCompiler compiler = new OSTRAJavaCompiler(node);
+                classList.addAll(compiler.compile());
+
+                OSTRAJavaInterpreter interpreter = new OSTRAJavaInterpreter(classList);
+                interpreter.run();
+            } catch (ParseException e) {
+                System.out.println("Parsing exception in file " + fileName);
+                throw e;
+            } catch (CompilerException e) {
+                System.out.println("Compiler exception in file " + fileName);
+                throw e;
+            }
+
+
         }
 
     }
