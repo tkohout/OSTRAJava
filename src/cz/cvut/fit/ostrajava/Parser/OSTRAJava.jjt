@@ -103,6 +103,8 @@ TOKEN : /* RESERVED WORDS AND LITERALS */
 | < FLOAT: "cyslo_desetinne" >
 | < STRING: "dryst" >
 
+
+| < DEBUG: "dechrobok" >
 //translate
 | < SWITCH: "switch" >
 | < CASE: "case" >
@@ -480,24 +482,24 @@ void Assignment() :
 void Assignee():
 {}
 {
-    AssigneePrefix() (AssigneeSuffix() )*
+    AssigneePrefix() ("." Name() )*
 }
 
-void AssigneePrefix() :
+void AssigneePrefix() #void:
 {}
 {
   Name()
 |
-  "joch"
+  "joch" #This
 |
-  "forant" "." <IDENTIFIER>
+  "forant" #Super /*"." <IDENTIFIER>*/
 }
 
-void AssigneeSuffix() :
+/*void AssigneeSuffix() :
 {Token t;}
 {
   "." t = <IDENTIFIER> {jjtThis.value = t.image; }
-}
+}*/
 
 
 
@@ -700,6 +702,8 @@ void Statement() :
   TryStatement()
 |*/
   PrintStatement()
+|
+  DebugStatement()
 }
 
 
@@ -722,6 +726,12 @@ void LocalVariableDeclaration() :
 {}
 {
   "toz" Type() VariableDeclarator() ( "," VariableDeclarator() )*
+}
+
+void DebugStatement() :
+{}
+{
+  "dechrobok" "pyco"
 }
 
 void EmptyStatement() :

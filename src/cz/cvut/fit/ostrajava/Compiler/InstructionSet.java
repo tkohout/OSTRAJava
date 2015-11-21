@@ -15,6 +15,8 @@ public enum InstructionSet {
     StoreReference("astore"),
     LoadReference("aload"),
     New("new"),
+    GetField("getfield"),
+    PutField("putfield"),
     IfCompareEqualInteger("if_icmpeq"),
     IfCompareNotEqualInteger("if_icmpne"),
     IfCompareGreaterThanOrEqualInteger("if_icmpge"),
@@ -26,7 +28,8 @@ public enum InstructionSet {
     InvokeSpecial("invokespecial"),
     ReturnReference("areturn"),
     ReturnInteger("ireturn"),
-    ReturnVoid("return")
+    ReturnVoid("return"),
+    Breakpoint("int")
     ;
 
     private String abbr;

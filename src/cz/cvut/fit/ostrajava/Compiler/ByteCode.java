@@ -21,6 +21,8 @@ public class ByteCode {
     }
 
     public int addLocalVariable(String name, Type type){
+        name = name.toLowerCase();
+
         if (localVars.containsKey(name)){
             return -1;
         }
@@ -33,11 +35,13 @@ public class ByteCode {
     }
 
     public Type getTypeOfLocalVariable(String name){
+        name = name.toLowerCase();
         Variable var = localVars.get(name);
         return var.getType();
     }
 
     public Variable getLocalVariable(String name){
+        name = name.toLowerCase();
         Variable var = localVars.get(name);
         return var;
     }
@@ -52,6 +56,7 @@ public class ByteCode {
     }
 
     public int getPositionOfLocalVariable(String name){
+        name = name.toLowerCase();
         int pos = variablesKeySet().indexOf(name);
         return pos;
     }

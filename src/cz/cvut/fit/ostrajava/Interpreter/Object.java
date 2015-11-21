@@ -5,6 +5,7 @@ import cz.cvut.fit.ostrajava.Compiler.Class;
 
 import java.nio.ByteBuffer;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Created by tomaskohout on 11/19/15.
@@ -21,7 +22,7 @@ public class Object {
 
     public Object(InterpretedClass objectClass) {
 
-        List<Field> fieldList = objectClass.getFields();
+        Set<Field> fieldList = objectClass.getAllFields();
         int numberOfFields = fieldList.size();
 
         int size = OBJECT_HEADER_SIZE + OBJECT_FIELD_SIZE * numberOfFields;
@@ -46,6 +47,10 @@ public class Object {
     //TODO: What if not int?
     protected int getField(int index){
         return byteArray.getInt(OBJECT_HEADER_SIZE + index * OBJECT_FIELD_SIZE);
+    }
+
+    protected void setField(int index, int value){
+         byteArray.putInt(OBJECT_HEADER_SIZE + index * OBJECT_FIELD_SIZE, value);
     }
 
     public InterpretedClass loadClass(ClassPool pool) throws InterpreterException {

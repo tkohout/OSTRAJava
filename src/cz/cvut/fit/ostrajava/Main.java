@@ -51,10 +51,10 @@ public class Main {
             } catch (ParseException e) {
                 System.out.println("Parsing exception in file " + fileName);
                 throw e;
-            } catch (CompilerException e) {
+            }/* catch (CompilerException e) {
                 System.out.println("Compiler exception in file " + fileName);
                 throw e;
-            }
+            }*/
 
 
         }

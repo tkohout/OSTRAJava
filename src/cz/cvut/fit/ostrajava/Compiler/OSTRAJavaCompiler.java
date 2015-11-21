@@ -39,7 +39,9 @@ public class OSTRAJavaCompiler {
 
     protected Class compileClass(ASTClass node) throws CompilerException {
 
-        Class aClass = new Class(node.getName(), node.getExtending());
+        String extending = node.getExtending();
+
+        Class aClass = new Class(node.getName().toLowerCase(), (extending != null) ? extending.toLowerCase() : null);
         List<Field> fields = new ArrayList<Field>();
 
         for (int i=0; i<node.jjtGetNumChildren(); i++){
@@ -68,7 +70,7 @@ public class OSTRAJavaCompiler {
         for (int i=1; i<node.jjtGetNumChildren(); i++) {
             ASTVariable nameNode = (ASTVariable) node.jjtGetChild(i);
 
-            Field field = new Field(nameNode.jjtGetValue().toString(), type);
+            Field field = new Field(nameNode.jjtGetValue().toString().toLowerCase(), type);
             fields.add(field);
         }
 
@@ -112,7 +114,7 @@ public class OSTRAJavaCompiler {
             }else if (child instanceof ASTMethod){
 
 
-                name = ((ASTMethod) child).jjtGetValue().toString();
+                name = ((ASTMethod) child).jjtGetValue().toString().toLowerCase();
 
                 //Add This as first argument
                 byteCode.addLocalVariable(THIS_VARIABLE, Type.Reference(className));
@@ -134,7 +136,8 @@ public class OSTRAJavaCompiler {
                         byteCode.addInstruction(new Instruction(InstructionSet.ReturnVoid));
                     }else{
                         try {
-                            typeCheck(returnType, value, byteCode);
+                            Type valueType = getTypeForExpression(value, byteCode);
+                            typeCheck(returnType, valueType);
 
                             if (returnType == Type.Number() || returnType == Type.Boolean()){
                                 byteCode.addInstruction(new Instruction(InstructionSet.ReturnInteger));
@@ -200,7 +203,8 @@ public class OSTRAJavaCompiler {
                 byteCode.addInstruction(new Instruction(InstructionSet.ReturnVoid));
             }else{
                 try {
-                    typeCheck(returnType, value, byteCode);
+                    Type valueType = getTypeForExpression(value, byteCode);
+                    typeCheck(returnType, valueType);
 
                     if (returnType == Type.Number() || returnType == Type.Boolean()){
                         byteCode.addInstruction(new Instruction(InstructionSet.ReturnInteger));
@@ -242,8 +246,10 @@ public class OSTRAJavaCompiler {
                 throw new NotImplementedException();
             }else if (child instanceof ASTPrintStatement){
                 throw new NotImplementedException();
-            }else if (child instanceof ASTReturnStatement){
+            }else if (child instanceof ASTReturnStatement) {
                 returnStatement(child, byteCode);
+            }else if (child instanceof ASTDebugStatement) {
+                    debugStatement(child, byteCode);
             }else{
                 throw new NotImplementedException();
             }
@@ -251,18 +257,25 @@ public class OSTRAJavaCompiler {
 
     protected void statementExpression(ASTStatementExpression node, ByteCode byteCode) throws CompilerException {
         Node child = node.jjtGetChild(0);
-        //It's an assignment
+
+        //It's an variableAssignment
         if (child instanceof ASTAssignment){
             Node assignmentNode = (ASTAssignment) node.jjtGetChild(0);
 
-            //Assignee -> AssignmentPrefix -> Left
-            Node left = assignmentNode.jjtGetChild(0).jjtGetChild(0).jjtGetChild(0);
+            //Assignee
+            Node left = assignmentNode.jjtGetChild(0);
 
+            //Expression
             Node right = assignmentNode.jjtGetChild(1);
 
-            assignment(left, right, byteCode);
-            //It's a call
-        }else if (isCallExpression(child)) {
+            if (left.jjtGetNumChildren() == 1){
+                variableAssignment(left.jjtGetChild(0), right, byteCode);
+            }else{
+                fieldAssignment(left, right, byteCode);
+            }
+
+        //It's a call
+        }else if (child instanceof ASTPrimaryExpression) {
             call(node.jjtGetChild(0), byteCode);
         }else{
             throw new NotImplementedException();
@@ -282,7 +295,57 @@ public class OSTRAJavaCompiler {
         throw new ReturnException(child);
     }
 
-    protected void assignment(Node left, Node right, ByteCode byteCode) throws CompilerException {
+    protected void debugStatement(Node child, ByteCode byteCode) throws CompilerException,ReturnException {
+        byteCode.addInstruction(new Instruction(InstructionSet.Breakpoint));
+    }
+
+    protected void fieldAssignment(Node left, Node right, ByteCode byteCode) throws CompilerException {
+        right = simplifyExpression(right);
+
+        int childNumber = left.jjtGetNumChildren();
+
+        if (childNumber > 1){
+            List<Node> objects = new ArrayList<>();
+
+            for (int i = 0; i < left.jjtGetNumChildren(); i++){
+                Node child = left.jjtGetChild(i);
+
+                //First is always object variable
+                if (i == 0) {
+                    //TODO: Can be also this or super
+                    String name = ((ASTName) child).jjtGetValue().toString();
+                    Type type = byteCode.getTypeOfLocalVariable(name);
+                    if (type.isReference()) {
+                        variable((ASTName) child, byteCode);
+                    } else {
+                        throw new CompilerException("Trying to set field on non-object '" + name + "'");
+                    }
+
+                //Middle is normal field
+                }else if (i < childNumber - 1){
+                    getField((ASTName)child, byteCode);
+                //Last is field we want to set
+                }else{
+                    //Run expression
+                    List<Instruction> ifInstructions = expression(right, byteCode);
+
+                    //If the expression is a condition we have to evaluate it
+                    if (isConditionalExpression(right)){
+                        //Converts cond expression to actual boolean instruction
+                        convertConditionalExpressionToBoolean(right, ifInstructions, byteCode);
+                    }
+
+                    putField((ASTName)child, byteCode);
+                }
+            }
+
+
+        }else{
+            throw new CompilerException("Expected field assignment");
+        }
+    }
+
+    protected void variableAssignment(Node left, Node right, ByteCode byteCode) throws CompilerException {
 
         right = simplifyExpression(right);
 
@@ -303,7 +366,9 @@ public class OSTRAJavaCompiler {
             Type type = byteCode.getTypeOfLocalVariable(name);
 
             try {
-                typeCheck(type, right, byteCode);
+
+                Type rightType = getTypeForExpression(right, byteCode);
+                typeCheck(type, rightType);
 
                 //Run expression
                 List<Instruction> ifInstructions = expression(right, byteCode);
@@ -384,15 +449,16 @@ public class OSTRAJavaCompiler {
             return Type.Reference("");
         }else if (isCallExpression(value)){
             return null;
-            //TODO: we don't know return type of the method, how to check it? In runtime probably
+            //TODO: we don't know return type of the method
+        }else if (isFieldExpression(value)){
+            return null;
+            //TODO: we don't know type of field
         }else{
             throw new NotImplementedException();
         }
     }
 
-    protected void typeCheck(Type type, Node value, ByteCode byteCode) throws TypeException, CompilerException{
-        Type valueType = getTypeForExpression(value, byteCode);
-
+    protected void typeCheck(Type type, Type valueType) throws TypeException, CompilerException{
         //We are not able to determine the type (Method call)
         if (valueType == null){
             return;
@@ -409,78 +475,61 @@ public class OSTRAJavaCompiler {
     }
 
     protected void call(Node node, ByteCode bytecode) throws CompilerException{
-        if (node.jjtGetNumChildren() <= 1){
-            throw new CompilerException("Expected function call");
-        }
-
         node = simplifyExpression(node);
 
-        //Can either be object / object field / method name
-        List<Node> objects = new ArrayList<>();
+        if (!isCallExpression(node) || node.jjtGetNumChildren() <= 1){
+            throw new CompilerException("Expected method call");
+        }
 
-        //PrimaryPrefix -> This / Super / Name
+        // This / Super / Name
         Node caller = (Node) node.jjtGetChild(0);
 
-        //It is simple method call
+        //Method name is one before last
+        ASTName method = (ASTName)node.jjtGetChild(node.jjtGetNumChildren() - 2);
+        String methodName = method.jjtGetValue().toString().toLowerCase();
+
+        //Arguments are last
+        ASTArguments args = (ASTArguments)node.jjtGetChild(node.jjtGetNumChildren() - 1);
+
+        //Push arguments onto stack in reverse order
+        arguments(args, bytecode);
+
+        //Evaluate the caller
+        //It is simple method call, it has to be called on This
         if (node.jjtGetNumChildren() == 2){
-            //Add method name
-            objects.add(caller);
+            thisReference(bytecode);
+        }else{
+            //TODO: Super
+            variable((ASTName) caller, bytecode);
+        }
 
-            //Set prefix as This
-            caller = new ASTThis(caller.getId());
+        //Load fields (if any)
+        for (int i=1; i<node.jjtGetNumChildren()-2; i++) {
+            ASTName field = (ASTName) node.jjtGetChild(i);
+            getField(field, bytecode);
         }
 
 
-
-
-        for (int i=1; i<node.jjtGetNumChildren(); i++) {
-            Node child = (Node) node.jjtGetChild(i);
-
-            //it's arguments
-            if (child instanceof ASTArguments){
-
-                if (objects.size() == 0){
-                    throw new CompilerException("Unexpected argument list");
-                }
-
-                //Get last object (which is actually method name) and remove from the list
-                Node method = objects.get(objects.size() - 1);
-                objects.remove(objects.size() - 1);
-
-                String methodName = "";
-
-                if (method instanceof ASTName) {
-                    methodName = ((ASTName) method).jjtGetValue().toString();
-                }else{
-                    throw new CompilerException("Unexpected call of this() or super() in non-constructor method");
-                }
-
-                //Suffix -> Arguments
-                arguments(child, bytecode);
-
-
-                //Evaluate the caller
-                if (caller instanceof ASTName || caller instanceof ASTThis) {
-                    expression(caller, bytecode);
-                }else{
-                    throw new NotImplementedException();
-                }
-
-                bytecode.addInstruction(new Instruction(InstructionSet.InvokeVirtual, methodName));
-                //it's object or object in field
-            }else if (child instanceof ASTName){
-                objects.add(child);
-            }
-        }
-
-        //If there are fields on the object
-        //TODO: Make it work with fields e.g.: this.foo.goo.boo()
-        if (objects.size() > 1){
-            throw new NotImplementedException();
-        }
-
+        bytecode.addInstruction(new Instruction(InstructionSet.InvokeVirtual, methodName));
 
         return;
+    }
+
+    protected void fields(Node node, ByteCode bytecode) throws CompilerException{
+        Node first = node.jjtGetChild(0);
+
+        if (isVariable(first) || isThis(first) || isSuper(first)) {
+            //TODO: type check
+            expression(node.jjtGetChild(0), bytecode);
+
+            //Load fields (if any)
+            for (int i=1; i<node.jjtGetNumChildren(); i++) {
+                ASTName field = (ASTName) node.jjtGetChild(i);
+                getField(field, bytecode);
+            }
+        }else{
+            throw new CompilerException("Expected variable, this or super");
+        }
     }
 
 
@@ -598,18 +647,24 @@ public class OSTRAJavaCompiler {
         }else if (isVariable(node)) {
             variable((ASTName) node, byteCode);
         }else if (isThis(node)){
-            int position = byteCode.getPositionOfLocalVariable(THIS_VARIABLE);
-            byteCode.addInstruction(new Instruction(InstructionSet.LoadReference,Integer.toString(position)));
+            thisReference(byteCode);
         }else if (isNumberLiteral(node)) {
             String value = ((ASTNumberLiteral) node).jjtGetValue().toString();
             byteCode.addInstruction(new Instruction(InstructionSet.PushInteger, value));
         }else if (isCallExpression(node)){
             call(node, byteCode);
+        }else if (isFieldExpression(node)){
+            fields(node, byteCode);
         }else{
             throw new NotImplementedException();
         }
 
         return null;
+    }
+
+    protected void thisReference(ByteCode byteCode){
+        int position = byteCode.getPositionOfLocalVariable(THIS_VARIABLE);
+        byteCode.addInstruction(new Instruction(InstructionSet.LoadReference, Integer.toString(position)));
     }
 
     protected void variable(ASTName node, ByteCode byteCode) throws CompilerException{
@@ -630,8 +685,18 @@ public class OSTRAJavaCompiler {
         loadVariable(var, byteCode);
     }
 
+    protected void getField(ASTName node, ByteCode byteCode) throws CompilerException {
+        String name =  node.jjtGetValue().toString().toLowerCase();
+        byteCode.addInstruction(new Instruction(InstructionSet.GetField, name));
+    }
+
+    protected void putField(ASTName node, ByteCode byteCode) throws CompilerException {
+        String name =  node.jjtGetValue().toString().toLowerCase();
+        byteCode.addInstruction(new Instruction(InstructionSet.PutField, name));
+    }
+
     protected void allocationExpression(ASTAllocationExpression node, ByteCode byteCode) throws CompilerException {
-        String name = ((ASTName)node.jjtGetChild(0)).jjtGetValue().toString();
+        String name = ((ASTName)node.jjtGetChild(0)).jjtGetValue().toString().toLowerCase();
 
         //TODO: add invocation of constructor
 
@@ -875,7 +940,7 @@ public class OSTRAJavaCompiler {
             //We also assigned value
             if (declarator.jjtGetNumChildren() > 1) {
                 value = (SimpleNode) declarator.jjtGetChild(1);
-                assignment(nameNode, value, byteCode);
+                variableAssignment(nameNode, value, byteCode);
             }
         }
     }
@@ -932,7 +997,16 @@ public class OSTRAJavaCompiler {
     }
 
     boolean isCallExpression(Node node){
-        return node instanceof ASTPrimaryExpression;
+        if (node instanceof ASTPrimaryExpression){
+            Node last = node.jjtGetChild(node.jjtGetNumChildren() -1);
+            return last instanceof ASTArguments;
+        }
+
+        return false;
+    }
+
+    boolean isFieldExpression(Node node){
+        return  (node instanceof ASTPrimaryExpression) && !isCallExpression(node);
     }
 
     boolean isThis(Node node){

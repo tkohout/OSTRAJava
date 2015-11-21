@@ -107,6 +107,8 @@ TOKEN : /* RESERVED WORDS AND LITERALS */
 | < FLOAT: "cyslo_desetinne" >
 | < STRING: "dryst" >
 
+
+| < DEBUG: "dechrobok" >
 //translate
 | < SWITCH: "switch" >
 | < CASE: "case" >
@@ -1061,7 +1063,7 @@ void Assignee():
 {/*@bgen(jjtree) Assignee */
     try {
 /*@egen*/
-    AssigneePrefix() (AssigneeSuffix() )*/*@bgen(jjtree)*/
+    AssigneePrefix() ("." Name() )*/*@bgen(jjtree)*/
     } catch (Throwable jjte000) {
       if (jjtc000) {
         jjtree.clearNodeScope(jjtn000);
@@ -1085,69 +1087,51 @@ void Assignee():
 /*@egen*/
 }
 
-void AssigneePrefix() :
-{/*@bgen(jjtree) AssigneePrefix */
-  ASTAssigneePrefix jjtn000 = new ASTAssigneePrefix(JJTASSIGNEEPREFIX);
-  boolean jjtc000 = true;
-  jjtree.openNodeScope(jjtn000);
-  jjtn000.jjtSetFirstToken(getToken(1));
-/*@egen*/}
-{/*@bgen(jjtree) AssigneePrefix */
+void AssigneePrefix()      :
+{}
+{
+  Name()
+|/*@bgen(jjtree) This */
+  {
+    ASTThis jjtn001 = new ASTThis(JJTTHIS);
+    boolean jjtc001 = true;
+    jjtree.openNodeScope(jjtn001);
+    jjtn001.jjtSetFirstToken(getToken(1));
+  }
   try {
 /*@egen*/
-  Name()
-|
-  "joch"
-|
-  "forant" "." <IDENTIFIER>/*@bgen(jjtree)*/
-  } catch (Throwable jjte000) {
-    if (jjtc000) {
-      jjtree.clearNodeScope(jjtn000);
-      jjtc000 = false;
-    } else {
-      jjtree.popNode();
-    }
-    if (jjte000 instanceof RuntimeException) {
-      throw (RuntimeException)jjte000;
-    }
-    if (jjte000 instanceof ParseException) {
-      throw (ParseException)jjte000;
-    }
-    throw (Error)jjte000;
+  "joch"/*@bgen(jjtree)*/
   } finally {
-    if (jjtc000) {
-      jjtree.closeNodeScope(jjtn000, true);
-      jjtn000.jjtSetLastToken(getToken(0));
+    if (jjtc001) {
+      jjtree.closeNodeScope(jjtn001, true);
+      jjtn001.jjtSetLastToken(getToken(0));
     }
   }
+/*@egen*/      
+|/*@bgen(jjtree) Super */
+  {
+    ASTSuper jjtn002 = new ASTSuper(JJTSUPER);
+    boolean jjtc002 = true;
+    jjtree.openNodeScope(jjtn002);
+    jjtn002.jjtSetFirstToken(getToken(1));
+  }
+  try {
 /*@egen*/
+  "forant"/*@bgen(jjtree)*/
+  } finally {
+    if (jjtc002) {
+      jjtree.closeNodeScope(jjtn002, true);
+      jjtn002.jjtSetLastToken(getToken(0));
+    }
+  }
+/*@egen*/        /*"." <IDENTIFIER>*/
 }
 
-void AssigneeSuffix() :
-{/*@bgen(jjtree) AssigneeSuffix */
- ASTAssigneeSuffix jjtn000 = new ASTAssigneeSuffix(JJTASSIGNEESUFFIX);
- boolean jjtc000 = true;
- jjtree.openNodeScope(jjtn000);
- jjtn000.jjtSetFirstToken(getToken(1));
-/*@egen*/Token t;}
-{/*@bgen(jjtree) AssigneeSuffix */
-  try {
-/*@egen*/
-  "." t = <IDENTIFIER>/*@bgen(jjtree)*/
-                       {
-                         jjtree.closeNodeScope(jjtn000, true);
-                         jjtc000 = false;
-                         jjtn000.jjtSetLastToken(getToken(0));
-                       }
-/*@egen*/ {jjtn000.value = t.image; }/*@bgen(jjtree)*/
-  } finally {
-    if (jjtc000) {
-      jjtree.closeNodeScope(jjtn000, true);
-      jjtn000.jjtSetLastToken(getToken(0));
-    }
-  }
-/*@egen*/
-}
+/*void AssigneeSuffix() :
+{Token t;}
+{
+  "." t = <IDENTIFIER> {jjtThis.value = t.image; }
+}*/
 
 
 
@@ -2092,7 +2076,9 @@ void Statement() :
 |
   TryStatement()
 |*/
-  PrintStatement()/*@bgen(jjtree)*/
+  PrintStatement()
+|
+  DebugStatement()/*@bgen(jjtree)*/
   } catch (Throwable jjte000) {
     if (jjtc000) {
       jjtree.clearNodeScope(jjtn000);
@@ -2185,6 +2171,26 @@ void LocalVariableDeclaration() :
       throw (ParseException)jjte000;
     }
     throw (Error)jjte000;
+  } finally {
+    if (jjtc000) {
+      jjtree.closeNodeScope(jjtn000, true);
+      jjtn000.jjtSetLastToken(getToken(0));
+    }
+  }
+/*@egen*/
+}
+
+void DebugStatement() :
+{/*@bgen(jjtree) DebugStatement */
+  ASTDebugStatement jjtn000 = new ASTDebugStatement(JJTDEBUGSTATEMENT);
+  boolean jjtc000 = true;
+  jjtree.openNodeScope(jjtn000);
+  jjtn000.jjtSetFirstToken(getToken(1));
+/*@egen*/}
+{/*@bgen(jjtree) DebugStatement */
+  try {
+/*@egen*/
+  "dechrobok" "pyco"/*@bgen(jjtree)*/
   } finally {
     if (jjtc000) {
       jjtree.closeNodeScope(jjtn000, true);

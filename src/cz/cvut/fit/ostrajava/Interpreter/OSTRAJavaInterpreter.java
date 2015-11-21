@@ -117,6 +117,12 @@ public class OSTRAJavaInterpreter {
             case New:
                 executeNewInstruction(instruction, stack);
                 break;
+            case GetField:
+            case PutField:
+                executeFieldInstruction(instruction, stack);
+                break;
+            case Breakpoint:
+                break;
             default:
                 throw new NotImplementedException();
         }
@@ -125,18 +131,49 @@ public class OSTRAJavaInterpreter {
     }
 
     public void executeNewInstruction(Instruction instruction, Stack stack) throws InterpreterException {
-        String className = instruction.getOperand(0);
-        try {
-            InterpretedClass objectClass = classPool.lookupClass(className);
+                String className = instruction.getOperand(0);
+                try {
+                    InterpretedClass objectClass = classPool.lookupClass(className);
 
-            int reference = heap.alloc(objectClass);
-            stack.currentFrame().push(reference);
+                    int reference = heap.alloc(objectClass);
+                    stack.currentFrame().push(reference);
 
-        } catch (LookupException e) {
-            throw new InterpreterException("Trying to instantiate non-existent class '" + className + "'");
-        }
+                } catch (LookupException e) {
+                    throw new InterpreterException("Trying to instantiate non-existent class '" + className + "'");
+                }
     }
 
+    public void executeFieldInstruction(Instruction instruction, Stack stack) throws InterpreterException {
+        int value = 0;
+
+        //If we are setting we must first pop the value
+        if (instruction.getInstruction() == InstructionSet.PutField){
+            value = stack.currentFrame().pop();
+        }
+
+        //Get object and find the field
+        int reference = stack.currentFrame().pop();
+        String fieldName = instruction.getOperand(0);
+
+        Object object = heap.load(reference);
+        InterpretedClass objectClass = object.loadClass(classPool);
+        try {
+            int fieldPosition = objectClass.lookupField(fieldName);
+
+            switch (instruction.getInstruction()) {
+                case GetField:
+                    stack.currentFrame().push(object.getField(fieldPosition));
+                break;
+
+                case PutField:
+                    object.setField(fieldPosition, value);
+                    break;
+            }
+
+        } catch (LookupException e) {
+            throw new InterpreterException("Trying to access non-existent field '" + fieldName + "'");
+        }
+    }
 
     public void executeInvokeInstruction(Instruction instruction, Stack stack) throws InterpreterException{
         switch (instruction.getInstruction()) {

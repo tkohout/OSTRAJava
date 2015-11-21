@@ -17,6 +17,8 @@ public class Frame {
     protected int count;
     protected int localVariablesCount = 0;
 
+    protected String methodName;
+
 
     public Frame(int size, int returnAddress, int thisReference, Method method) throws InterpreterException {
         byteArray = ByteBuffer.allocate(size);
@@ -31,6 +33,9 @@ public class Frame {
 
         //Arguments and this ref counted in locals
         localVariablesCount = method.getLocalVariablesCount();
+
+        //For stack trace
+        methodName = method.getName();
 
         count = getStackOffset();
 
@@ -87,6 +92,10 @@ public class Frame {
 
     protected int getStackOffset() {
         return RETURN_ADDRESS_SIZE + localVariablesCount * LOCAL_VAR_BYTE_SIZE;
+    }
+
+    public String getMethodName() {
+        return methodName;
     }
 
     @Override

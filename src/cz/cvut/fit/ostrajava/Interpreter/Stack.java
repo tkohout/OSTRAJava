@@ -45,7 +45,19 @@ public class Stack {
         framesNumber--;
     }
 
+    public String stackTrace(){
+        StringBuilder sb = new StringBuilder();
+        for (int i=framesNumber-1; i>=0; i--){
+            Frame frame = frames[i];
+            sb.append(frame.getMethodName() + "()\n");
+        }
 
+        return sb.toString();
+    }
 
+    @Override
+    public String toString() {
+        return stackTrace();
+    }
 }
 

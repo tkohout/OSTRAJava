@@ -11,6 +11,14 @@ tryda Ostrava {
         b = zrob B() pyco
         c = zrob C() pyco
 
+        a.b = b pyco
+        a.b.neco = 5 pyco
+        a.b.neco() pyco
+
+        c.b = b pyco
+
+        dechrobok pyco
+
         a.foo() pyco
         b.foo() pyco
         c.foo() pyco
@@ -24,6 +32,9 @@ tryda Ostrava {
 }
 
 tryda A{
+    toz B b pyco
+    toz cyslo neco pyco
+
     cyslo foo(){
         davaj 1 pyco
     }
@@ -34,6 +45,13 @@ tryda A{
 }
 
 tryda B fagan od A {
+    toz cyslo neco pyco
+
+    cyslo neco(){
+        dechrobok pyco
+        davaj 27 pyco
+    }
+
     cyslo foo(){
         davaj 2 pyco
     }

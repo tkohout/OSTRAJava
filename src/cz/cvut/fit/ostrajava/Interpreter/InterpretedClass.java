@@ -3,7 +3,7 @@ package cz.cvut.fit.ostrajava.Interpreter;
 import cz.cvut.fit.ostrajava.Compiler.*;
 import cz.cvut.fit.ostrajava.Compiler.Class;
 
-import java.util.List;
+import java.util.*;
 
 /**
  * Created by tomaskohout on 11/19/15.
@@ -12,6 +12,9 @@ public class InterpretedClass extends Class {
 
     InterpretedClass superClass;
     int classPoolAddress;
+    //Including super fields
+    Set<Field> allFields;
+
 
     public InterpretedClass(Class c) {
         super(c.getClassName(), c.getSuperName());
@@ -44,12 +47,23 @@ public class InterpretedClass extends Class {
         this.classPoolAddress = classPoolAddress;
     }
 
+
+    public Set<Field> getAllFields(){
+        if (allFields == null) {
+            allFields = new LinkedHashSet<>();
+            if (superClass != null) {
+                allFields.addAll(getSuperClass().getAllFields());
+            }
+            allFields.addAll(getFields());
+        }
+
+        return allFields;
+    }
+
     //TODO: add looking up by descriptor
     public InterpretedMethod lookupMethod(String name) throws LookupException {
-        String lowercase = name.toLowerCase();
-
         for (Method method: methods){
-            if (method.getName().toLowerCase().equals(lowercase)){
+            if (method.getName().equals(name)){
                 return (InterpretedMethod)method;
             }
         }
@@ -59,6 +73,19 @@ public class InterpretedClass extends Class {
         }
 
         throw new LookupException("Method '" + name + "' not found");
+    }
+
+    public int lookupField(String name) throws LookupException {
+        int i = 0;
+
+        for (Field field: getAllFields()){
+            if (field.getName().equals(name)){
+                return i;
+            }
+            i++;
+        }
+
+        throw new LookupException("Field '" + name + "' not found");
     }
 
 
