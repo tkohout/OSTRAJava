@@ -8,61 +8,15 @@ import java.util.*;
 public class ByteCode {
 
     protected List<Instruction> instructions;
-    protected Map<String, Variable> localVars;
 
     public ByteCode() {
         instructions = new ArrayList<Instruction>();
-        localVars = new LinkedHashMap<String, Variable>();
+
     }
 
     public Instruction addInstruction(Instruction inst){
         instructions.add(inst);
         return inst;
-    }
-
-    public int addLocalVariable(String name, Type type){
-        name = name.toLowerCase();
-
-        if (localVars.containsKey(name)){
-            return -1;
-        }
-
-        Variable var = new Variable(name, type);
-
-        int pos = localVars.size();
-        localVars.put(name, var);
-        return pos;
-    }
-
-    public Type getTypeOfLocalVariable(String name){
-        name = name.toLowerCase();
-        Variable var = localVars.get(name);
-        return var.getType();
-    }
-
-    public Variable getLocalVariable(String name){
-        name = name.toLowerCase();
-        Variable var = localVars.get(name);
-        return var;
-    }
-
-    public int getNumberOfLocalVariables(){
-        return localVars.size();
-    }
-
-    public Variable getLocalVariable(int index){
-        Variable var = localVars.get(variablesKeySet().get(index));
-        return var;
-    }
-
-    public int getPositionOfLocalVariable(String name){
-        name = name.toLowerCase();
-        int pos = variablesKeySet().indexOf(name);
-        return pos;
-    }
-
-    protected List<String> variablesKeySet(){
-       return new ArrayList<String>(localVars.keySet());
     }
 
     public Instruction getInstruction(int position){

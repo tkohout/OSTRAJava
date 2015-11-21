@@ -38,8 +38,8 @@ public class Instructions{
                         case IfCompareGreaterThanOrEqualInteger:
                         case IfCompareEqualInteger:
                         case IfCompareNotEqualInteger:
-                            int operand = Integer.parseInt(inst.getOperand(0));
-                            inst.setOperand(0,Integer.toString(operand + position));
+                            int operand = inst.getOperand(0);
+                            inst.setOperand(0,operand + position);
                             break;
                     }
                 }

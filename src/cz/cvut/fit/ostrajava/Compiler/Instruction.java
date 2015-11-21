@@ -8,36 +8,36 @@ import java.util.List;
  */
 public class Instruction {
     protected InstructionSet instruction;
-    protected List<String> operands;
+    protected List<Integer> operands;
 
     public Instruction(InstructionSet instruction) {
         this.instruction = instruction;
-        this.operands = new ArrayList<String>();
+        this.operands = new ArrayList<Integer>();
     }
 
-    public Instruction(InstructionSet instruction,String operand){
+    public Instruction(InstructionSet instruction,int operand){
         this.instruction = instruction;
-        this.operands = new ArrayList<String>();
+        this.operands = new ArrayList<Integer>();
         this.operands.add(operand);
     }
 
-    public Instruction(InstructionSet instruction, List<String> operands){
+    public Instruction(InstructionSet instruction, List<Integer> operands){
         this.instruction = instruction;
         this.operands = operands;
     }
 
-    public List<String> getOperands() {
+    public List<Integer> getOperands() {
         return operands;
     }
-    public String getOperand(int index) {
+    public int getOperand(int index) {
         return operands.get(index);
     }
 
-    public void setOperands(List<String> operands) {
+    public void setOperands(List<Integer> operands) {
         this.operands = operands;
     }
 
-    public void setOperand(int index, String value){
+    public void setOperand(int index, int value){
         this.operands.set(index, value);
     }
 
@@ -85,7 +85,7 @@ public class Instruction {
         StringBuilder sb = new StringBuilder();
 
         sb.append( this.getInstruction() + " ");
-        for (String operand: this.getOperands()){
+        for (int operand: this.getOperands()){
             sb.append(operand + " ");
         }
 

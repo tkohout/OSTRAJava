@@ -18,6 +18,8 @@ public class Class {
     protected List<Field> fields;
     protected List<Method> methods;
 
+    protected ConstantPool constantPool;
+
 
     public Class(String className, String superName){
         this.className = className;
@@ -72,7 +74,13 @@ public class Class {
         this.flags = flags;
     }
 
+    public ConstantPool getConstantPool() {
+        return constantPool;
+    }
 
+    public void setConstantPool(ConstantPool constantPool) {
+        this.constantPool = constantPool;
+    }
 
     @Override
     public String toString() {

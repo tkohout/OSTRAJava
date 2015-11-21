@@ -28,6 +28,8 @@ public class InterpretedClass extends Class {
             this.addMethod(new InterpretedMethod(method));
         }
 
+        setConstantPool(c.getConstantPool());
+
         //TODO: Copy flags
     }
 

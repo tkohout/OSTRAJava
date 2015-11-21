@@ -23,6 +23,7 @@ public class OSTRAJavaInterpreter {
 
 
     ClassPool classPool;
+    ConstantPool constantPool;
     Stack stack;
     Heap heap;
     Instructions instructions;
@@ -33,6 +34,7 @@ public class OSTRAJavaInterpreter {
         this.classPool = new ClassPool(compiledClasses);
         this.heap = new Heap(MAX_HEAP_OBJECTS);
         this.instructions = new Instructions(classPool);
+        this.constantPool = new ConstantPool(classPool);
     }
 
 
@@ -122,6 +124,7 @@ public class OSTRAJavaInterpreter {
                 executeFieldInstruction(instruction, stack);
                 break;
             case Breakpoint:
+                //Place breakpoint here
                 break;
             default:
                 throw new NotImplementedException();
@@ -131,7 +134,8 @@ public class OSTRAJavaInterpreter {
     }
 
     public void executeNewInstruction(Instruction instruction, Stack stack) throws InterpreterException {
-                String className = instruction.getOperand(0);
+                int constPosition = instruction.getOperand(0);
+                String className = constantPool.getConstant(constPosition);
                 try {
                     InterpretedClass objectClass = classPool.lookupClass(className);
 
@@ -153,7 +157,9 @@ public class OSTRAJavaInterpreter {
 
         //Get object and find the field
         int reference = stack.currentFrame().pop();
-        String fieldName = instruction.getOperand(0);
+
+        int constPosition = instruction.getOperand(0);
+        String fieldName = constantPool.getConstant(constPosition);
 
         Object object = heap.load(reference);
         InterpretedClass objectClass = object.loadClass(classPool);
@@ -179,7 +185,9 @@ public class OSTRAJavaInterpreter {
         switch (instruction.getInstruction()) {
             case InvokeVirtual:
                 //The method name is directly in instruction
-                String methodName = instruction.getOperand(0);
+
+                int constPosition = instruction.getOperand(0);
+                String methodName = constantPool.getConstant(constPosition);
 
                 //Get object the method is called on
                 int objectRef = stack.currentFrame().pop();
@@ -259,16 +267,16 @@ public class OSTRAJavaInterpreter {
     public void executeStackInstruction(Instruction instruction, Stack stack) throws InterpreterException{
         switch (instruction.getInstruction()) {
             case PushInteger: {
-                stack.currentFrame().push(Integer.parseInt(instruction.getOperand(0)));
+                stack.currentFrame().push(instruction.getOperand(0));
             }
             break;
             case StoreInteger: {
                 int var = stack.currentFrame().pop();
-                stack.currentFrame().storeVariable(Integer.parseInt(instruction.getOperand(0)), var);
+                stack.currentFrame().storeVariable(instruction.getOperand(0), var);
             }
             break;
             case LoadInteger: {
-                int var = stack.currentFrame().loadVariable(Integer.parseInt(instruction.getOperand(0)));
+                int var = stack.currentFrame().loadVariable(instruction.getOperand(0));
                 stack.currentFrame().push(var);
             }
             break;
@@ -276,11 +284,11 @@ public class OSTRAJavaInterpreter {
             //TODO: so far it's the same
             case StoreReference: {
                 int var = stack.currentFrame().pop();
-                stack.currentFrame().storeVariable(Integer.parseInt(instruction.getOperand(0)), var);
+                stack.currentFrame().storeVariable(instruction.getOperand(0), var);
             }
             break;
             case LoadReference: {
-                int var = stack.currentFrame().loadVariable(Integer.parseInt(instruction.getOperand(0)));
+                int var = stack.currentFrame().loadVariable(instruction.getOperand(0));
                 stack.currentFrame().push(var);
             }
             break;
@@ -320,7 +328,7 @@ public class OSTRAJavaInterpreter {
         int b = stack.currentFrame().pop();
         int a = stack.currentFrame().pop();
 
-        int operand = Integer.parseInt(instruction.getOperand(0));
+        int operand = instruction.getOperand(0);
 
         boolean condition = false;
 
@@ -352,7 +360,7 @@ public class OSTRAJavaInterpreter {
 
     public void executeGoToInstruction(Instruction instruction, Stack stack) throws InterpreterException {
 
-        int jumpTo = Integer.parseInt(instruction.getOperand(0));
+        int jumpTo = instruction.getOperand(0);
         instructions.goTo(jumpTo);
     }
 

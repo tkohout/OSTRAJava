@@ -14,6 +14,7 @@ public enum InstructionSet {
     PushInteger("ipush"),
     StoreReference("astore"),
     LoadReference("aload"),
+    PushConstant("ldc"),
     New("new"),
     GetField("getfield"),
     PutField("putfield"),
