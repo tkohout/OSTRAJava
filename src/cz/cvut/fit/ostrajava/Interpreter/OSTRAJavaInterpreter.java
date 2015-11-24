@@ -2,6 +2,10 @@ package cz.cvut.fit.ostrajava.Interpreter;
 
 import cz.cvut.fit.ostrajava.Compiler.*;
 import cz.cvut.fit.ostrajava.Compiler.Class;
+import cz.cvut.fit.ostrajava.Interpreter.Natives.Native;
+import cz.cvut.fit.ostrajava.Interpreter.Natives.Natives;
+import cz.cvut.fit.ostrajava.Type.Reference;
+import cz.cvut.fit.ostrajava.Type.Type;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.util.ArrayList;
@@ -27,6 +31,7 @@ public class OSTRAJavaInterpreter {
     Stack stack;
     Heap heap;
     Instructions instructions;
+    Natives natives;
 
 
     public OSTRAJavaInterpreter(List<Class> compiledClasses) throws InterpreterException, LookupException {
@@ -35,6 +40,7 @@ public class OSTRAJavaInterpreter {
         this.heap = new Heap(MAX_HEAP_OBJECTS);
         this.instructions = new Instructions(classPool);
         this.constantPool = new ConstantPool(classPool);
+        this.natives = new Natives(classPool, heap);
     }
 
 
@@ -55,7 +61,7 @@ public class OSTRAJavaInterpreter {
                 throw new InterpreterException("Main method not found. The name has to be '" + MAIN_METHOD_NAME + "'");
         }
 
-        int objectPointer = heap.alloc(mainClass);
+        int objectPointer = heap.allocObject(mainClass);
 
         //Create new frame for main method
         stack.newFrame(END_RETURN_ADDRESS, objectPointer, mainMethod);
@@ -116,6 +122,9 @@ public class OSTRAJavaInterpreter {
             case InvokeVirtual:
                 executeInvokeInstruction(instruction, stack);
                 break;
+            case Duplicate:
+                executeDuplicateInstruction(instruction, stack);
+                break;
             case New:
                 executeNewInstruction(instruction, stack);
                 break;
@@ -126,11 +135,73 @@ public class OSTRAJavaInterpreter {
             case Breakpoint:
                 //Place breakpoint here
                 break;
+            case PushConstant:
+                executeStringInstruction(instruction, stack);
+                break;
+            case NewArray:
+            case StoreIntegerArray:
+            case LoadIntegerArray:
+                executeArrayInstruction(instruction, stack);
+                break;
+            case Print:
+                executePrintInstruction(instruction, stack);
+                break;
             default:
                 throw new NotImplementedException();
         }
 
 
+    }
+
+    public void executeArrayInstruction(Instruction instruction, Stack stack) throws InterpreterException {
+        switch (instruction.getInstruction()) {
+            case NewArray:
+                int size = stack.currentFrame().pop();
+
+                int reference = heap.allocArray(size);
+                stack.currentFrame().push(reference);
+                break;
+            case StoreIntegerArray: {
+                int arrayRef = stack.currentFrame().pop();
+                int index = stack.currentFrame().pop();
+                int value = stack.currentFrame().pop();
+
+                Array array = (Array) heap.load(arrayRef);
+                array.set(index, value);
+            }
+                break;
+            case LoadIntegerArray: {
+                int arrayRef = stack.currentFrame().pop();
+                int index = stack.currentFrame().pop();
+
+                Array array = (Array) heap.load(arrayRef);
+                int value = array.get(index);
+
+                stack.currentFrame().push(value);
+            }
+                break;
+        }
+    }
+
+    public void executeStringInstruction(Instruction instruction, Stack stack) throws InterpreterException {
+        int constPosition = instruction.getOperand(0);
+        String constant = constantPool.getConstant(constPosition);
+
+        //Create array of chars (integers) and push it on stack
+        int reference = heap.allocArray(constant.length());
+        Array charArray = (Array)heap.load(reference);
+
+        for (int i = 0; i < constant.length(); i++){
+            charArray.set(i, constant.charAt(i));
+        }
+
+        stack.currentFrame().push(reference);
+    }
+
+    public void executePrintInstruction(Instruction instruction, Stack stack) throws InterpreterException {
+        int reference = stack.currentFrame().pop();
+        Object string = (Object)heap.load(reference);
+        return;
     }
 
     public void executeNewInstruction(Instruction instruction, Stack stack) throws InterpreterException {
@@ -139,12 +210,19 @@ public class OSTRAJavaInterpreter {
                 try {
                     InterpretedClass objectClass = classPool.lookupClass(className);
 
-                    int reference = heap.alloc(objectClass);
+                    int reference = heap.allocObject(objectClass);
                     stack.currentFrame().push(reference);
 
                 } catch (LookupException e) {
                     throw new InterpreterException("Trying to instantiate non-existent class '" + className + "'");
                 }
+    }
+
+    public void executeDuplicateInstruction(Instruction instruction, Stack stack) throws InterpreterException {
+        int value = stack.currentFrame().pop();
+
+        stack.currentFrame().push(value);
+        stack.currentFrame().push(value);
     }
 
     public void executeFieldInstruction(Instruction instruction, Stack stack) throws InterpreterException {
@@ -161,7 +239,10 @@ public class OSTRAJavaInterpreter {
         int constPosition = instruction.getOperand(0);
         String fieldName = constantPool.getConstant(constPosition);
 
-        Object object = heap.load(reference);
+        //TODO: test it's reference
+        //TODO: test it's not an array
+        Object object = (Object)heap.load(reference);
+
         InterpretedClass objectClass = object.loadClass(classPool);
         try {
             int fieldPosition = objectClass.lookupField(fieldName);
@@ -184,23 +265,23 @@ public class OSTRAJavaInterpreter {
     public void executeInvokeInstruction(Instruction instruction, Stack stack) throws InterpreterException{
         switch (instruction.getInstruction()) {
             case InvokeVirtual:
-                //The method name is directly in instruction
 
                 int constPosition = instruction.getOperand(0);
-                String methodName = constantPool.getConstant(constPosition);
+                String methodDescriptor = constantPool.getConstant(constPosition);
 
                 //Get object the method is called on
                 int objectRef = stack.currentFrame().pop();
-                Object object = heap.load(objectRef);
+
+                //TODO: test it's not array
+                Object object = (Object)heap.load(objectRef);
 
                 InterpretedClass objectClass = object.loadClass(classPool);
 
                 try {
-                    InterpretedMethod method = objectClass.lookupMethod(methodName);
+                    InterpretedMethod method = objectClass.lookupMethod(methodDescriptor);
 
                     //Return to next instruction
                     int returnAddress = instructions.getCurrentPosition() + 1;
-
 
                     //Pop arguments from the caller stack
                     int numberOfArgs = method.getArgs().size();
@@ -222,7 +303,28 @@ public class OSTRAJavaInterpreter {
                     instructions.goTo(method.getInstructionPosition());
 
                 } catch (LookupException e) {
-                    throw new InterpreterException("Calling non-existing method " + methodName);
+
+                    //Method doesn't exist try to load native
+
+                    //Load approximate method from descriptor so we can count the arguments
+                    Method methodFromDescriptor = new Method(methodDescriptor);
+
+                    int numberOfArgs = methodFromDescriptor.getArgs().size();
+
+                    Object[] argValues = new Object[numberOfArgs];
+
+                    for (int i = 0; i<methodFromDescriptor.getArgs().size(); i++){
+                        Type type = methodFromDescriptor.getArgs().get(i);
+
+                        //TODO: do the converting here
+                        if (type instanceof Reference) {
+                            int ref = stack.currentFrame().pop();
+                            argValues[i] = (Object) heap.load(ref);
+                        }
+                    }
+
+                    natives.invoke(methodDescriptor, argValues[0]);
+
                 }
 
 

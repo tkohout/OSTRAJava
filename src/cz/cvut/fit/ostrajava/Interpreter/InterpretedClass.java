@@ -62,19 +62,19 @@ public class InterpretedClass extends Class {
         return allFields;
     }
 
-    //TODO: add looking up by descriptor
-    public InterpretedMethod lookupMethod(String name) throws LookupException {
+    public InterpretedMethod lookupMethod(String descriptor) throws LookupException {
         for (Method method: methods){
-            if (method.getName().equals(name)){
+            //TODO: Add not only exact match
+            if (method.getDescriptor().equals(descriptor)){
                 return (InterpretedMethod)method;
             }
         }
 
         if (superClass != null) {
-            return superClass.lookupMethod(name);
+            return superClass.lookupMethod(descriptor);
         }
 
-        throw new LookupException("Method '" + name + "' not found");
+        throw new LookupException("Method '" + descriptor + "' not found");
     }
 
     public int lookupField(String name) throws LookupException {

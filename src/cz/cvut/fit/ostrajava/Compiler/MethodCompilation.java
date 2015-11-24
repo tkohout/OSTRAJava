@@ -1,5 +1,7 @@
 package cz.cvut.fit.ostrajava.Compiler;
 
+import cz.cvut.fit.ostrajava.Type.Type;
+
 import java.util.*;
 
 /**
@@ -8,6 +10,7 @@ import java.util.*;
 public class MethodCompilation {
     ByteCode byteCode;
     Map<String, Variable> localVars = new LinkedHashMap<String, Variable>();
+
 
     public ByteCode getByteCode() {
         return byteCode;
@@ -61,4 +64,6 @@ public class MethodCompilation {
     protected List<String> variablesKeySet(){
         return new ArrayList<String>(localVars.keySet());
     }
+
+
 }

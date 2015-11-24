@@ -1,5 +1,9 @@
 package cz.cvut.fit.ostrajava.Compiler;
 
+import cz.cvut.fit.ostrajava.Type.Type;
+import cz.cvut.fit.ostrajava.Type.Types;
+
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -16,6 +20,21 @@ public class Method {
         this.name = name;
         this.args = args;
         this.returnType = returnType;
+    }
+
+    public Method(String descriptor) {
+        String[] parts = descriptor.split(":");
+        args = new ArrayList<>();
+        //TODO: Put real return type
+        returnType = Types.Void();
+
+        for (int i=0; i < parts.length; i++){
+             if (i == 0){
+                 name = parts[i];
+             }else{
+                 args.add(Types.fromString(parts[i]));
+             }
+        }
     }
 
     public Type getReturnType() {
@@ -56,5 +75,16 @@ public class Method {
 
     public void setLocalVariablesCount(int localVariablesCount) {
         this.localVariablesCount = localVariablesCount;
+    }
+
+    public String getDescriptor(){
+        StringBuilder sb = new StringBuilder();
+        sb.append(name);
+
+        for (Type arg: args){
+            sb.append(":" + arg.toString().toLowerCase());
+        }
+
+        return sb.toString();
     }
 }

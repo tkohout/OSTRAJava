@@ -10,7 +10,7 @@ import java.util.Set;
 /**
  * Created by tomaskohout on 11/19/15.
  */
-public class Object {
+public class Object extends HeapObject{
 
     final int OBJECT_FIELD_SIZE = 4;
     final int OBJECT_CLASS_ADDRESS_SIZE = 4;
@@ -45,7 +45,7 @@ public class Object {
     }
 
     //TODO: What if not int?
-    protected int getField(int index){
+    public int getField(int index){
         return byteArray.getInt(OBJECT_HEADER_SIZE + index * OBJECT_FIELD_SIZE);
     }
 

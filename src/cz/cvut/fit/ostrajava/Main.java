@@ -46,8 +46,6 @@ public class Main {
                 OSTRAJavaCompiler compiler = new OSTRAJavaCompiler(node);
                 classList.addAll(compiler.compile());
 
-                OSTRAJavaInterpreter interpreter = new OSTRAJavaInterpreter(classList);
-                interpreter.run();
             } catch (ParseException e) {
                 System.out.println("Parsing exception in file " + fileName);
                 throw e;
@@ -59,5 +57,10 @@ public class Main {
 
         }
 
+        OSTRAJavaInterpreter interpreter = new OSTRAJavaInterpreter(classList);
+        interpreter.run();
+
     }
+
+
 }

@@ -18,72 +18,73 @@ public interface OSTRAJavaParserTreeConstants
   public int JJTCONSTRUCTORDECLARATION = 12;
   public int JJTEXPLICITCONSTRUCTORINVOCATION = 13;
   public int JJTTYPE = 14;
-  public int JJTBOOL = 15;
-  public int JJTSTRING = 16;
-  public int JJTNUMBER = 17;
-  public int JJTFLOAT = 18;
-  public int JJTRESULTTYPE = 19;
-  public int JJTNAME = 20;
-  public int JJTNAMELIST = 21;
-  public int JJTEXPRESSION = 22;
-  public int JJTASSIGNMENT = 23;
-  public int JJTASSIGNEE = 24;
-  public int JJTTHIS = 25;
-  public int JJTSUPER = 26;
-  public int JJTCONDITIONALEXPRESSION = 27;
-  public int JJTCONDITIONALOREXPRESSION = 28;
-  public int JJTOROPERATOR = 29;
-  public int JJTCONDITIONALANDEXPRESSION = 30;
-  public int JJTANDOPERATOR = 31;
-  public int JJTEQUALITYEXPRESSION = 32;
-  public int JJTEQUALOPERATOR = 33;
-  public int JJTNOTEQUALOPERATOR = 34;
-  public int JJTRELATIONALEXPRESSION = 35;
-  public int JJTLESSTHANOPERATOR = 36;
-  public int JJTGREATERTHANOPERATOR = 37;
-  public int JJTLESSTHANOREQUALOPERATOR = 38;
-  public int JJTGREATERTHANOREQUALOPERATOR = 39;
-  public int JJTADDITIVEEXPRESSION = 40;
-  public int JJTPLUSOPERATOR = 41;
-  public int JJTMINUSOPERATOR = 42;
-  public int JJTMULTIPLICATIVEEXPRESSION = 43;
-  public int JJTMULTIPLYOPERATOR = 44;
-  public int JJTDIVIDEOPERATOR = 45;
-  public int JJTMODULOOPERATOR = 46;
-  public int JJTUNARYEXPRESSION = 47;
-  public int JJTUNARYEXPRESSIONNOTPLUSMINUS = 48;
-  public int JJTPRIMARYEXPRESSION = 49;
-  public int JJTPRIMARYPREFIX = 50;
-  public int JJTPRIMARYSUFFIX = 51;
-  public int JJTNUMBERLITERAL = 52;
-  public int JJTFLOATLITERAL = 53;
-  public int JJTSTRINGLITERAL = 54;
-  public int JJTBOOLEANLITERAL = 55;
-  public int JJTNULLLITERAL = 56;
-  public int JJTARGUMENTS = 57;
-  public int JJTALLOCATIONEXPRESSION = 58;
-  public int JJTARRAYDIMENSIONS = 59;
-  public int JJTSTATEMENT = 60;
-  public int JJTBLOCK = 61;
-  public int JJTLOCALVARIABLEDECLARATION = 62;
-  public int JJTDEBUGSTATEMENT = 63;
-  public int JJTEMPTYSTATEMENT = 64;
-  public int JJTSTATEMENTEXPRESSION = 65;
-  public int JJTSWITCHSTATEMENT = 66;
-  public int JJTSWITCHLABEL = 67;
-  public int JJTIFSTATEMENT = 68;
-  public int JJTWHILESTATEMENT = 69;
-  public int JJTDOSTATEMENT = 70;
-  public int JJTFORSTATEMENT = 71;
-  public int JJTFORINIT = 72;
-  public int JJTSTATEMENTEXPRESSIONLIST = 73;
-  public int JJTFORUPDATE = 74;
-  public int JJTBREAKSTATEMENT = 75;
-  public int JJTCONTINUESTATEMENT = 76;
-  public int JJTRETURNSTATEMENT = 77;
-  public int JJTTHROWSTATEMENT = 78;
-  public int JJTTRYSTATEMENT = 79;
-  public int JJTPRINTSTATEMENT = 80;
+  public int JJTARRAYTYPE = 15;
+  public int JJTBOOL = 16;
+  public int JJTCHAR = 17;
+  public int JJTNUMBER = 18;
+  public int JJTFLOAT = 19;
+  public int JJTRESULTTYPE = 20;
+  public int JJTNAME = 21;
+  public int JJTNAMELIST = 22;
+  public int JJTEXPRESSION = 23;
+  public int JJTASSIGNMENT = 24;
+  public int JJTASSIGNEE = 25;
+  public int JJTTHIS = 26;
+  public int JJTSUPER = 27;
+  public int JJTCONDITIONALEXPRESSION = 28;
+  public int JJTCONDITIONALOREXPRESSION = 29;
+  public int JJTOROPERATOR = 30;
+  public int JJTCONDITIONALANDEXPRESSION = 31;
+  public int JJTANDOPERATOR = 32;
+  public int JJTEQUALITYEXPRESSION = 33;
+  public int JJTEQUALOPERATOR = 34;
+  public int JJTNOTEQUALOPERATOR = 35;
+  public int JJTRELATIONALEXPRESSION = 36;
+  public int JJTLESSTHANOPERATOR = 37;
+  public int JJTGREATERTHANOPERATOR = 38;
+  public int JJTLESSTHANOREQUALOPERATOR = 39;
+  public int JJTGREATERTHANOREQUALOPERATOR = 40;
+  public int JJTADDITIVEEXPRESSION = 41;
+  public int JJTPLUSOPERATOR = 42;
+  public int JJTMINUSOPERATOR = 43;
+  public int JJTMULTIPLICATIVEEXPRESSION = 44;
+  public int JJTMULTIPLYOPERATOR = 45;
+  public int JJTDIVIDEOPERATOR = 46;
+  public int JJTMODULOOPERATOR = 47;
+  public int JJTUNARYEXPRESSION = 48;
+  public int JJTUNARYEXPRESSIONNOTPLUSMINUS = 49;
+  public int JJTPRIMARYEXPRESSION = 50;
+  public int JJTPRIMARYPREFIX = 51;
+  public int JJTPRIMARYSUFFIX = 52;
+  public int JJTNUMBERLITERAL = 53;
+  public int JJTFLOATLITERAL = 54;
+  public int JJTCHARLITERAL = 55;
+  public int JJTSTRINGLITERAL = 56;
+  public int JJTBOOLEANLITERAL = 57;
+  public int JJTNULLLITERAL = 58;
+  public int JJTARGUMENTS = 59;
+  public int JJTALLOCATIONEXPRESSION = 60;
+  public int JJTARRAYSUFFIX = 61;
+  public int JJTSTATEMENT = 62;
+  public int JJTBLOCK = 63;
+  public int JJTLOCALVARIABLEDECLARATION = 64;
+  public int JJTDEBUGSTATEMENT = 65;
+  public int JJTEMPTYSTATEMENT = 66;
+  public int JJTSTATEMENTEXPRESSION = 67;
+  public int JJTSWITCHSTATEMENT = 68;
+  public int JJTSWITCHLABEL = 69;
+  public int JJTIFSTATEMENT = 70;
+  public int JJTWHILESTATEMENT = 71;
+  public int JJTDOSTATEMENT = 72;
+  public int JJTFORSTATEMENT = 73;
+  public int JJTFORINIT = 74;
+  public int JJTSTATEMENTEXPRESSIONLIST = 75;
+  public int JJTFORUPDATE = 76;
+  public int JJTBREAKSTATEMENT = 77;
+  public int JJTCONTINUESTATEMENT = 78;
+  public int JJTRETURNSTATEMENT = 79;
+  public int JJTTHROWSTATEMENT = 80;
+  public int JJTTRYSTATEMENT = 81;
 
 
   public String[] jjtNodeName = {
@@ -102,8 +103,9 @@ public interface OSTRAJavaParserTreeConstants
     "ConstructorDeclaration",
     "ExplicitConstructorInvocation",
     "Type",
+    "ArrayType",
     "Bool",
-    "String",
+    "Char",
     "Number",
     "Float",
     "ResultType",
@@ -141,12 +143,13 @@ public interface OSTRAJavaParserTreeConstants
     "PrimarySuffix",
     "NumberLiteral",
     "FloatLiteral",
+    "CharLiteral",
     "StringLiteral",
     "BooleanLiteral",
     "NullLiteral",
     "Arguments",
     "AllocationExpression",
-    "ArrayDimensions",
+    "ArraySuffix",
     "Statement",
     "Block",
     "LocalVariableDeclaration",
@@ -167,7 +170,6 @@ public interface OSTRAJavaParserTreeConstants
     "ReturnStatement",
     "ThrowStatement",
     "TryStatement",
-    "PrintStatement",
   };
 }
-/* JavaCC - OriginalChecksum=cfd804c978d3b2a8fbe187fba610f654 (do not edit this line) */
+/* JavaCC - OriginalChecksum=058aeb5386fa218027eb460aaa667e5f (do not edit this line) */

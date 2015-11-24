@@ -1,5 +1,7 @@
 package cz.cvut.fit.ostrajava.Compiler;
 
+import cz.cvut.fit.ostrajava.Type.Type;
+
 /**
  * Created by tomaskohout on 11/15/15.
  */

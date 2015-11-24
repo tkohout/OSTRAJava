@@ -15,7 +15,13 @@ public enum InstructionSet {
     StoreReference("astore"),
     LoadReference("aload"),
     PushConstant("ldc"),
+    NewArray("newarray"),
+    StoreIntegerArray("iastore"),
+    StoreReferenceArray("aastore"),
+    LoadIntegerArray("iaload"),
+    LoadReferenceArray("aaload"),
     New("new"),
+    Duplicate("dup"),
     GetField("getfield"),
     PutField("putfield"),
     IfCompareEqualInteger("if_icmpeq"),
@@ -30,7 +36,9 @@ public enum InstructionSet {
     ReturnReference("areturn"),
     ReturnInteger("ireturn"),
     ReturnVoid("return"),
-    Breakpoint("int")
+    Breakpoint("int"),
+    Print("print"),
+
     ;
 
     private String abbr;

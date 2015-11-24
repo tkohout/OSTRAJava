@@ -1,7 +1,6 @@
 package cz.cvut.fit.ostrajava.Interpreter;
 
 import cz.cvut.fit.ostrajava.Compiler.Method;
-import cz.cvut.fit.ostrajava.Compiler.Type;
 
 import java.util.List;
 

@@ -95,13 +95,13 @@ TOKEN : /* RESERVED WORDS AND LITERALS */
 | < TRY: "lajsnut" >
 | < CATCH: "lapnut" >
 | < FINALLY: "fertyk" >
-| < PRINT: "pravit" >
+//| < PRINT: "pravit" >
 | < RETURN: "davaj" >
 
 | < INT: "cyslo" >
 | < BOOLEAN: "bul" >
 | < FLOAT: "cyslo_desetinne" >
-| < STRING: "dryst" >
+| < CHAR: "chachar" >
 
 
 | < DEBUG: "dechrobok" >
@@ -421,7 +421,13 @@ void ExplicitConstructorInvocation() :
 void Type():
 {}
 {
-  ( PrimitiveType() | Name() ) ( "[" "]" )*
+  ( PrimitiveType() [ ArrayType() ] | Name() )
+}
+
+void ArrayType():
+{}
+{
+  "[" "]"
 }
 
 void PrimitiveType() #void:
@@ -429,7 +435,7 @@ void PrimitiveType() #void:
 {
 "bul" #Bool
 |
-"dryst" #String
+"chachar" #Char
 |
  "cyslo"  #Number
 |
@@ -482,7 +488,7 @@ void Assignment() :
 void Assignee():
 {}
 {
-    AssigneePrefix() ("." Name() )*
+    AssigneePrefix() ("." Name() | ArraySuffix() )*
 }
 
 void AssigneePrefix() #void:
@@ -598,8 +604,8 @@ void PrimaryPrefix() :
 void PrimarySuffix() :
 {Token t;}
 {
-//  "[" Expression() "]"
-//|
+  ArraySuffix()
+|
   "." Name()
 |
   Arguments()
@@ -612,8 +618,8 @@ void Literal() #void:
 |
   t = <FLOATING_POINT_LITERAL>  {jjtThis.value = t.image; } #FloatLiteral
 |
- /* <CHARACTER_LITERAL>
-|*/
+  t = <CHARACTER_LITERAL> {jjtThis.value = t.image; } #CharLiteral
+|
   t = <STRING_LITERAL>  {jjtThis.value = t.image; } #StringLiteral
 |
   BooleanLiteral()
@@ -650,9 +656,9 @@ void ArgumentList() #void:
 void AllocationExpression() :
 {}
 {
-/*  LOOKAHEAD(2)
-  "zrob" PrimitiveType() ArrayDimensions()
-|*/
+  LOOKAHEAD(2)
+  "zrob" PrimitiveType() ArraySuffix()
+|
   "zrob" Name()  Arguments() /*| ArrayDimensions()*/
 }
 
@@ -660,10 +666,10 @@ void AllocationExpression() :
  * The second LOOKAHEAD specification below is to parse to PrimarySuffix
  * if there is an expression between the "[...]".
  */
-void ArrayDimensions() :
+void ArraySuffix() :
 {}
 {
-  ( LOOKAHEAD(2) "[" Expression() "]" )+ ( LOOKAHEAD(2) "[" "]" )*
+  "[" Expression() "]" /*)+ ( LOOKAHEAD(2) "[" "]" )* */
 }
 
 
@@ -701,8 +707,8 @@ void Statement() :
 |
   TryStatement()
 |*/
-  PrintStatement()
-|
+/*  PrintStatement()
+|*/
   DebugStatement()
 }
 
@@ -857,8 +863,8 @@ void TryStatement() :
   [ "fertyk" Block() ]
 }
 
-void PrintStatement() :
+/*void PrintStatement() :
 {}
 {
   "pravit" Expression() "pyco"
-}
+}*/
