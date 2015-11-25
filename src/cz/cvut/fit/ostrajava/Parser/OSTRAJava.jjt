@@ -97,7 +97,7 @@ TOKEN : /* RESERVED WORDS AND LITERALS */
 | < FINALLY: "fertyk" >
 //| < PRINT: "pravit" >
 | < RETURN: "davaj" >
-
+| < STATIC: "statyk" >
 | < INT: "cyslo" >
 | < BOOLEAN: "bul" >
 | < FLOAT: "cyslo_desetinne" >
@@ -365,6 +365,7 @@ void VariableInitializer() :
 void MethodDeclaration() :
 {}
 {
+  [ "statyk" #Static]
   MethodHeader()
   ( Block() | "pyco" )
 }

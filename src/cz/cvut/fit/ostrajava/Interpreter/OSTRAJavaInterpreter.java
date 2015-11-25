@@ -120,6 +120,7 @@ public class OSTRAJavaInterpreter {
                 executeReturnInstruction(instruction, stack);
                 break;
             case InvokeVirtual:
+            case InvokeStatic:
                 executeInvokeInstruction(instruction, stack);
                 break;
             case Duplicate:
@@ -263,21 +264,43 @@ public class OSTRAJavaInterpreter {
     }
 
     public void executeInvokeInstruction(Instruction instruction, Stack stack) throws InterpreterException{
-        switch (instruction.getInstruction()) {
-            case InvokeVirtual:
+
 
                 int constPosition = instruction.getOperand(0);
                 String methodDescriptor = constantPool.getConstant(constPosition);
+                InterpretedClass objectClass;
+                int objectRef;
 
-                //Get object the method is called on
-                int objectRef = stack.currentFrame().pop();
-
-                //TODO: test it's not array
-                Object object = (Object)heap.load(objectRef);
-
-                InterpretedClass objectClass = object.loadClass(classPool);
 
                 try {
+
+                    //Normal method
+                    if (instruction.getInstruction() == InstructionSet.InvokeVirtual) {
+                        //Get object the method is called on
+                        objectRef = stack.currentFrame().pop();
+
+                        //We are in static method, the only non-static method we can call here is native
+                        if (objectRef == 0){
+                            invokeNative(methodDescriptor);
+                            return;
+                        }
+
+                        //TODO: test it's not array
+                        Object object = (Object) heap.load(objectRef);
+
+                        objectClass = object.loadClass(classPool);
+                    //Static method
+                    }else{
+                        int classNamePos = instruction.getOperand(1);
+                        String className = constantPool.getConstant(classNamePos);
+                        //Load static class
+                        objectClass = classPool.lookupClass(className);
+
+                        //Set This to null
+                        objectRef = 0;
+                    }
+
+
                     InterpretedMethod method = objectClass.lookupMethod(methodDescriptor);
 
                     //Return to next instruction
@@ -305,31 +328,32 @@ public class OSTRAJavaInterpreter {
                 } catch (LookupException e) {
 
                     //Method doesn't exist try to load native
+                    invokeNative(methodDescriptor);
 
-                    //Load approximate method from descriptor so we can count the arguments
-                    Method methodFromDescriptor = new Method(methodDescriptor);
-
-                    int numberOfArgs = methodFromDescriptor.getArgs().size();
-
-                    Object[] argValues = new Object[numberOfArgs];
-
-                    for (int i = 0; i<methodFromDescriptor.getArgs().size(); i++){
-                        Type type = methodFromDescriptor.getArgs().get(i);
-
-                        //TODO: do the converting here
-                        if (type instanceof Reference) {
-                            int ref = stack.currentFrame().pop();
-                            argValues[i] = (Object) heap.load(ref);
-                        }
-                    }
-
-                    natives.invoke(methodDescriptor, argValues[0]);
 
                 }
 
 
-                break;
+    }
+
+    public void invokeNative(String methodDescriptor) throws InterpreterException {
+        //Load approximate method from descriptor so we can count the arguments
+        Method methodFromDescriptor = new Method(methodDescriptor);
+
+        int numberOfArgs = methodFromDescriptor.getArgs().size();
+
+        Array[] argValues = new Array[numberOfArgs];
+
+        for (int i = 0; i<methodFromDescriptor.getArgs().size(); i++){
+            Type type = methodFromDescriptor.getArgs().get(i);
+
+            //TODO: do the converting here
+            int ref = stack.currentFrame().pop();
+            argValues[i] = (Array) heap.load(ref);
+
         }
+
+        natives.invoke(methodDescriptor, argValues[0]);
     }
 
     public void executeReturnInstruction(Instruction instruction, Stack stack) throws InterpreterException{

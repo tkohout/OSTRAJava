@@ -24,13 +24,13 @@ public class Natives {
     private void init(){
         if (nativesMap == null) {
             nativesMap = new HashMap<>();
-            nativesMap.put("pravit:dryst", new PrintString(this.classPool, this.heap));
+            nativesMap.put("print:chachar[]", new PrintChars(this.classPool, this.heap));
         }
     }
 
 
 
-    public void invoke(String descriptor, Object... args) throws InterpreterException {
+    public void invoke(String descriptor, Array... args) throws InterpreterException {
 
         if (nativesMap.containsKey(descriptor)){
             nativesMap.get(descriptor).invoke(args[0]);

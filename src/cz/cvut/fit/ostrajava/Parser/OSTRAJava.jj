@@ -101,7 +101,7 @@ TOKEN : /* RESERVED WORDS AND LITERALS */
 | < FINALLY: "fertyk" >
 //| < PRINT: "pravit" >
 | < RETURN: "davaj" >
-
+| < STATIC: "statyk" >
 | < INT: "cyslo" >
 | < BOOLEAN: "bul" >
 | < FLOAT: "cyslo_desetinne" >
@@ -558,6 +558,22 @@ void MethodDeclaration() :
 {/*@bgen(jjtree) MethodDeclaration */
   try {
 /*@egen*/
+  [/*@bgen(jjtree) Static */
+    {
+      ASTStatic jjtn001 = new ASTStatic(JJTSTATIC);
+      boolean jjtc001 = true;
+      jjtree.openNodeScope(jjtn001);
+      jjtn001.jjtSetFirstToken(getToken(1));
+    }
+    try {
+/*@egen*/ "statyk"/*@bgen(jjtree)*/
+    } finally {
+      if (jjtc001) {
+        jjtree.closeNodeScope(jjtn001, true);
+        jjtn001.jjtSetLastToken(getToken(0));
+      }
+    }
+/*@egen*/        ]
   MethodHeader()
   ( Block() | "pyco" )/*@bgen(jjtree)*/
   } catch (Throwable jjte000) {

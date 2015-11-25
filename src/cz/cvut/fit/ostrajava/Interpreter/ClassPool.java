@@ -29,9 +29,10 @@ public class ClassPool {
     }
 
     public InterpretedClass lookupClass(String name) throws LookupException {
+        String lowercase = name.toLowerCase();
 
         for (InterpretedClass c: classes){
-            if (c.getClassName().equals(name)){
+            if (c.getClassName().equals(lowercase)){
                 return c;
             }
         }

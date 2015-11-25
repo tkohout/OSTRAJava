@@ -42,17 +42,22 @@ public class ConstantPool {
                         case InvokeVirtual:
                         case GetField:
                         case PutField:
-                            int operand = inst.getOperand(0);
-                            String constant = pool.getConstant(operand);
-
-                            int newPosition = addConstant(constant);
-                            inst.setOperand(0, newPosition);
+                        case InvokeStatic:
+                            int i = 0;
+                            for (int operand: inst.getOperands()){
+                                String constant = pool.getConstant(operand);
+                                int newPosition = addConstant(constant);
+                                inst.setOperand(i, newPosition);
+                                i++;
+                            }
                             break;
                     }
                 }
             }
         }
     }
+
+
 
 
 

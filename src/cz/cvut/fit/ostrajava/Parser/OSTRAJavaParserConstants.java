@@ -69,95 +69,97 @@ public interface OSTRAJavaParserConstants {
   /** RegularExpression Id. */
   int RETURN = 34;
   /** RegularExpression Id. */
-  int INT = 35;
+  int STATIC = 35;
   /** RegularExpression Id. */
-  int BOOLEAN = 36;
+  int INT = 36;
   /** RegularExpression Id. */
-  int FLOAT = 37;
+  int BOOLEAN = 37;
   /** RegularExpression Id. */
-  int CHAR = 38;
+  int FLOAT = 38;
   /** RegularExpression Id. */
-  int DEBUG = 39;
+  int CHAR = 39;
   /** RegularExpression Id. */
-  int SWITCH = 40;
+  int DEBUG = 40;
   /** RegularExpression Id. */
-  int CASE = 41;
+  int SWITCH = 41;
   /** RegularExpression Id. */
-  int _DEFAULT = 42;
+  int CASE = 42;
   /** RegularExpression Id. */
-  int FOR = 43;
+  int _DEFAULT = 43;
   /** RegularExpression Id. */
-  int INSTANCEOF = 44;
+  int FOR = 44;
   /** RegularExpression Id. */
-  int IMPORT = 45;
+  int INSTANCEOF = 45;
   /** RegularExpression Id. */
-  int INTEGER_LITERAL = 46;
+  int IMPORT = 46;
   /** RegularExpression Id. */
-  int DECIMAL_LITERAL = 47;
+  int INTEGER_LITERAL = 47;
   /** RegularExpression Id. */
-  int HEX_LITERAL = 48;
+  int DECIMAL_LITERAL = 48;
   /** RegularExpression Id. */
-  int OCTAL_LITERAL = 49;
+  int HEX_LITERAL = 49;
   /** RegularExpression Id. */
-  int FLOATING_POINT_LITERAL = 50;
+  int OCTAL_LITERAL = 50;
   /** RegularExpression Id. */
-  int EXPONENT = 51;
+  int FLOATING_POINT_LITERAL = 51;
   /** RegularExpression Id. */
-  int CHARACTER_LITERAL = 52;
+  int EXPONENT = 52;
   /** RegularExpression Id. */
-  int STRING_LITERAL = 53;
+  int CHARACTER_LITERAL = 53;
   /** RegularExpression Id. */
-  int LPAREN = 54;
+  int STRING_LITERAL = 54;
   /** RegularExpression Id. */
-  int RPAREN = 55;
+  int LPAREN = 55;
   /** RegularExpression Id. */
-  int LBRACE = 56;
+  int RPAREN = 56;
   /** RegularExpression Id. */
-  int RBRACE = 57;
+  int LBRACE = 57;
   /** RegularExpression Id. */
-  int LBRACKET = 58;
+  int RBRACE = 58;
   /** RegularExpression Id. */
-  int RBRACKET = 59;
+  int LBRACKET = 59;
   /** RegularExpression Id. */
-  int COMMA = 60;
+  int RBRACKET = 60;
   /** RegularExpression Id. */
-  int DOT = 61;
+  int COMMA = 61;
   /** RegularExpression Id. */
-  int ASSIGN = 62;
+  int DOT = 62;
   /** RegularExpression Id. */
-  int GT = 63;
+  int ASSIGN = 63;
   /** RegularExpression Id. */
-  int LT = 64;
+  int GT = 64;
   /** RegularExpression Id. */
-  int BANG = 65;
+  int LT = 65;
   /** RegularExpression Id. */
-  int EQ = 66;
+  int BANG = 66;
   /** RegularExpression Id. */
-  int LE = 67;
+  int EQ = 67;
   /** RegularExpression Id. */
-  int GE = 68;
+  int LE = 68;
   /** RegularExpression Id. */
-  int NE = 69;
+  int GE = 69;
   /** RegularExpression Id. */
-  int SC_OR = 70;
+  int NE = 70;
   /** RegularExpression Id. */
-  int SC_AND = 71;
+  int SC_OR = 71;
   /** RegularExpression Id. */
-  int PLUS = 72;
+  int SC_AND = 72;
   /** RegularExpression Id. */
-  int MINUS = 73;
+  int PLUS = 73;
   /** RegularExpression Id. */
-  int STAR = 74;
+  int MINUS = 74;
   /** RegularExpression Id. */
-  int SLASH = 75;
+  int STAR = 75;
   /** RegularExpression Id. */
-  int REM = 76;
+  int SLASH = 76;
   /** RegularExpression Id. */
-  int IDENTIFIER = 77;
+  int REM = 77;
   /** RegularExpression Id. */
-  int LETTER = 78;
+  int IDENTIFIER = 78;
   /** RegularExpression Id. */
-  int DIGIT = 79;
+  int LETTER = 79;
+  /** RegularExpression Id. */
+  int DIGIT = 80;
 
   /** Lexical state. */
   int DEFAULT = 0;
@@ -199,6 +201,7 @@ public interface OSTRAJavaParserConstants {
     "\"lapnut\"",
     "\"fertyk\"",
     "\"davaj\"",
+    "\"statyk\"",
     "\"cyslo\"",
     "\"bul\"",
     "\"cyslo_desetinne\"",

@@ -10,20 +10,13 @@ import java.util.List;
 /**
  * Created by tomaskohout on 11/23/15.
  */
-public class PrintString extends Native {
+public class PrintChars extends Native {
 
-    public PrintString(ClassPool classPool, Heap heap) {
+    public PrintChars(ClassPool classPool, Heap heap) {
         super(classPool, heap);
     }
 
-    public void invoke(Object object)  {
-
-        try {
-            InterpretedClass c = object.loadClass(classPool);
-            int position = c.lookupField("chachari");
-            int arrayRef = object.getField(position);
-            Array array = (Array) this.heap.load(arrayRef);
-
+    public void invoke(Array array)  {
             StringBuilder sb = new StringBuilder();
 
             for (int i = 0; i < array.getSize(); i++){
@@ -31,10 +24,5 @@ public class PrintString extends Native {
             }
 
             System.out.println(sb.toString());
-
-        } catch (LookupException|InterpreterException e) {
-            e.printStackTrace();
-        }
-
     }
 }

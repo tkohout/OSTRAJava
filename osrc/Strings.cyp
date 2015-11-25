@@ -21,9 +21,9 @@ tryda Ostrava{
         toz Dryst e pyco
         e = zrob Dryst(p) pyco
 
-        pravit(d) pyco
+        Konzola.pravit(d) pyco
 
-        pravit("Neco inciho") pyco
+        Konzola.pravit("Neco inciho") pyco
 
         dechrobok pyco
     }

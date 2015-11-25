@@ -26,25 +26,32 @@ public class OSTRAJavaCompiler {
 
     protected ConstantPool constantPool;
     protected ClassPool classPool;
-
+    protected Class currentClass;
     protected Mode mode;
+
+
 
     //In precompilation we just go trough declarations
     public List<Class> precompile(Node node) throws CompilerException {
         this.mode = Mode.PRECOMPILE;
-        this.constantPool = null;
-        this.classPool = null;
+        reset();
         return run(node);
     }
 
     //In compilation we go through all bytecode
     public List<Class> compile(Node node, ClassPool classPool) throws CompilerException {
         this.mode = Mode.COMPILE;
+        reset();
         this.classPool = classPool;
-        this.constantPool = null;
         return run(node);
     }
 
+
+    protected void reset(){
+        this.constantPool = null;
+        this.classPool = null;
+        this.currentClass = null;
+    }
 
 
     protected List<Class> run(Node node) throws CompilerException {
@@ -88,7 +95,7 @@ public class OSTRAJavaCompiler {
             aClass.setSuperName((extending != null) ? extending.toLowerCase() : null);
         }
 
-
+        currentClass = aClass;
         List<Field> fields = new ArrayList<>();
 
         for (int i=0; i<node.jjtGetNumChildren(); i++){
@@ -163,11 +170,14 @@ public class OSTRAJavaCompiler {
         ByteCode byteCode = new ByteCode();
         MethodCompilation compilation = new MethodCompilation();
         compilation.setByteCode(byteCode);
+        boolean isStatic = false;
 
         for (int i=0; i<node.jjtGetNumChildren(); i++) {
             Node child = node.jjtGetChild(i);
 
-            if (child instanceof ASTResultType){
+            if (child instanceof ASTStatic) {
+                isStatic = true;
+            }else if (child instanceof ASTResultType){
                 ASTResultType resultType = ((ASTResultType) child);
                 if (resultType.jjtGetNumChildren() != 0){
                     returnType = type((ASTType)resultType.jjtGetChild(0));
@@ -195,6 +205,7 @@ public class OSTRAJavaCompiler {
 
         Method method = new Method(name, args, returnType);
 
+
         if (mode == Mode.COMPILE) {
             //Find already declared method
             for (Method m : aClass.getMethods()) {
@@ -207,6 +218,7 @@ public class OSTRAJavaCompiler {
             aClass.addMethod(method);
         }
 
+        method.setStaticMethod(isStatic);
         method.setLocalVariablesCount(compilation.getNumberOfLocalVariables());
         method.setByteCode(byteCode);
     }
@@ -527,7 +539,9 @@ public class OSTRAJavaCompiler {
 
             int rightPosition = compilation.getPositionOfLocalVariable(rightName);
             if (rightPosition == -1) {
-                throw new CompilerException("Variable '" + rightName + "' is undeclared");
+                //It's undeclared it has to be static class
+                return Types.Reference(rightName);
+                //throw new CompilerException("Variable '" + rightName + "' is undeclared");
             }
             return compilation.getTypeOfLocalVariable(rightName);
         }else if (CompilerTypes.isAllocationExpression(value)){
@@ -556,6 +570,8 @@ public class OSTRAJavaCompiler {
             //Any reference (Might need fixing)
             return Types.Reference("");
         }else if (CompilerTypes.isCallExpression(value)){
+
+
             return null;
             //TODO: we don't know return type of the method
         }else if (CompilerTypes.isFieldExpression(value)) {
@@ -605,13 +621,34 @@ public class OSTRAJavaCompiler {
         arguments(args, compilation);
 
 
+        Class objectClass;
+
         //Evaluate the caller
         //It is simple method call, it has to be called on This
         if (node.jjtGetNumChildren() == 2){
+            objectClass = currentClass;
             thisReference(compilation);
-        }else{
             //TODO: Super
-            variable((ASTName) caller, compilation);
+        }else{
+            Type type = getTypeForExpression(caller, compilation);
+            if (!(type instanceof Reference)){
+                throw new CompilerException("Trying to call method on non-object");
+            }
+
+            String className = ((Reference) type).getClassName();
+
+            try {
+                objectClass = classPool.lookupClass(className);
+            } catch (LookupException e) {
+                throw new CompilerException("Class '" + className  + "' not found");
+            }
+
+            int variablePosition = compilation.getPositionOfLocalVariable(((ASTName)caller).jjtGetValue().toString());
+
+            //If it's variable. If it's not it has to be static class
+            if (variablePosition != -1) {
+                variable((ASTName) caller, compilation);
+            }
         }
 
         //Load fields (if any)
@@ -623,7 +660,7 @@ public class OSTRAJavaCompiler {
         //Get types of arguments (whether they are expression, variables or method call)
         List<Type> argTypes = getArgumentsTypes(args,compilation);
 
-        invokeMethod(methodName, argTypes, compilation);
+        invokeMethod(objectClass, methodName, argTypes, compilation);
 
     }
 
@@ -919,18 +956,48 @@ public class OSTRAJavaCompiler {
         int index = constantPool.addConstant(className);
         compilation.getByteCode().addInstruction(new Instruction(InstructionSet.New, index));
 
-        //Call constructor
-        invokeMethod(className, args, compilation);
+        try {
+            Class objClass = classPool.lookupClass(className);
+
+            //Call constructor
+            invokeMethod(objClass, className, args, compilation);
+
+        } catch (LookupException e) {
+            throw new CompilerException("Class '" + className +  "' not found");
+        }
     }
 
-    protected void invokeMethod(String name, List<Type> argTypes, MethodCompilation compilation) throws CompilerException {
+    protected void invokeMethod(Class objClass, String name, List<Type> argTypes, MethodCompilation compilation) throws CompilerException {
 
         //Get method descriptor based on it's name, arguments and return type
         //TODO: return type?
-        Method method = new Method(name, argTypes, Types.Reference(name));
-        int constructorIndex = constantPool.addConstant(method.getDescriptor());
 
-        compilation.getByteCode().addInstruction(new Instruction(InstructionSet.InvokeVirtual, constructorIndex));
+        Method method = new Method(name, argTypes, Types.Void());
+        String methodDescriptor = method.getDescriptor();
+
+        try {
+            method = objClass.lookupMethod(methodDescriptor);
+        } catch (LookupException e) {
+            //It can also be native method which won't be in the code
+            //TODO: Do some check
+            //throw new CompilerException("Method '" + methodDescriptor + "' not found in " + objClass.getClassName() );
+        }
+
+
+            int methodIndex = constantPool.addConstant(method.getDescriptor());
+
+            if (method.isStaticMethod()){
+                int classIndex = constantPool.addConstant(objClass.getClassName());
+
+                compilation.getByteCode().addInstruction(new Instruction(InstructionSet.InvokeStatic, methodIndex, classIndex));
+            }else {
+                compilation.getByteCode().addInstruction(new Instruction(InstructionSet.InvokeVirtual, methodIndex));
+            }
+
+
+
+
+
     }
 
 

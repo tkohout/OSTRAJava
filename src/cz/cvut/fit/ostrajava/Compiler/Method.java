@@ -16,6 +16,8 @@ public class Method {
     protected ByteCode byteCode;
     protected int localVariablesCount =  0;
 
+    boolean staticMethod = false;
+
     public Method() {
         args = new ArrayList<>();
     }
@@ -79,6 +81,14 @@ public class Method {
 
     public void setLocalVariablesCount(int localVariablesCount) {
         this.localVariablesCount = localVariablesCount;
+    }
+
+    public boolean isStaticMethod() {
+        return staticMethod;
+    }
+
+    public void setStaticMethod(boolean staticMethod) {
+        this.staticMethod = staticMethod;
     }
 
     public String getDescriptor(){

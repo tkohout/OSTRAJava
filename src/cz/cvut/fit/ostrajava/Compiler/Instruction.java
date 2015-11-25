@@ -21,6 +21,13 @@ public class Instruction {
         this.operands.add(operand);
     }
 
+    public Instruction(InstructionSet instruction,int operand1, int operand2){
+        this.instruction = instruction;
+        this.operands = new ArrayList<Integer>();
+        this.operands.add(operand1);
+        this.operands.add(operand2);
+    }
+
     public Instruction(InstructionSet instruction, List<Integer> operands){
         this.instruction = instruction;
         this.operands = operands;

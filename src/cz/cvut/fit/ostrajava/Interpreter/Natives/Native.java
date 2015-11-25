@@ -15,5 +15,5 @@ public abstract class Native {
         this.classPool = classPool;
     }
 
-    public abstract void invoke(cz.cvut.fit.ostrajava.Interpreter.Object object);
+    public abstract void invoke(cz.cvut.fit.ostrajava.Interpreter.Array object);
 }

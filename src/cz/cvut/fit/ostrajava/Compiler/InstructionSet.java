@@ -32,6 +32,7 @@ public enum InstructionSet {
     IfCompareLessThanInteger("if_icmplt"),
     GoTo("goto"),
     InvokeVirtual("invokevirtual"),
+    InvokeStatic("invokestatic"),
     InvokeSpecial("invokespecial"),
     ReturnReference("areturn"),
     ReturnInteger("ireturn"),
