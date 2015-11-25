@@ -1,6 +1,8 @@
 package cz.cvut.fit.ostrajava.Compiler;
 
 import com.sun.tools.corba.se.idl.constExpr.Not;
+import cz.cvut.fit.ostrajava.Interpreter.ClassPool;
+import cz.cvut.fit.ostrajava.Interpreter.LookupException;
 import cz.cvut.fit.ostrajava.Parser.*;
 import cz.cvut.fit.ostrajava.Type.Array;
 import cz.cvut.fit.ostrajava.Type.Reference;
@@ -15,17 +17,37 @@ import java.util.*;
  * Created by tomaskohout on 11/12/15.
  */
 public class OSTRAJavaCompiler {
+    enum Mode {
+        PRECOMPILE, COMPILE
+    }
+
     final String THIS_VARIABLE = "joch";
     final String STRING_CLASS = Types.String().toString();
 
-    protected SimpleNode node;
     protected ConstantPool constantPool;
+    protected ClassPool classPool;
 
-    public OSTRAJavaCompiler(ASTCompilationUnit node){
-        this.node = node;
+    protected Mode mode;
+
+    //In precompilation we just go trough declarations
+    public List<Class> precompile(Node node) throws CompilerException {
+        this.mode = Mode.PRECOMPILE;
+        this.constantPool = null;
+        this.classPool = null;
+        return run(node);
     }
 
-    public List<Class> compile() throws CompilerException {
+    //In compilation we go through all bytecode
+    public List<Class> compile(Node node, ClassPool classPool) throws CompilerException {
+        this.mode = Mode.COMPILE;
+        this.classPool = classPool;
+        this.constantPool = null;
+        return run(node);
+    }
+
+
+
+    protected List<Class> run(Node node) throws CompilerException {
         if (node.jjtGetNumChildren() == 0){
             throw new CompilerException("No classes to compile");
         }
@@ -46,27 +68,45 @@ public class OSTRAJavaCompiler {
 
 
     protected Class compileClass(ASTClass node) throws CompilerException {
-
-        constantPool = new ConstantPool();
-
-        String extending = node.getExtending();
         String className = node.getName().toLowerCase();
-        Class aClass = new Class(className, (extending != null) ? extending.toLowerCase() : null);
+        String extending = node.getExtending();
+
+        Class aClass = null;
+
+        if (mode == Mode.COMPILE){
+            try {
+                aClass = this.classPool.lookupClass(className);
+            } catch (LookupException e) {
+                e.printStackTrace();
+            }
+
+            this.constantPool = new ConstantPool();
+            aClass.setConstantPool(this.constantPool);
+        }else{
+            aClass = new Class();
+            aClass.setClassName(className);
+            aClass.setSuperName((extending != null) ? extending.toLowerCase() : null);
+        }
+
+
         List<Field> fields = new ArrayList<>();
 
         for (int i=0; i<node.jjtGetNumChildren(); i++){
             Node child = node.jjtGetChild(i);
 
             if (child instanceof ASTFieldDeclaration){
-                fields.addAll(fieldDeclaration((ASTFieldDeclaration)child));
+
+                fields.addAll(fieldDeclaration((ASTFieldDeclaration) child));
+
             }else if (child instanceof ASTMethodDeclaration){
-                Method method = methodDeclaration((ASTMethodDeclaration)child, className);
-                aClass.addMethod(method);
+                methodDeclaration((ASTMethodDeclaration)child, aClass);
             }
         }
 
-        aClass.setConstantPool(constantPool);
-        aClass.setFields(fields);
+        //Set the fields only once in precompilation
+        if (mode == Mode.PRECOMPILE) {
+            aClass.setFields(fields);
+        }
         return aClass;
     }
 
@@ -116,7 +156,7 @@ public class OSTRAJavaCompiler {
         return type;
     }
 
-    protected Method methodDeclaration(ASTMethodDeclaration node, String className) throws CompilerException {
+    protected void methodDeclaration(ASTMethodDeclaration node, Class aClass) throws CompilerException {
         Type returnType = Types.Void();
         String name = null;
         List<Type> args = new ArrayList<>();
@@ -134,17 +174,18 @@ public class OSTRAJavaCompiler {
                 }
             }else if (child instanceof ASTMethod){
 
-
                 name = ((ASTMethod) child).jjtGetValue().toString().toLowerCase();
 
                 //Add This as first argument
-                compilation.addLocalVariable(THIS_VARIABLE, Types.Reference(className));
+                compilation.addLocalVariable(THIS_VARIABLE, Types.Reference(aClass.getClassName()));
 
                 //Add the rest of arguments
                 ASTFormalParameters params = (ASTFormalParameters)child.jjtGetChild(0);
                 args = formalParameters(params, compilation);
             }else if (child instanceof ASTBlock){
-                    methodBlock((ASTBlock) child, name,returnType, compilation);
+                if (mode == Mode.COMPILE) {
+                    methodBlock((ASTBlock) child, name, returnType, compilation);
+                }
             }
         }
 
@@ -154,10 +195,20 @@ public class OSTRAJavaCompiler {
 
         Method method = new Method(name, args, returnType);
 
+        if (mode == Mode.COMPILE) {
+            //Find already declared method
+            for (Method m : aClass.getMethods()) {
+                if (m.getDescriptor().equals(method.getDescriptor())) {
+                    method = m;
+                    break;
+                }
+            }
+        }else{
+            aClass.addMethod(method);
+        }
+
         method.setLocalVariablesCount(compilation.getNumberOfLocalVariables());
         method.setByteCode(byteCode);
-
-        return method;
     }
 
     protected List<Type> formalParameters(ASTFormalParameters node, MethodCompilation compilation) throws CompilerException {
@@ -235,8 +286,6 @@ public class OSTRAJavaCompiler {
                 throw new NotImplementedException();
             }else if (child instanceof ASTReturnStatement) {
                 returnStatement(child, compilation);
-            }else if (child instanceof ASTPrintStatement){
-                printStatement(child, compilation);
             }else if (child instanceof ASTDebugStatement) {
                 debugStatement(compilation);
             }else{
@@ -282,12 +331,6 @@ public class OSTRAJavaCompiler {
 
     protected void debugStatement(MethodCompilation compilation) throws CompilerException,ReturnException {
         compilation.getByteCode().addInstruction(new Instruction(InstructionSet.Breakpoint));
-    }
-
-    protected void printStatement(Node node, MethodCompilation compilation) throws CompilerException,ReturnException {
-        Node child = simplifyExpression(node.jjtGetChild(0));
-        evaluateExpression(child, compilation);
-        compilation.getByteCode().addInstruction(new Instruction(InstructionSet.Print));
     }
 
     protected void fieldAssignment(Node left, Node right, MethodCompilation compilation) throws CompilerException {
@@ -577,9 +620,10 @@ public class OSTRAJavaCompiler {
             getField(field, compilation);
         }
 
+        //Get types of arguments (whether they are expression, variables or method call)
+        List<Type> argTypes = getArgumentsTypes(args,compilation);
 
-
-        invokeMethod(methodName, args, compilation);
+        invokeMethod(methodName, argTypes, compilation);
 
     }
 
@@ -799,7 +843,7 @@ public class OSTRAJavaCompiler {
         value = value.substring(1, value.length()-1);
 
         int constantIndex = constantPool.addConstant(value);
-        //Push value on stack, it will create array of chars(ints)
+        //Push value on stack, it will create array of chars
         compilation.getByteCode().addInstruction(new Instruction(InstructionSet.PushConstant, constantIndex));
 
         //Create new String
@@ -854,11 +898,15 @@ public class OSTRAJavaCompiler {
 
             //Constructor arguments
             ASTArguments args = (ASTArguments) node.jjtGetChild(1);
+
             //Push arguments on the stack
             arguments(args, compilation);
 
+            //Get types of arguments (whether they are expression, variables or method call)
+            List<Type> argTypes = getArgumentsTypes(args,compilation);
+
             //Create new object and push on stack
-            newObject(name, args, compilation);
+            newObject(name, argTypes, compilation);
 
 
         }else{
@@ -867,20 +915,15 @@ public class OSTRAJavaCompiler {
         }
     }
 
-    protected void newObject(String className, ASTArguments args,  MethodCompilation compilation) throws CompilerException {
+    protected void newObject(String className, List<Type> args,  MethodCompilation compilation) throws CompilerException {
         int index = constantPool.addConstant(className);
         compilation.getByteCode().addInstruction(new Instruction(InstructionSet.New, index));
-
-        //Duplicate the object reference because invoke will pop it from stack
-        //compilation.getByteCode().addInstruction(new Instruction(InstructionSet.Duplicate, index));
 
         //Call constructor
         invokeMethod(className, args, compilation);
     }
 
-    protected void invokeMethod(String name, ASTArguments args, MethodCompilation compilation) throws CompilerException {
-        //Get types of arguments (whether they are expression, variables or method call)
-        List<Type> argTypes = getArgumentsTypes(args,compilation);
+    protected void invokeMethod(String name, List<Type> argTypes, MethodCompilation compilation) throws CompilerException {
 
         //Get method descriptor based on it's name, arguments and return type
         //TODO: return type?

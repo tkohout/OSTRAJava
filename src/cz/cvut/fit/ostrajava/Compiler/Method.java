@@ -16,6 +16,10 @@ public class Method {
     protected ByteCode byteCode;
     protected int localVariablesCount =  0;
 
+    public Method() {
+        args = new ArrayList<>();
+    }
+
     public Method(String name, List<Type> args, Type returnType) {
         this.name = name;
         this.args = args;

@@ -7,6 +7,7 @@ import java.util.List;
 
 import cz.cvut.fit.ostrajava.Compiler.*;
 import cz.cvut.fit.ostrajava.Compiler.Class;
+import cz.cvut.fit.ostrajava.Interpreter.ClassPool;
 import cz.cvut.fit.ostrajava.Interpreter.OSTRAJavaInterpreter;
 import cz.cvut.fit.ostrajava.Parser.*;
 
@@ -15,18 +16,43 @@ public class Main {
 
     public static void main(String[] args) throws Exception
     {
-        Reader fr = null;
-
         if (args.length == 0) {
             System.out.println("Include filename in the arguments");
             return;
         }
 
-        OSTRAJavaParser jp = null;
+        List<Node> rootNodeList = parse(args);
+
 
         List<Class> classList = new ArrayList<>();
+        OSTRAJavaCompiler compiler = new OSTRAJavaCompiler();
 
-        for (String fileName: args) {
+        //First stage - precompilation
+        for (Node node: rootNodeList){
+            classList.addAll(compiler.precompile(node));
+        }
+
+        //Second stage - compilation
+        ClassPool classPool = new ClassPool(classList);
+
+        classList.clear();
+
+        for (Node node: rootNodeList){
+            classList.addAll(compiler.compile(node, classPool));
+        }
+
+        OSTRAJavaInterpreter interpreter = new OSTRAJavaInterpreter(classList);
+        interpreter.run();
+
+    }
+
+    protected static List<Node> parse(String[] filenames) throws FileNotFoundException, ParseException {
+        Reader fr = null;
+        OSTRAJavaParser jp = null;
+
+        List<Node> rootNodeList = new ArrayList<>();
+
+        for (String fileName: filenames) {
 
             fr = new InputStreamReader(new FileInputStream(new File(fileName)));
 
@@ -37,29 +63,18 @@ public class Main {
             }
 
             try {
-
                 //Parse
                 jp.CompilationUnit();
                 ASTCompilationUnit node = (ASTCompilationUnit) jp.rootNode();
 
-                //Compile
-                OSTRAJavaCompiler compiler = new OSTRAJavaCompiler(node);
-                classList.addAll(compiler.compile());
-
+                rootNodeList.add(node);
             } catch (ParseException e) {
                 System.out.println("Parsing exception in file " + fileName);
                 throw e;
-            }/* catch (CompilerException e) {
-                System.out.println("Compiler exception in file " + fileName);
-                throw e;
-            }*/
-
-
+            }
         }
 
-        OSTRAJavaInterpreter interpreter = new OSTRAJavaInterpreter(classList);
-        interpreter.run();
-
+        return rootNodeList;
     }
 
 

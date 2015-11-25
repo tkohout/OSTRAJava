@@ -10,10 +10,10 @@ import java.util.*;
  */
 public class InterpretedClass extends Class {
 
-    InterpretedClass superClass;
+
     int classPoolAddress;
-    //Including super fields
-    Set<Field> allFields;
+
+
 
 
     public InterpretedClass(Class c) {
@@ -33,13 +33,7 @@ public class InterpretedClass extends Class {
         //TODO: Copy flags
     }
 
-    public InterpretedClass getSuperClass() {
-        return superClass;
-    }
 
-    public void setSuperClass(InterpretedClass superClass) {
-        this.superClass = superClass;
-    }
 
     public int getClassPoolAddress() {
         return classPoolAddress;
@@ -50,45 +44,9 @@ public class InterpretedClass extends Class {
     }
 
 
-    public Set<Field> getAllFields(){
-        if (allFields == null) {
-            allFields = new LinkedHashSet<>();
-            if (superClass != null) {
-                allFields.addAll(getSuperClass().getAllFields());
-            }
-            allFields.addAll(getFields());
-        }
 
-        return allFields;
-    }
 
-    public InterpretedMethod lookupMethod(String descriptor) throws LookupException {
-        for (Method method: methods){
-            //TODO: Add not only exact match
-            if (method.getDescriptor().equals(descriptor)){
-                return (InterpretedMethod)method;
-            }
-        }
 
-        if (superClass != null) {
-            return superClass.lookupMethod(descriptor);
-        }
-
-        throw new LookupException("Method '" + descriptor + "' not found");
-    }
-
-    public int lookupField(String name) throws LookupException {
-        int i = 0;
-
-        for (Field field: getAllFields()){
-            if (field.getName().equals(name)){
-                return i;
-            }
-            i++;
-        }
-
-        throw new LookupException("Field '" + name + "' not found");
-    }
 
 
 }

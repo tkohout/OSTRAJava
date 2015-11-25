@@ -1,6 +1,8 @@
 package cz.cvut.fit.ostrajava.Compiler;
 
 
+import cz.cvut.fit.ostrajava.Interpreter.ClassPool;
+import cz.cvut.fit.ostrajava.Interpreter.LookupException;
 import cz.cvut.fit.ostrajava.Parser.ASTCompilationUnit;
 import cz.cvut.fit.ostrajava.Parser.OSTRAJavaParser;
 import cz.cvut.fit.ostrajava.Parser.ParseException;
@@ -70,7 +72,7 @@ public class OSTRAJavaCompilerTest {
                 "fajront pyco";
     }
 
-    protected ByteCode compileSingleMethod(String code) throws CompilerException, ParseException {
+    protected ByteCode compileSingleMethod(String code) throws CompilerException, ParseException, LookupException {
         StringReader stringReader = new StringReader(code);
 
         OSTRAJavaParser jp = new OSTRAJavaParser(stringReader);
@@ -82,8 +84,9 @@ public class OSTRAJavaCompilerTest {
 
 
         //Compile
-        OSTRAJavaCompiler compiler = new OSTRAJavaCompiler(node);
-        List<Class> classfiles = compiler.compile();
+        OSTRAJavaCompiler compiler = new OSTRAJavaCompiler();
+        List<Class> classfiles = compiler.precompile(node);
+        compiler.compile(node, new ClassPool(classfiles));
 
         assertTrue(classfiles.size() == 1);
 

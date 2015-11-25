@@ -269,7 +269,7 @@ void CompilationUnit():
 {}
 {
   Begin()
-  ( ClassDeclaration() )*
+  ( ClassDeclaration())*
   End()
   <EOF>
 }

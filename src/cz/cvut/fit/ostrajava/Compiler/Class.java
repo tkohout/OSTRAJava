@@ -1,7 +1,12 @@
 package cz.cvut.fit.ostrajava.Compiler;
 
+import cz.cvut.fit.ostrajava.Interpreter.InterpretedMethod;
+import cz.cvut.fit.ostrajava.Interpreter.LookupException;
+
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Created by tomaskohout on 11/12/15.
@@ -20,6 +25,17 @@ public class Class {
 
     protected ConstantPool constantPool;
 
+    Class superClass;
+    //Including super fields
+    Set<Field> allFields;
+
+
+
+    public Class(){
+        flags = new ArrayList<String>();
+        fields = new ArrayList<Field>();
+        methods = new ArrayList<Method>();
+    }
 
     public Class(String className, String superName){
         this.className = className;
@@ -80,6 +96,54 @@ public class Class {
 
     public void setConstantPool(ConstantPool constantPool) {
         this.constantPool = constantPool;
+    }
+
+    public Class getSuperClass() {
+        return superClass;
+    }
+
+    public void setSuperClass(Class superClass) {
+        this.superClass = superClass;
+    }
+
+    public Set<Field> getAllFields(){
+        if (allFields == null) {
+            allFields = new LinkedHashSet<>();
+            if (superClass != null) {
+                allFields.addAll(getSuperClass().getAllFields());
+            }
+            allFields.addAll(getFields());
+        }
+
+        return allFields;
+    }
+
+    public InterpretedMethod lookupMethod(String descriptor) throws LookupException {
+        for (Method method: methods){
+            //TODO: Add not only exact match
+            if (method.getDescriptor().equals(descriptor)){
+                return (InterpretedMethod)method;
+            }
+        }
+
+        if (superClass != null) {
+            return superClass.lookupMethod(descriptor);
+        }
+
+        throw new LookupException("Method '" + descriptor + "' not found");
+    }
+
+    public int lookupField(String name) throws LookupException {
+        int i = 0;
+
+        for (Field field: getAllFields()){
+            if (field.getName().equals(name)){
+                return i;
+            }
+            i++;
+        }
+
+        throw new LookupException("Field '" + name + "' not found");
     }
 
     @Override

@@ -280,7 +280,7 @@ void CompilationUnit():
   try {
 /*@egen*/
   Begin()
-  ( ClassDeclaration() )*
+  ( ClassDeclaration())*
   End()
   <EOF>/*@bgen(jjtree)*/
   } catch (Throwable jjte000) {
