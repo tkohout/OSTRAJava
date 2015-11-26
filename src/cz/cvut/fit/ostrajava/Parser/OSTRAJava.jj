@@ -92,10 +92,10 @@ TOKEN : /* RESERVED WORDS AND LITERALS */
 | < IF: "kaj" >
 | < ELSEIF: "kajtez" >
 | < ELSE: "boinak" >
-| < WHILE: "dokavad" >
+| < WHILE: "rubat" >
 | < BREAK: "zdybat" >
 | < CONTINUE: "dlabat" >
-| < DO: "rubat" >
+//| < DO: "rubat" >
 | < TRY: "lajsnut" >
 | < CATCH: "lapnut" >
 | < FINALLY: "fertyk" >
@@ -2132,16 +2132,16 @@ void Statement() :
   SwitchStatement()*/
 |
   IfStatement()
-/*|
+|
   WhileStatement()
 |
-  DoStatement()
+/*  DoStatement()
 |
   ForStatement()
-|
+|*/
   BreakStatement()
 |
-  ContinueStatement()*/
+  ContinueStatement()
 |
   ReturnStatement()
 |
@@ -2456,7 +2456,7 @@ void WhileStatement() :
 {/*@bgen(jjtree) WhileStatement */
   try {
 /*@egen*/
-  "dokavad" "(" Expression() ")" Statement()/*@bgen(jjtree)*/
+  "rubat" "(" Expression() ")" Block()/*@bgen(jjtree)*/
   } catch (Throwable jjte000) {
     if (jjtc000) {
       jjtree.clearNodeScope(jjtn000);
@@ -2480,110 +2480,26 @@ void WhileStatement() :
 /*@egen*/
 }
 
-void DoStatement() :
-{/*@bgen(jjtree) DoStatement */
-  ASTDoStatement jjtn000 = new ASTDoStatement(JJTDOSTATEMENT);
-  boolean jjtc000 = true;
-  jjtree.openNodeScope(jjtn000);
-  jjtn000.jjtSetFirstToken(getToken(1));
-/*@egen*/}
-{/*@bgen(jjtree) DoStatement */
-  try {
-/*@egen*/
-  "rubat" Statement() "dokavad" "(" Expression() ")" "pyco"/*@bgen(jjtree)*/
-  } catch (Throwable jjte000) {
-    if (jjtc000) {
-      jjtree.clearNodeScope(jjtn000);
-      jjtc000 = false;
-    } else {
-      jjtree.popNode();
-    }
-    if (jjte000 instanceof RuntimeException) {
-      throw (RuntimeException)jjte000;
-    }
-    if (jjte000 instanceof ParseException) {
-      throw (ParseException)jjte000;
-    }
-    throw (Error)jjte000;
-  } finally {
-    if (jjtc000) {
-      jjtree.closeNodeScope(jjtn000, true);
-      jjtn000.jjtSetLastToken(getToken(0));
-    }
-  }
-/*@egen*/
+/*void DoStatement() :
+{}
+{
+  "rubat" Statement() "dokavad" "(" Expression() ")" "pyco"
 }
 
 void ForStatement() :
-{/*@bgen(jjtree) ForStatement */
-  ASTForStatement jjtn000 = new ASTForStatement(JJTFORSTATEMENT);
-  boolean jjtc000 = true;
-  jjtree.openNodeScope(jjtn000);
-  jjtn000.jjtSetFirstToken(getToken(1));
-/*@egen*/}
-{/*@bgen(jjtree) ForStatement */
-  try {
-/*@egen*/
-  "for" "(" [ ForInit() ] ";" [ Expression() ] ";" [ ForUpdate() ] ")" Statement()/*@bgen(jjtree)*/
-  } catch (Throwable jjte000) {
-    if (jjtc000) {
-      jjtree.clearNodeScope(jjtn000);
-      jjtc000 = false;
-    } else {
-      jjtree.popNode();
-    }
-    if (jjte000 instanceof RuntimeException) {
-      throw (RuntimeException)jjte000;
-    }
-    if (jjte000 instanceof ParseException) {
-      throw (ParseException)jjte000;
-    }
-    throw (Error)jjte000;
-  } finally {
-    if (jjtc000) {
-      jjtree.closeNodeScope(jjtn000, true);
-      jjtn000.jjtSetLastToken(getToken(0));
-    }
-  }
-/*@egen*/
+{}
+{
+  "for" "(" [ ForInit() ] ";" [ Expression() ] ";" [ ForUpdate() ] ")" Statement()
 }
 
 void ForInit() :
-{/*@bgen(jjtree) ForInit */
-  ASTForInit jjtn000 = new ASTForInit(JJTFORINIT);
-  boolean jjtc000 = true;
-  jjtree.openNodeScope(jjtn000);
-  jjtn000.jjtSetFirstToken(getToken(1));
-/*@egen*/}
-{/*@bgen(jjtree) ForInit */
-  try {
-/*@egen*/
+{}
+{
   LOOKAHEAD( Type() <IDENTIFIER> )
   LocalVariableDeclaration()
 |
-  StatementExpressionList()/*@bgen(jjtree)*/
-  } catch (Throwable jjte000) {
-    if (jjtc000) {
-      jjtree.clearNodeScope(jjtn000);
-      jjtc000 = false;
-    } else {
-      jjtree.popNode();
-    }
-    if (jjte000 instanceof RuntimeException) {
-      throw (RuntimeException)jjte000;
-    }
-    if (jjte000 instanceof ParseException) {
-      throw (ParseException)jjte000;
-    }
-    throw (Error)jjte000;
-  } finally {
-    if (jjtc000) {
-      jjtree.closeNodeScope(jjtn000, true);
-      jjtn000.jjtSetLastToken(getToken(0));
-    }
-  }
-/*@egen*/
-}
+  StatementExpressionList()
+}*/
 
 void StatementExpressionList() :
 {/*@bgen(jjtree) StatementExpressionList */
@@ -2663,7 +2579,7 @@ void BreakStatement() :
 {/*@bgen(jjtree) BreakStatement */
   try {
 /*@egen*/
-  "zdybat" [ <IDENTIFIER> ] "pyco"/*@bgen(jjtree)*/
+  "zdybat" "pyco"/*@bgen(jjtree)*/
   } finally {
     if (jjtc000) {
       jjtree.closeNodeScope(jjtn000, true);
@@ -2683,7 +2599,7 @@ void ContinueStatement() :
 {/*@bgen(jjtree) ContinueStatement */
   try {
 /*@egen*/
-  "dlabat" [ <IDENTIFIER> ] "pyco"/*@bgen(jjtree)*/
+  "dlabat" "pyco"/*@bgen(jjtree)*/
   } finally {
     if (jjtc000) {
       jjtree.closeNodeScope(jjtn000, true);

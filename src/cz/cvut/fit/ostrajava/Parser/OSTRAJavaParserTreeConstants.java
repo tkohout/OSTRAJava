@@ -77,16 +77,13 @@ public interface OSTRAJavaParserTreeConstants
   public int JJTSWITCHLABEL = 71;
   public int JJTIFSTATEMENT = 72;
   public int JJTWHILESTATEMENT = 73;
-  public int JJTDOSTATEMENT = 74;
-  public int JJTFORSTATEMENT = 75;
-  public int JJTFORINIT = 76;
-  public int JJTSTATEMENTEXPRESSIONLIST = 77;
-  public int JJTFORUPDATE = 78;
-  public int JJTBREAKSTATEMENT = 79;
-  public int JJTCONTINUESTATEMENT = 80;
-  public int JJTRETURNSTATEMENT = 81;
-  public int JJTTHROWSTATEMENT = 82;
-  public int JJTTRYSTATEMENT = 83;
+  public int JJTSTATEMENTEXPRESSIONLIST = 74;
+  public int JJTFORUPDATE = 75;
+  public int JJTBREAKSTATEMENT = 76;
+  public int JJTCONTINUESTATEMENT = 77;
+  public int JJTRETURNSTATEMENT = 78;
+  public int JJTTHROWSTATEMENT = 79;
+  public int JJTTRYSTATEMENT = 80;
 
 
   public String[] jjtNodeName = {
@@ -164,9 +161,6 @@ public interface OSTRAJavaParserTreeConstants
     "SwitchLabel",
     "IfStatement",
     "WhileStatement",
-    "DoStatement",
-    "ForStatement",
-    "ForInit",
     "StatementExpressionList",
     "ForUpdate",
     "BreakStatement",
@@ -176,4 +170,4 @@ public interface OSTRAJavaParserTreeConstants
     "TryStatement",
   };
 }
-/* JavaCC - OriginalChecksum=f8f70b98e390d8bd5ad4f52e84a4fccb (do not edit this line) */
+/* JavaCC - OriginalChecksum=a71fc68703f37fc825701df34728239d (do not edit this line) */

@@ -18,6 +18,8 @@ tryda Dryst {
     Dryst dryst(cyslo c){
         //TODO: make it work for bigger numbers %10 ???
         joch.chachari = zrob chachar[1] pyco
+
+
         //Prevedem na ASCII
         joch.chachari[0] = c + 48  pyco
     }

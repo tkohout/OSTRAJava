@@ -300,7 +300,7 @@ public class OSTRAJavaCompiler {
 
     protected void methodBlock(ASTBlock node, String name, Type returnType, boolean isConstructor, MethodCompilation compilation) throws CompilerException {
         try{
-            block(node, compilation);
+            block(node, -1, compilation);
 
             //Constructor always return this
             if (isConstructor) {
@@ -311,52 +311,65 @@ public class OSTRAJavaCompiler {
             }
         } catch (ReturnException e) {
             Node value = e.getValue();
-            if (value == null){
-                if (returnType != Types.Void()){
+            if (value == null) {
+                if (returnType != Types.Void()) {
                     throw new CompilerException("Method '" + name + "' must return non-void value");
                 }
 
                 compilation.getByteCode().addInstruction(new Instruction(InstructionSet.ReturnVoid));
-            }else{
+            } else {
                 try {
                     Type valueType = getTypeForExpression(value, compilation);
                     typeCheck(returnType, valueType);
 
-                    if (returnType == Types.Number() || returnType == Types.Boolean() || returnType == Types.Char()){
+                    if (returnType == Types.Number() || returnType == Types.Boolean() || returnType == Types.Char()) {
                         compilation.getByteCode().addInstruction(new Instruction(InstructionSet.ReturnInteger));
-                    }else if (returnType instanceof ReferenceType || returnType instanceof  ArrayType){
+                    } else if (returnType instanceof ReferenceType || returnType instanceof ArrayType) {
                         compilation.getByteCode().addInstruction(new Instruction(InstructionSet.ReturnReference));
-                    }else{
+                    } else {
                         throw new NotImplementedException();
                     }
-                }catch(TypeException te){
+                } catch (TypeException te) {
                     throw new CompilerException("Returning incompatible type in method '" + name + "': " + te.getMessage());
                 }
             }
         }
     }
 
-    protected void block(ASTBlock node, MethodCompilation compilation) throws CompilerException,ReturnException {
-            for (int i = 0; i < node.jjtGetNumChildren(); i++) {
+    protected List<Instruction> block(ASTBlock node, int cycleStart, MethodCompilation compilation) throws CompilerException, ReturnException {
+        List<Instruction> allBreakInstructions = new ArrayList<>();
+        for (int i = 0; i < node.jjtGetNumChildren(); i++) {
                 Node child = node.jjtGetChild(i);
                 if (child instanceof ASTLocalVariableDeclaration) {
                     localVariableDeclaration((ASTLocalVariableDeclaration) child, compilation);
                 } else if (child instanceof ASTStatement) {
-                    statement((ASTStatement) child, compilation);
+                    List<Instruction> breakInstructions = statement((ASTStatement) child, cycleStart, compilation);
+                    if (breakInstructions != null) {
+                        allBreakInstructions.addAll(breakInstructions);
+                    }
                 }
-            }
+        }
+
+        return allBreakInstructions;
     }
 
-    protected void statement(ASTStatement node, MethodCompilation compilation) throws CompilerException, ReturnException {
+    protected List<Instruction> statement(ASTStatement node, int cycleStart, MethodCompilation compilation) throws CompilerException, ReturnException {
         Node child = node.jjtGetChild(0);
+
 
             //Everything written with a 'pyco' in the end
             if (child instanceof ASTStatementExpression){
                 statementExpression((ASTStatementExpression) child, compilation);
             }else if (child instanceof ASTIfStatement){
-                ifStatement((ASTIfStatement) child, compilation);
-            }else if (child instanceof ASTBlock){
-                throw new NotImplementedException();
+                return ifStatement((ASTIfStatement) child, cycleStart, compilation);
+            }else if (child instanceof ASTWhileStatement) {
+                whileStatement((ASTWhileStatement) child, compilation);
+            }else if (child instanceof ASTBreakStatement) {
+                List<Instruction> breakInstruction = new ArrayList<>();
+                breakInstruction.add(breakStatement(cycleStart, compilation));
+                return breakInstruction;
+            }else if (child instanceof ASTContinueStatement) {
+                continueStatement(cycleStart, compilation);
             }else if (child instanceof ASTReturnStatement) {
                 returnStatement(child, compilation);
             }else if (child instanceof ASTDebugStatement) {
@@ -364,6 +377,7 @@ public class OSTRAJavaCompiler {
             }else{
                 throw new NotImplementedException();
             }
+        return null;
     }
 
     protected void statementExpression(ASTStatementExpression node, MethodCompilation compilation) throws CompilerException {
@@ -781,18 +795,20 @@ public class OSTRAJavaCompiler {
 
 
 
-    protected void ifStatement(ASTIfStatement node, MethodCompilation compilation) throws CompilerException,ReturnException {
+    protected List<Instruction> ifStatement(ASTIfStatement node, int cycleStart, MethodCompilation compilation) throws CompilerException, ReturnException {
 
         List<Instruction> gotoInstructions = new ArrayList<>();
+        List<Instruction> allBreakInstructions = new ArrayList<>();
 
         //The conditions
-        for (int i=0; i<node.jjtGetNumChildren(); i+=2) {
+        for (int i = 0; i < node.jjtGetNumChildren(); i += 2) {
             //Else Statement
-            if (i == node.jjtGetNumChildren()-1){
+            if (i == node.jjtGetNumChildren() - 1) {
                 ASTBlock block = (ASTBlock) node.jjtGetChild(i);
-                block(block, compilation);
+                List<Instruction> breakInstructions = block(block, cycleStart, compilation);
+                allBreakInstructions.addAll(breakInstructions);
                 //If or else-if statement
-            }else{
+            } else {
                 Node child = simplifyExpression(node.jjtGetChild(i));
 
                 //If-expression skip block instructions
@@ -800,26 +816,77 @@ public class OSTRAJavaCompiler {
                 evaluateIfExpression(child, compilation.getByteCode().getLastInstruction());
 
 
-                ASTBlock block = (ASTBlock) node.jjtGetChild(i+1);
-                block(block, compilation);
+                ASTBlock block = (ASTBlock) node.jjtGetChild(i + 1);
+                List<Instruction> breakInstructions = block(block, cycleStart, compilation);
+                allBreakInstructions.addAll(breakInstructions);
 
-                //This creates goto instruction on the end of the block which leads to the end of branching
-                Instruction gotoInstruction = compilation.getByteCode().addInstruction(new Instruction(InstructionSet.GoTo, -1));
-                gotoInstructions.add(gotoInstruction);
+                //Unnecessary in the last branch
+                if (i < node.jjtGetNumChildren() -2) {
+                    //Creates goto instruction to the end of branching
+                    Instruction gotoInstruction = compilation.getByteCode().addInstruction(new Instruction(InstructionSet.GoTo, -1));
+                    gotoInstructions.add(gotoInstruction);
+                }
 
                 //Change the compare instr. so it points to the end of the block
-                for (Instruction ebi: endBlockInstructions) {
+                for (Instruction ebi : endBlockInstructions) {
                     ebi.setOperand(0, compilation.getByteCode().getLastInstructionPosition() + 1);
                 }
             }
 
         }
 
-        //Go through all goto instruction and setBytes them to the end
-        for (Instruction i : gotoInstructions){
+        //Go through all goto instruction and set them to the end
+        for (Instruction i : gotoInstructions) {
             i.setOperand(0, compilation.getByteCode().getLastInstructionPosition() + 1);
         }
 
+        return allBreakInstructions;
+    }
+
+    protected void whileStatement(ASTWhileStatement node, MethodCompilation compilation) throws CompilerException,ReturnException {
+
+
+       Node expression = simplifyExpression(node.jjtGetChild(0));
+
+        int whileExpressionPosition = compilation.getByteCode().getLastInstructionPosition()+1;
+
+
+        List<Instruction> endBlockInstructions = ifExpression(expression, compilation);
+        evaluateIfExpression(expression, compilation.getByteCode().getLastInstruction());
+
+        ASTBlock block = (ASTBlock) node.jjtGetChild(1);
+        List<Instruction> breakInstructions = block(block, whileExpressionPosition, compilation);
+        endBlockInstructions.addAll(breakInstructions);
+
+
+        //Goto instruction that goes back to the beginning of the loop
+        compilation.getByteCode().addInstruction(new Instruction(InstructionSet.GoTo, whileExpressionPosition));
+
+
+        //Change the compare instr. so it points to the end of the block
+        for (Instruction ebi: endBlockInstructions) {
+            ebi.setOperand(0, compilation.getByteCode().getLastInstructionPosition() + 1);
+        }
+
+        return;
+    }
+
+    protected Instruction breakStatement(int cycleStart, MethodCompilation compilation) throws CompilerException {
+        if (cycleStart == -1){
+            throw new CompilerException("Unexpected break statement outside cycle block");
+        }
+
+        Instruction goTo = new Instruction(InstructionSet.GoTo, -1);
+        compilation.getByteCode().addInstruction(goTo);
+
+        return goTo;
+    }
+
+    protected void continueStatement(int cycleStart, MethodCompilation compilation) throws CompilerException {
+        if (cycleStart == -1){
+            throw new CompilerException("Unexpected continue statement outside cycle block");
+        }
+        compilation.getByteCode().addInstruction(new Instruction(InstructionSet.GoTo, cycleStart));
     }
 
 

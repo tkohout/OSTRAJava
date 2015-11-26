@@ -88,10 +88,10 @@ TOKEN : /* RESERVED WORDS AND LITERALS */
 | < IF: "kaj" >
 | < ELSEIF: "kajtez" >
 | < ELSE: "boinak" >
-| < WHILE: "dokavad" >
+| < WHILE: "rubat" >
 | < BREAK: "zdybat" >
 | < CONTINUE: "dlabat" >
-| < DO: "rubat" >
+//| < DO: "rubat" >
 | < TRY: "lajsnut" >
 | < CATCH: "lapnut" >
 | < FINALLY: "fertyk" >
@@ -691,16 +691,16 @@ void Statement() :
   SwitchStatement()*/
 |
   IfStatement()
-/*|
+|
   WhileStatement()
 |
-  DoStatement()
+/*  DoStatement()
 |
   ForStatement()
-|
+|*/
   BreakStatement()
 |
-  ContinueStatement()*/
+  ContinueStatement()
 |
   ReturnStatement()
 |
@@ -791,10 +791,10 @@ void IfStatement() :
 void WhileStatement() :
 {}
 {
-  "dokavad" "(" Expression() ")" Statement()
+  "rubat" "(" Expression() ")" Block()
 }
 
-void DoStatement() :
+/*void DoStatement() :
 {}
 {
   "rubat" Statement() "dokavad" "(" Expression() ")" "pyco"
@@ -813,7 +813,7 @@ void ForInit() :
   LocalVariableDeclaration()
 |
   StatementExpressionList()
-}
+}*/
 
 void StatementExpressionList() :
 {}
@@ -830,13 +830,13 @@ void ForUpdate() :
 void BreakStatement() :
 {}
 {
-  "zdybat" [ <IDENTIFIER> ] "pyco"
+  "zdybat" "pyco"
 }
 
 void ContinueStatement() :
 {}
 {
-  "dlabat" [ <IDENTIFIER> ] "pyco"
+  "dlabat" "pyco"
 }
 
 void ReturnStatement() :
