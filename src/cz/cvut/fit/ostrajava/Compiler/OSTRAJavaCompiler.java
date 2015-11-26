@@ -121,11 +121,48 @@ public class OSTRAJavaCompiler {
             }
         }
 
+
         //Set the fields only once in precompilation
         if (mode == Mode.PRECOMPILE) {
             aClass.setFields(fields);
+            //Add generic constructor if needed
+            addGenericConstructor(aClass);
         }
         return aClass;
+    }
+
+    protected void addGenericConstructor(Class aClass)  {
+        //Skip if class already has constructor
+        for (Method method: aClass.getMethods()){
+            if (method.getName().equals(aClass.getClassName())){
+                return;
+            }
+        }
+
+        //TODO: add probably some super call
+
+        Type classType = Types.Reference(aClass.getClassName());
+
+        MethodCompilation compilation = new MethodCompilation();
+
+        //Add this variable
+        compilation.addLocalVariable(THIS_VARIABLE, classType);
+
+        //Get it's position
+        int thisPosition = compilation.getPositionOfLocalVariable(THIS_VARIABLE);
+
+        //Load This on stack and return it
+        compilation.getByteCode().addInstruction(new Instruction(InstructionSet.LoadReference, thisPosition));
+        compilation.getByteCode().addInstruction(new Instruction(InstructionSet.ReturnReference, thisPosition));
+
+        //Create new method
+        Method constructor = new Method();
+        constructor.setName(aClass.getClassName());
+        constructor.setReturnType(classType);
+        constructor.setByteCode(compilation.getByteCode());
+        constructor.setLocalVariablesCount(compilation.getNumberOfLocalVariables());
+
+        aClass.addMethod(constructor);
     }
 
     protected List<Field> fieldDeclaration(ASTFieldDeclaration node) throws CompilerException {
@@ -178,10 +215,10 @@ public class OSTRAJavaCompiler {
         Type returnType = Types.Void();
         String name = null;
         List<Type> args = new ArrayList<>();
-        ByteCode byteCode = new ByteCode();
         MethodCompilation compilation = new MethodCompilation();
-        compilation.setByteCode(byteCode);
+
         boolean isStatic = false;
+        boolean isConstructor = false;
 
         for (int i=0; i<node.jjtGetNumChildren(); i++) {
             Node child = node.jjtGetChild(i);
@@ -197,6 +234,13 @@ public class OSTRAJavaCompiler {
 
                 name = ((ASTMethod) child).jjtGetValue().toString().toLowerCase();
 
+                //It's a constructor
+                if (name.equals(aClass.getClassName())){
+                    isConstructor = true;
+                    //Set return type as this
+                    returnType = Types.Reference(aClass.getClassName());
+                }
+
                 //Add This as first argument
                 compilation.addLocalVariable(THIS_VARIABLE, Types.Reference(aClass.getClassName()));
 
@@ -205,7 +249,7 @@ public class OSTRAJavaCompiler {
                 args = formalParameters(params, compilation);
             }else if (child instanceof ASTBlock){
                 if (mode == Mode.COMPILE) {
-                    methodBlock((ASTBlock) child, name, returnType, compilation);
+                    methodBlock((ASTBlock) child, name, returnType, isConstructor, compilation);
                 }
             }
         }
@@ -231,7 +275,7 @@ public class OSTRAJavaCompiler {
 
         method.setStaticMethod(isStatic);
         method.setLocalVariablesCount(compilation.getNumberOfLocalVariables());
-        method.setByteCode(byteCode);
+        method.setByteCode(compilation.getByteCode());
     }
 
     protected List<Type> formalParameters(ASTFormalParameters node, MethodCompilation compilation) throws CompilerException {
@@ -254,11 +298,17 @@ public class OSTRAJavaCompiler {
         return args;
     }
 
-    protected void methodBlock(ASTBlock node, String name, Type returnType, MethodCompilation compilation) throws CompilerException {
+    protected void methodBlock(ASTBlock node, String name, Type returnType, boolean isConstructor, MethodCompilation compilation) throws CompilerException {
         try{
             block(node, compilation);
+
+            //Constructor always return this
+            if (isConstructor) {
+                returnStatement(new ASTThis(), compilation);
             //On the end of a method is always empty return
-            returnStatement(null, compilation);
+            }else{
+                returnStatement(null, compilation);
+            }
         } catch (ReturnException e) {
             Node value = e.getValue();
             if (value == null){
@@ -384,19 +434,24 @@ public class OSTRAJavaCompiler {
                     getField((ASTName)child, compilation);
                 //Last is field we want to set
                 }else{
-                    //Run expression we are assigning
-                    evaluateExpression(right, compilation);
+
 
                     if (isArray){
+                        //Load array reference on the stack
+                        getField((ASTName) child, compilation);
+
                         //Push array index on stack
                         Node arrayIndexExpression = simplifyExpression(left.jjtGetChild(childNumber-1).jjtGetChild(0));
                         evaluateExpression(arrayIndexExpression, compilation);
 
-                        //Load array reference on the stack
-                        getField((ASTName)child, compilation);
+                        //Value
+                        evaluateExpression(right, compilation);
 
                         storeArray(compilation);
                     }else {
+
+                        evaluateExpression(right, compilation);
+
                         putField((ASTName) child, compilation);
                     }
                 }
@@ -444,19 +499,24 @@ public class OSTRAJavaCompiler {
                 Type rightType = getTypeForExpression(right, compilation);
                 typeCheck(type, rightType);
 
-                //Evaluate and put value on stack
-                evaluateExpression(right, compilation);
+
 
                 if (isArray){
+                    //Load array reference on the stack
+                    variable((ASTName) left.jjtGetChild(0), compilation);
+
                     //Push array index on stack
                     Node arrayIndexExpression = simplifyExpression(left.jjtGetChild(1).jjtGetChild(0));
                     evaluateExpression(arrayIndexExpression, compilation);
 
-                    //Load array reference on the stack
-                    variable((ASTName) left.jjtGetChild(0), compilation);
+                    //Value on stack
+                    evaluateExpression(right, compilation);
 
                     storeArray(compilation);
                 }else {
+                    //Evaluate and put value on stack
+                    evaluateExpression(right, compilation);
+
                     storeVariable(var, compilation);
                 }
 
@@ -478,13 +538,13 @@ public class OSTRAJavaCompiler {
     }
 
     protected void storeArray(MethodCompilation compilation){
-        // Now on stack: Value -> Index -> ArrayType Ref
+        // Now on stack: (from furthest) Array Ref -> Index -> Value
         //TODO: Other primitives
         compilation.getByteCode().addInstruction(new Instruction(InstructionSet.StoreIntegerArray));
     }
 
     protected void loadArray(MethodCompilation compilation){
-        // Now on stack:  Index -> ArrayType Ref
+        // Now on stack: (from furthest) Array ->Index Ref
         //TODO: Other primitives
         compilation.getByteCode().addInstruction(new Instruction(InstructionSet.LoadIntegerArray));
     }
@@ -864,12 +924,12 @@ public class OSTRAJavaCompiler {
     }
 
     protected void array(Node node, MethodCompilation compilation) throws CompilerException{
+        //Load variable reference on stack
+        variable((ASTName)node.jjtGetChild(0), compilation);
+
         //Load index
         Node arrayIndexExpression = simplifyExpression(node.jjtGetChild(1).jjtGetChild(0));
         evaluateExpression(arrayIndexExpression, compilation);
-
-        //Load variable reference on stack
-        variable((ASTName)node.jjtGetChild(0), compilation);
 
         loadArray(compilation);
     }

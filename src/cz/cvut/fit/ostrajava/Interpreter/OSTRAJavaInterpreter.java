@@ -159,17 +159,17 @@ public class OSTRAJavaInterpreter {
                 stack.currentFrame().push(reference);
                 break;
             case StoreIntegerArray: {
-                int arrayRef = stack.currentFrame().pop();
-                int index = stack.currentFrame().pop();
                 int value = stack.currentFrame().pop();
+                int index = stack.currentFrame().pop();
+                int arrayRef = stack.currentFrame().pop();
 
                 Array array = heap.loadArray(arrayRef);
                 array.set(index, value);
             }
                 break;
             case LoadIntegerArray: {
-                int arrayRef = stack.currentFrame().pop();
                 int index = stack.currentFrame().pop();
+                int arrayRef = stack.currentFrame().pop();
 
                 Array array = heap.loadArray(arrayRef);
                 int value = array.get(index);

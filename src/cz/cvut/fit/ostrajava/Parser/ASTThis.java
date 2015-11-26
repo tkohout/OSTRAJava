@@ -4,6 +4,9 @@ package cz.cvut.fit.ostrajava.Parser;
 
 public
 class ASTThis extends SimpleNode {
+  public ASTThis() {
+    super(0);
+  }
   public ASTThis(int id) {
     super(id);
   }

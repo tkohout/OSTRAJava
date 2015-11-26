@@ -9,15 +9,15 @@ import java.util.*;
  */
 public class MethodCompilation {
     ByteCode byteCode;
-    Map<String, Variable> localVars = new LinkedHashMap<String, Variable>();
+    Map<String, Variable> localVars;
 
+    public MethodCompilation(){
+        byteCode = new ByteCode();
+        localVars = new LinkedHashMap<>();
+    }
 
     public ByteCode getByteCode() {
         return byteCode;
-    }
-
-    public void setByteCode(ByteCode byteCode) {
-        this.byteCode = byteCode;
     }
 
     public int addLocalVariable(String name, Type type){
