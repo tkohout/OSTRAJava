@@ -1,7 +1,6 @@
 package cz.cvut.fit.ostrajava.Interpreter.Natives;
 
 import cz.cvut.fit.ostrajava.Interpreter.*;
-import cz.cvut.fit.ostrajava.Interpreter.Object;
 import cz.cvut.fit.ostrajava.Type.Types;
 
 import java.util.HashMap;
@@ -29,6 +28,8 @@ public class Natives {
             nativesMap.put("print:" + Types.BooleanArray(), new PrintBools());
             nativesMap.put("print:" + Types.Float(), new PrintFloat());
             nativesMap.put("print:" + Types.FloatArray(), new PrintFloats());
+            nativesMap.put("logint:" + Types.Number() + ":" + Types.Number(), new LogInt());
+            nativesMap.put("powint:" + Types.Number() + ":" + Types.Number(), new PowInt());
 
         }
     }
@@ -38,10 +39,10 @@ public class Natives {
     }
 
 
-    public void invoke(String descriptor, NativeArgument[] args) throws InterpreterException {
+    public NativeValue invoke(String descriptor, NativeValue[] args) throws InterpreterException {
 
         if (nativeExist(descriptor)){
-            nativesMap.get(descriptor).invoke(args);
+            return nativesMap.get(descriptor).invoke(args);
         }else{
             throw new InterpreterException("Trying to call non-existent method '" + descriptor + "'");
         }

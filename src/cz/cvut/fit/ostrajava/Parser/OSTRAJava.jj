@@ -468,7 +468,7 @@ void VariableDeclarator() :
 {/*@bgen(jjtree) VariableDeclarator */
   try {
 /*@egen*/
-  Name() [ "=" PrimaryExpression() ]/*@bgen(jjtree)*/
+  Name() [ "=" AdditiveExpression() ]/*@bgen(jjtree)*/
   } catch (Throwable jjte000) {
     if (jjtc000) {
       jjtree.clearNodeScope(jjtn000);

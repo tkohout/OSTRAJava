@@ -6,9 +6,10 @@ package cz.cvut.fit.ostrajava.Interpreter.Natives;
 public class PrintBools extends Native {
 
     //arguments: bool[]
-    public void invoke(NativeArgument args[])  {
-            NativeArgument arg = args[0];
-            boolean[] bools = arg.boolArray();
-            System.out.println(bools);
+    public NativeValue invoke(NativeValue args[])  {
+        NativeValue arg = args[0];
+        boolean[] bools = arg.boolArray();
+        System.out.println(bools);
+        return null;
     }
 }

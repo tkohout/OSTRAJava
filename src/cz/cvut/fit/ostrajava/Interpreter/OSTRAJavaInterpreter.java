@@ -1,9 +1,8 @@
 package cz.cvut.fit.ostrajava.Interpreter;
 
-import com.sun.org.apache.xpath.internal.operations.Bool;
 import cz.cvut.fit.ostrajava.Compiler.*;
 import cz.cvut.fit.ostrajava.Compiler.Class;
-import cz.cvut.fit.ostrajava.Interpreter.Natives.NativeArgument;
+import cz.cvut.fit.ostrajava.Interpreter.Natives.NativeValue;
 import cz.cvut.fit.ostrajava.Interpreter.Natives.Natives;
 import cz.cvut.fit.ostrajava.Type.*;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
@@ -336,7 +335,7 @@ public class OSTRAJavaInterpreter {
 
         int numberOfArgs = methodFromDescriptor.getArgs().size();
 
-        NativeArgument[] argValues = new NativeArgument[numberOfArgs];
+        NativeValue[] argValues = new NativeValue[numberOfArgs];
 
         for (int i = 0; i<methodFromDescriptor.getArgs().size(); i++){
             Type type = methodFromDescriptor.getArgs().get(i);
@@ -344,12 +343,12 @@ public class OSTRAJavaInterpreter {
            if (type instanceof ArrayType){
 
                 int ref = stack.currentFrame().pop();
-                argValues[i] = new NativeArgument(heap.loadArray(ref).getBytes());
+                argValues[i] = new NativeValue(heap.loadArray(ref).getBytes());
 
            }else if (type instanceof NumberType || type instanceof CharType || type instanceof BooleanType) {
 
                byte[] bytes = stack.currentFrame().popBytes(NumberType.size);
-               argValues[i] = new NativeArgument(bytes);
+               argValues[i] = new NativeValue(bytes);
 
             }else{
                 throw new InterpreterException("Passing " + type + " in native functions is not supported");
@@ -357,7 +356,11 @@ public class OSTRAJavaInterpreter {
 
         }
 
-        natives.invoke(methodDescriptor, argValues);
+        NativeValue returnValue = natives.invoke(methodDescriptor, argValues);
+
+        if (returnValue != null){
+            stack.currentFrame().pushBytes(returnValue.getBytes());
+        }
     }
 
     public void executeReturnInstruction(Instruction instruction, Stack stack) throws InterpreterException{

@@ -11,14 +11,21 @@ import java.nio.ByteBuffer;
 /**
  * Created by tomaskohout on 11/26/15.
  */
-public class NativeArgument {
+public class NativeValue {
     protected byte[] bytes;
 
 
-    public NativeArgument(byte[] bytes){
+    public NativeValue(int i){
+        this.bytes = intToByteArray(i);
+    }
+
+    public NativeValue(byte[] bytes){
         this.bytes = bytes;
     }
 
+    public byte[] getBytes() {
+        return bytes;
+    }
 
     public char charValue(){
         return (char) intValue();
@@ -84,8 +91,10 @@ public class NativeArgument {
 
     private int byteArrayToInt(byte[] bytes, int from){
         return ByteBuffer.wrap(bytes, from, NumberType.size).getInt();
+    }
 
-       //return bytes[from] << 24 | (bytes[from + 1] & 0xFF) << 16 | (bytes[from + 2] & 0xFF) << 8 | (bytes[from + 3] & 0xFF);
+    private byte[] intToByteArray(int i) {
+        return ByteBuffer.allocate(NumberType.size).putInt(i).array();
     }
 
 }

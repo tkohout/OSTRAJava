@@ -68,7 +68,11 @@ public class Frame {
 
     public void pushBytes(byte[] bytes) throws InterpreterException {
         overflowCheck(bytes.length);
-        byteArray.put(bytes, count, bytes.length);
+
+        for (int i = 0; i< bytes.length; i++){
+            byteArray.put(i+count, bytes[i]);
+        }
+
         count += bytes.length;
     }
 

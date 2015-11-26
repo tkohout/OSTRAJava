@@ -9,7 +9,8 @@ tryda A {
 
     Dryst naDryst(){
         toz cyslo c = joch.c pyco
-        davaj zrob Dryst(c) pyco
+        toz CysloCele cele = zrob CysloCele(c) pyco
+        davaj cele.naDryst() pyco
     }
 }
 
@@ -20,7 +21,7 @@ tryda Ostrava{
         toz cyslo i = 250 pyco
         toz chachar c = 'b' pyco
         toz bul b = fajne pyco
-        toz A a = zrob A(1) pyco
+        toz A a = zrob A(1020) pyco
 
         Konzola.pravit(a) pyco
 

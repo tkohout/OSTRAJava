@@ -6,9 +6,10 @@ package cz.cvut.fit.ostrajava.Interpreter.Natives;
 public class PrintInts extends Native {
 
     //arguments: int[]
-    public void invoke(NativeArgument args[])  {
-            NativeArgument arg = args[0];
-            int[] ints = arg.intArray();
-            System.out.println(ints);
+    public NativeValue invoke(NativeValue args[])  {
+        NativeValue arg = args[0];
+        int[] ints = arg.intArray();
+        System.out.println(ints);
+        return null;
     }
 }

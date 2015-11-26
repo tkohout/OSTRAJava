@@ -345,7 +345,7 @@ void FieldDeclaration() :
 void VariableDeclarator() :
 {}
 {
-  Name() [ "=" PrimaryExpression() ]
+  Name() [ "=" AdditiveExpression() ]
 }
 
 void VariableDeclaratorId() #Variable:

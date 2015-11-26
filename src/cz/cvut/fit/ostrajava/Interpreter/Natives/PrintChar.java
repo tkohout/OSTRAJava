@@ -6,9 +6,10 @@ package cz.cvut.fit.ostrajava.Interpreter.Natives;
 public class PrintChar extends Native {
     @Override
     //Arguments: char
-    public void invoke(NativeArgument[] args) {
-        NativeArgument arg = args[0];
+    public NativeValue invoke(NativeValue[] args) {
+        NativeValue arg = args[0];
         char value = arg.charValue();
         System.out.println(value);
+        return null;
     }
 }

@@ -6,9 +6,10 @@ package cz.cvut.fit.ostrajava.Interpreter.Natives;
 public class PrintFloat extends Native{
 
     //arguments: float
-    public void invoke(NativeArgument args[])  {
-        NativeArgument arg = args[0];
+    public NativeValue invoke(NativeValue args[])  {
+        NativeValue arg = args[0];
         float value = arg.floatValue();
         System.out.println(value);
+        return null;
     }
 }

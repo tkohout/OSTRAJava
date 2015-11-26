@@ -681,6 +681,11 @@ public class OSTRAJavaCompiler {
             return;
         }
 
+        //Char and Int are the same
+        if (type == Types.Number() && valueType == Types.Char() ||  type == Types.Char() && valueType == Types.Number()) {
+            return;
+        }
+
         if (valueType != type){
             throw new TypeException("Trying to assign '" + valueType  + "' to '" + type + "')");
         }
