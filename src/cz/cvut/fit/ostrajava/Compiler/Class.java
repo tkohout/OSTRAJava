@@ -1,5 +1,8 @@
 package cz.cvut.fit.ostrajava.Compiler;
 
+import com.sun.javaws.exceptions.InvalidArgumentException;
+import com.sun.tools.corba.se.idl.InvalidArgument;
+import cz.cvut.fit.ostrajava.Interpreter.ClassPool;
 import cz.cvut.fit.ostrajava.Interpreter.InterpretedMethod;
 import cz.cvut.fit.ostrajava.Interpreter.LookupException;
 
@@ -118,16 +121,26 @@ public class Class {
         return allFields;
     }
 
-    public InterpretedMethod lookupMethod(String descriptor) throws LookupException {
+    public Method lookupMethod(String descriptor, ClassPool classPool) throws LookupException {
+        Method methodFromDescriptor = new Method(descriptor);
+        int minSimilarity = Integer.MAX_VALUE;
+        Method closestMethod = null;
+
         for (Method method: methods){
-            //TODO: Add not only exact match
-            if (method.getDescriptor().equals(descriptor)){
-                return (InterpretedMethod)method;
+            int similarity = methodFromDescriptor.getSimilarity(method, classPool);
+            if (similarity != -1 && similarity < minSimilarity){
+                minSimilarity = similarity;
+                closestMethod = method;
             }
         }
 
+        if (closestMethod != null){
+            return closestMethod;
+        }
+
         if (superClass != null) {
-            return superClass.lookupMethod(descriptor);
+            //TODO: check parent?
+            return superClass.lookupMethod(descriptor, classPool);
         }
 
         throw new LookupException("Method '" + descriptor + "' not found");
@@ -146,10 +159,37 @@ public class Class {
         throw new LookupException("Field '" + name + "' not found");
     }
 
+    public boolean inheritsFrom(Class anotherClass){
+        if (this.getClassName().equals(anotherClass.className)){
+            return true;
+        }
+
+        if (superClass != null){
+            return superClass.inheritsFrom(anotherClass);
+        }
+
+        return false;
+    }
+
+    public int getDistanceFrom(Class anotherClass){
+        if (this.getClassName().equals(anotherClass.className)){
+            return 0;
+        }
+
+        if (superClass != null){
+            return superClass.getDistanceFrom(anotherClass) + 1;
+        }
+
+        throw new IllegalArgumentException("Class  doesn't inherit from " + anotherClass.getClassName() + "'");
+    }
+
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
+        sb.append(className + ">" + superName);
 
+        return sb.toString();
+/*
         sb.append(MAGIC_HEADER + "\n");
 
         for (String flag : flags){
@@ -161,6 +201,6 @@ public class Class {
         sb.append("\n");
 
 
-        return sb.toString();
+        return sb.toString();*/
     }
 }

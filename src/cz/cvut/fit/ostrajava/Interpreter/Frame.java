@@ -1,6 +1,7 @@
 package cz.cvut.fit.ostrajava.Interpreter;
 
 import cz.cvut.fit.ostrajava.Compiler.Method;
+import cz.cvut.fit.ostrajava.Type.NumberType;
 
 import java.nio.ByteBuffer;
 
@@ -8,9 +9,8 @@ import java.nio.ByteBuffer;
  * Created by tomaskohout on 11/17/15.
  */
 public class Frame {
-    final int RETURN_ADDRESS_SIZE = 4;
+    final int RETURN_ADDRESS_SIZE = NumberType.size;
     final int LOCAL_VAR_BYTE_SIZE = 4;
-    final int INT_SIZE = 4;
 
     protected ByteBuffer byteArray;
     protected int maxSize;
@@ -43,26 +43,40 @@ public class Frame {
 
 
     public void push(int i) throws InterpreterException {
-        if (count + INT_SIZE >= maxSize){
-            throw new InterpreterException("Stack overflow");
-        }
-        setBytes(count, i);
-        count += INT_SIZE;
+        overflowCheck(NumberType.size);
+        setInt(count, i);
+        count += NumberType.size;
     }
 
     public int pop() throws InterpreterException {
-        if (count - INT_SIZE < getStackOffset()){
-            throw new InterpreterException("Out of bounds");
-        }
-        count -= INT_SIZE;
-        return getBytes(count);
+        underflowCheck(NumberType.size);
+        count -= NumberType.size;
+        return getInt(count);
     }
 
-    public void setBytes(int from, int i){
+    public byte[] popBytes(int size) throws InterpreterException {
+        underflowCheck(size);
+        count -= size;
+        byte[] bytes = new byte[size];
+
+        for (int i = 0; i< size; i++){
+            bytes[i] = byteArray.get(i+count);
+        }
+
+        return bytes;
+    }
+
+    public void pushBytes(byte[] bytes) throws InterpreterException {
+        overflowCheck(bytes.length);
+        byteArray.put(bytes, count, bytes.length);
+        count += bytes.length;
+    }
+
+    public void setInt(int from, int i){
         byteArray.putInt(from, i);
     }
 
-    public int getBytes(int from){
+    public int getInt(int from){
         int index = from;
         int i = byteArray.getInt(index);
         return i;
@@ -72,14 +86,14 @@ public class Frame {
         if (index > localVariablesCount - 1 ){
             throw new InterpreterException("Trying to store to non-existent variable");
         }
-        setBytes(getVariablePosition(index), value);
+        setInt(getVariablePosition(index), value);
     }
 
     public int loadVariable(int index) throws InterpreterException {
         if (index > localVariablesCount - 1 ){
             throw new InterpreterException("Trying to load non-existent variable");
         }
-        return getBytes(getVariablePosition(index));
+        return getInt(getVariablePosition(index));
     }
 
     protected int getVariablePosition(int index){
@@ -87,7 +101,7 @@ public class Frame {
     }
 
     protected int getReturnAddress(){
-        return getBytes(0);
+        return getInt(0);
     }
 
     protected int getStackOffset() {
@@ -96,6 +110,18 @@ public class Frame {
 
     public String getMethodName() {
         return methodName;
+    }
+
+    private void underflowCheck(int size){
+        if (count - size < getStackOffset()){
+            throw new IndexOutOfBoundsException();
+        }
+    }
+
+    private void overflowCheck(int size){
+        if (count + size >= maxSize){
+            throw new StackOverflowError();
+        }
     }
 
     @Override
@@ -110,7 +136,7 @@ public class Frame {
             int start = getVariablePosition(i);
 
             //TODO: right now just INT
-            int var = getBytes(start);
+            int var = getInt(start);
 
             sb.append("Var " + i + ": " + var + "\n");
         }

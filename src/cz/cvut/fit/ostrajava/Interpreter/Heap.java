@@ -51,7 +51,26 @@ public class Heap {
         return index + 1;
     }
 
-    public HeapObject load(int reference) throws InterpreterException {
+
+    public Array loadArray(int reference) throws InterpreterException{
+        HeapObject obj = load(reference);
+        if (obj instanceof Array) {
+            return (Array)obj;
+        }else{
+            throw new InterpreterException("Type mismatch on " + reference + ", expected ArrayType");
+        }
+    }
+
+    public Object loadObject(int reference) throws InterpreterException{
+        HeapObject obj = load(reference);
+        if (obj instanceof Object) {
+            return (Object)obj;
+        }else{
+            throw new InterpreterException("Type mismatch on " + reference + ", expected Object");
+        }
+    }
+
+    private HeapObject load(int reference) throws InterpreterException {
         if (reference == 0){
             throw new NullPointerException();
         }

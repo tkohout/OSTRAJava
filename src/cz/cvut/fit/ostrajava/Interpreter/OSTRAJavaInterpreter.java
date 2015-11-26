@@ -1,14 +1,13 @@
 package cz.cvut.fit.ostrajava.Interpreter;
 
+import com.sun.org.apache.xpath.internal.operations.Bool;
 import cz.cvut.fit.ostrajava.Compiler.*;
 import cz.cvut.fit.ostrajava.Compiler.Class;
-import cz.cvut.fit.ostrajava.Interpreter.Natives.Native;
+import cz.cvut.fit.ostrajava.Interpreter.Natives.NativeArgument;
 import cz.cvut.fit.ostrajava.Interpreter.Natives.Natives;
-import cz.cvut.fit.ostrajava.Type.Reference;
-import cz.cvut.fit.ostrajava.Type.Type;
+import cz.cvut.fit.ostrajava.Type.*;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
@@ -40,14 +39,14 @@ public class OSTRAJavaInterpreter {
         this.heap = new Heap(MAX_HEAP_OBJECTS);
         this.instructions = new Instructions(classPool);
         this.constantPool = new ConstantPool(classPool);
-        this.natives = new Natives(classPool, heap);
+        this.natives = new Natives();
     }
 
 
     public void run() throws InterpreterException {
 
         InterpretedClass mainClass = null;
-        InterpretedMethod mainMethod = null;
+        Method mainMethod = null;
 
         try {
             mainClass = classPool.lookupClass(MAIN_CLASS_NAME);
@@ -56,7 +55,7 @@ public class OSTRAJavaInterpreter {
         }
 
         try {
-            mainMethod = mainClass.lookupMethod(MAIN_METHOD_NAME);
+            mainMethod =  mainClass.lookupMethod(MAIN_METHOD_NAME, classPool);
         }catch (LookupException e) {
                 throw new InterpreterException("Main method not found. The name has to be '" + MAIN_METHOD_NAME + "'");
         }
@@ -67,7 +66,7 @@ public class OSTRAJavaInterpreter {
         stack.newFrame(END_RETURN_ADDRESS, objectPointer, mainMethod);
 
         //Find instructions for main method
-        int mainMethodPosition = mainMethod.getInstructionPosition();
+        int mainMethodPosition = ((InterpretedMethod)mainMethod).getInstructionPosition();
         interpret(mainMethodPosition);
     }
 
@@ -144,9 +143,6 @@ public class OSTRAJavaInterpreter {
             case LoadIntegerArray:
                 executeArrayInstruction(instruction, stack);
                 break;
-            case Print:
-                executePrintInstruction(instruction, stack);
-                break;
             default:
                 throw new NotImplementedException();
         }
@@ -167,7 +163,7 @@ public class OSTRAJavaInterpreter {
                 int index = stack.currentFrame().pop();
                 int value = stack.currentFrame().pop();
 
-                Array array = (Array) heap.load(arrayRef);
+                Array array = heap.loadArray(arrayRef);
                 array.set(index, value);
             }
                 break;
@@ -175,7 +171,7 @@ public class OSTRAJavaInterpreter {
                 int arrayRef = stack.currentFrame().pop();
                 int index = stack.currentFrame().pop();
 
-                Array array = (Array) heap.load(arrayRef);
+                Array array = heap.loadArray(arrayRef);
                 int value = array.get(index);
 
                 stack.currentFrame().push(value);
@@ -188,9 +184,9 @@ public class OSTRAJavaInterpreter {
         int constPosition = instruction.getOperand(0);
         String constant = constantPool.getConstant(constPosition);
 
-        //Create array of chars (integers) and push it on stack
+        //Create array of chars and push it on stack
         int reference = heap.allocArray(constant.length());
-        Array charArray = (Array)heap.load(reference);
+        Array charArray = heap.loadArray(reference);
 
         for (int i = 0; i < constant.length(); i++){
             charArray.set(i, constant.charAt(i));
@@ -199,11 +195,7 @@ public class OSTRAJavaInterpreter {
         stack.currentFrame().push(reference);
     }
 
-    public void executePrintInstruction(Instruction instruction, Stack stack) throws InterpreterException {
-        int reference = stack.currentFrame().pop();
-        Object string = (Object)heap.load(reference);
-        return;
-    }
+
 
     public void executeNewInstruction(Instruction instruction, Stack stack) throws InterpreterException {
                 int constPosition = instruction.getOperand(0);
@@ -240,9 +232,7 @@ public class OSTRAJavaInterpreter {
         int constPosition = instruction.getOperand(0);
         String fieldName = constantPool.getConstant(constPosition);
 
-        //TODO: test it's reference
-        //TODO: test it's not an array
-        Object object = (Object)heap.load(reference);
+        Object object = heap.loadObject(reference);
 
         InterpretedClass objectClass = object.loadClass(classPool);
         try {
@@ -285,8 +275,7 @@ public class OSTRAJavaInterpreter {
                             return;
                         }
 
-                        //TODO: test it's not array
-                        Object object = (Object) heap.load(objectRef);
+                        Object object = heap.loadObject(objectRef);
 
                         objectClass = object.loadClass(classPool);
                     //Static method
@@ -301,7 +290,7 @@ public class OSTRAJavaInterpreter {
                     }
 
 
-                    InterpretedMethod method = objectClass.lookupMethod(methodDescriptor);
+                    Method method = objectClass.lookupMethod(methodDescriptor, classPool);
 
                     //Return to next instruction
                     int returnAddress = instructions.getCurrentPosition() + 1;
@@ -323,7 +312,7 @@ public class OSTRAJavaInterpreter {
                     }
 
                     //Go to the method bytecode start
-                    instructions.goTo(method.getInstructionPosition());
+                    instructions.goTo(((InterpretedMethod) method).getInstructionPosition());
 
                 } catch (LookupException e) {
 
@@ -337,23 +326,38 @@ public class OSTRAJavaInterpreter {
     }
 
     public void invokeNative(String methodDescriptor) throws InterpreterException {
+        if (!natives.nativeExist(methodDescriptor)){
+            throw new InterpreterException("Trying to call non-existent method '" + methodDescriptor +"'");
+        }
+
         //Load approximate method from descriptor so we can count the arguments
         Method methodFromDescriptor = new Method(methodDescriptor);
 
+
         int numberOfArgs = methodFromDescriptor.getArgs().size();
 
-        Array[] argValues = new Array[numberOfArgs];
+        NativeArgument[] argValues = new NativeArgument[numberOfArgs];
 
         for (int i = 0; i<methodFromDescriptor.getArgs().size(); i++){
             Type type = methodFromDescriptor.getArgs().get(i);
 
-            //TODO: do the converting here
-            int ref = stack.currentFrame().pop();
-            argValues[i] = (Array) heap.load(ref);
+           if (type instanceof ArrayType){
+
+                int ref = stack.currentFrame().pop();
+                argValues[i] = new NativeArgument(heap.loadArray(ref).getBytes());
+
+           }else if (type instanceof NumberType || type instanceof CharType || type instanceof BooleanType) {
+
+               byte[] bytes = stack.currentFrame().popBytes(NumberType.size);
+               argValues[i] = new NativeArgument(bytes);
+
+            }else{
+                throw new InterpreterException("Passing " + type + " in native functions is not supported");
+            }
 
         }
 
-        natives.invoke(methodDescriptor, argValues[0]);
+        natives.invoke(methodDescriptor, argValues);
     }
 
     public void executeReturnInstruction(Instruction instruction, Stack stack) throws InterpreterException{

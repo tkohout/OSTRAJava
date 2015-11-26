@@ -15,6 +15,10 @@ tryda Dryst {
         davaj joch pyco
     }
 
+    chachar[] naChachar(){
+        davaj joch.chachari pyco
+    }
+
     /*pridaj(cyslo chachar){
         kaj (joch.dylka >= joch.kapacyta){
             joch.kapacyta = joch.kapacyta * 2 pyco

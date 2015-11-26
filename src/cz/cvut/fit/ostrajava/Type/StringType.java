@@ -1,8 +1,8 @@
 package cz.cvut.fit.ostrajava.Type;
 
-public class String extends Reference{
+public class StringType extends ReferenceType {
     static java.lang.String name = "dryst";
-    public String(){
+    public StringType(){
         super(name);
     }
 }

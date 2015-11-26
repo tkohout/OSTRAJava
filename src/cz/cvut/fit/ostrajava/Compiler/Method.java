@@ -1,5 +1,8 @@
 package cz.cvut.fit.ostrajava.Compiler;
 
+import cz.cvut.fit.ostrajava.Interpreter.ClassPool;
+import cz.cvut.fit.ostrajava.Interpreter.LookupException;
+import cz.cvut.fit.ostrajava.Type.ReferenceType;
 import cz.cvut.fit.ostrajava.Type.Type;
 import cz.cvut.fit.ostrajava.Type.Types;
 
@@ -41,6 +44,46 @@ public class Method {
                  args.add(Types.fromString(parts[i]));
              }
         }
+    }
+
+    public int getSimilarity(Method method, ClassPool classPool) throws LookupException {
+        //Best similarity = 0
+        int similarity = 0;
+
+        if (!method.getName().equals(this.getName())){
+            return -1;
+        }
+
+        if (method.getArgs().size() != this.getArgs().size()){
+            return -1;
+        }
+
+        int i = 0;
+        for (Type methodArgType: method.getArgs()){
+            Type argType = this.getArgs().get(i);
+
+            //If it's both objects
+            if (methodArgType instanceof ReferenceType && argType instanceof ReferenceType){
+                String methodArgClassName = ((ReferenceType) methodArgType).getClassName();
+                String argClassName = ((ReferenceType) argType).getClassName();
+
+                Class methodArgClass = classPool.lookupClass(methodArgClassName);
+                Class argClass = classPool.lookupClass(argClassName);
+
+                //Check whether arguments inherit from each other
+                if (argClass.inheritsFrom(methodArgClass)){
+                    //Increase similarity score if it's inheriting from class
+                    similarity += argClass.getDistanceFrom(methodArgClass);
+                }else{
+                    return -1;
+                }
+
+            }else if (methodArgType != argType){
+                return -1;
+            }
+        }
+
+        return similarity;
     }
 
     public Type getReturnType() {

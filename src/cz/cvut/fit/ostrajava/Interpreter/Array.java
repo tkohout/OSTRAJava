@@ -35,6 +35,10 @@ public class Array extends HeapObject {
         return this.capacity;
     }
 
+    public byte[] getBytes(){
+        return byteArray.array();
+    }
+
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();

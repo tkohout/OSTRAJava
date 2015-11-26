@@ -1,16 +1,14 @@
 package cz.cvut.fit.ostrajava.Compiler;
 
-import com.sun.tools.corba.se.idl.constExpr.Not;
 import cz.cvut.fit.ostrajava.Interpreter.ClassPool;
 import cz.cvut.fit.ostrajava.Interpreter.LookupException;
 import cz.cvut.fit.ostrajava.Parser.*;
-import cz.cvut.fit.ostrajava.Type.Array;
-import cz.cvut.fit.ostrajava.Type.Reference;
+import cz.cvut.fit.ostrajava.Type.ArrayType;
+import cz.cvut.fit.ostrajava.Type.ReferenceType;
 import cz.cvut.fit.ostrajava.Type.Type;
 import cz.cvut.fit.ostrajava.Type.Types;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
-import javax.lang.model.type.PrimitiveType;
 import java.util.*;
 
 /**
@@ -23,6 +21,8 @@ public class OSTRAJavaCompiler {
 
     final String THIS_VARIABLE = "joch";
     final String STRING_CLASS = Types.String().toString();
+    final String BASE_OBJECT_CLASS = "bazmek";
+
 
     protected ConstantPool constantPool;
     protected ClassPool classPool;
@@ -78,6 +78,17 @@ public class OSTRAJavaCompiler {
         String className = node.getName().toLowerCase();
         String extending = node.getExtending();
 
+        if (extending == null){
+            if (className.equals(BASE_OBJECT_CLASS)){
+                extending = null;
+            }else{
+                extending = BASE_OBJECT_CLASS;
+            }
+        }else{
+            extending = extending.toLowerCase();
+        }
+
+
         Class aClass = null;
 
         if (mode == Mode.COMPILE){
@@ -92,7 +103,7 @@ public class OSTRAJavaCompiler {
         }else{
             aClass = new Class();
             aClass.setClassName(className);
-            aClass.setSuperName((extending != null) ? extending.toLowerCase() : null);
+            aClass.setSuperName(extending);
         }
 
         currentClass = aClass;
@@ -263,7 +274,7 @@ public class OSTRAJavaCompiler {
 
                     if (returnType == Types.Number() || returnType == Types.Boolean() || returnType == Types.Char()){
                         compilation.getByteCode().addInstruction(new Instruction(InstructionSet.ReturnInteger));
-                    }else if (returnType instanceof Reference){
+                    }else if (returnType instanceof ReferenceType || returnType instanceof  ArrayType){
                         compilation.getByteCode().addInstruction(new Instruction(InstructionSet.ReturnReference));
                     }else{
                         throw new NotImplementedException();
@@ -362,7 +373,7 @@ public class OSTRAJavaCompiler {
 
                     Type type = getTypeForExpression(child,compilation);
 
-                    if (type instanceof Reference) {
+                    if (type instanceof ReferenceType) {
                         expression(child, compilation);
                     } else {
                         throw new CompilerException("Trying to set field on non-object ");
@@ -422,8 +433,8 @@ public class OSTRAJavaCompiler {
 
             if (isArray){
                 //Set type for type check as a single element of array
-                if (type instanceof Array) {
-                    type = ((Array) type).getElement();
+                if (type instanceof ArrayType) {
+                    type = ((ArrayType) type).getElement();
                 }else{
                     throw new CompilerException("Trying to access index in non-array");
                 }
@@ -467,13 +478,13 @@ public class OSTRAJavaCompiler {
     }
 
     protected void storeArray(MethodCompilation compilation){
-        // Now on stack: Value -> Index -> Array Ref
+        // Now on stack: Value -> Index -> ArrayType Ref
         //TODO: Other primitives
         compilation.getByteCode().addInstruction(new Instruction(InstructionSet.StoreIntegerArray));
     }
 
     protected void loadArray(MethodCompilation compilation){
-        // Now on stack:  Index -> Array Ref
+        // Now on stack:  Index -> ArrayType Ref
         //TODO: Other primitives
         compilation.getByteCode().addInstruction(new Instruction(InstructionSet.LoadIntegerArray));
     }
@@ -484,7 +495,7 @@ public class OSTRAJavaCompiler {
 
         InstructionSet instruction;
 
-        if (type instanceof Reference){
+        if (type instanceof ReferenceType){
             instruction = InstructionSet.StoreReference;
         }else if (type == Types.Number()){
             instruction = InstructionSet.StoreInteger;
@@ -492,7 +503,7 @@ public class OSTRAJavaCompiler {
             instruction = InstructionSet.StoreInteger;
         }else if (type == Types.Char()) {
             instruction = InstructionSet.StoreInteger;
-        }else if (type instanceof Array){
+        }else if (type instanceof ArrayType){
             instruction = InstructionSet.StoreReference;
         }else{
             throw new NotImplementedException();
@@ -509,7 +520,7 @@ public class OSTRAJavaCompiler {
 
         InstructionSet instruction;
 
-        if (type instanceof Reference){
+        if (type instanceof ReferenceType){
             instruction = InstructionSet.LoadReference;
         }else if (type == Types.Number()){
             instruction = InstructionSet.LoadInteger;
@@ -517,7 +528,7 @@ public class OSTRAJavaCompiler {
             instruction = InstructionSet.LoadInteger;
         }else if (type == Types.Char()){
             instruction = InstructionSet.LoadInteger;
-        }else if (type instanceof Array){
+        }else if (type instanceof ArrayType){
             instruction = InstructionSet.LoadReference;
         }else{
             throw new NotImplementedException();
@@ -545,7 +556,7 @@ public class OSTRAJavaCompiler {
             }
             return compilation.getTypeOfLocalVariable(rightName);
         }else if (CompilerTypes.isAllocationExpression(value)){
-            //Array of primitives
+            //ArrayType of primitives
             if (CompilerTypes.isArray(value)){
                 Type elementType;
                 Node element = value.jjtGetChild(0);
@@ -566,12 +577,13 @@ public class OSTRAJavaCompiler {
             }else{
                 return Types.Reference("");
             }
-        }else if (CompilerTypes.isThis(value) || CompilerTypes.isSuper(value)) {
-            //Any reference (Might need fixing)
+        }else if (CompilerTypes.isThis(value)) {
+            return Types.Reference(currentClass.getClassName());
+        }else if (CompilerTypes.isSuper(value) || CompilerTypes.isNullLiteral(value)){
+            //TODO: Super
+            //Any reference
             return Types.Reference("");
         }else if (CompilerTypes.isCallExpression(value)){
-
-
             return null;
             //TODO: we don't know return type of the method
         }else if (CompilerTypes.isFieldExpression(value)) {
@@ -591,7 +603,7 @@ public class OSTRAJavaCompiler {
         }
 
         //Don't type control when it's both references (They can inherit from each other)
-        if (type instanceof Reference && valueType instanceof Reference) {
+        if (type instanceof ReferenceType && valueType instanceof ReferenceType) {
             return;
         }
 
@@ -631,11 +643,11 @@ public class OSTRAJavaCompiler {
             //TODO: Super
         }else{
             Type type = getTypeForExpression(caller, compilation);
-            if (!(type instanceof Reference)){
+            if (!(type instanceof ReferenceType)){
                 throw new CompilerException("Trying to call method on non-object");
             }
 
-            String className = ((Reference) type).getClassName();
+            String className = ((ReferenceType) type).getClassName();
 
             try {
                 objectClass = classPool.lookupClass(className);
@@ -816,8 +828,12 @@ public class OSTRAJavaCompiler {
             array(node, compilation);
         }else if (CompilerTypes.isFieldExpression(node)) {
             fields(node, compilation);
-        }else if (CompilerTypes.isStringLiteral(node)){
+        }else if (CompilerTypes.isStringLiteral(node)) {
             stringLiteral(node, compilation);
+        }else if (CompilerTypes.isBooleanLiteral(node)) {
+            booleanLiteral(node, compilation);
+        }else if (CompilerTypes.isNullLiteral(node)) {
+            nullLiteral(node, compilation);
         }else{
             throw new NotImplementedException();
         }
@@ -863,8 +879,23 @@ public class OSTRAJavaCompiler {
         compilation.getByteCode().addInstruction(new Instruction(InstructionSet.PushInteger, Integer.parseInt(value)));
     }
 
+    protected void booleanLiteral(Node node, MethodCompilation compilation) throws CompilerException {
+        int value = 0;
+
+        if (node instanceof ASTTrue){
+            value = 1;
+        }
+        compilation.getByteCode().addInstruction(new Instruction(InstructionSet.PushInteger, value));
+    }
+
+    protected void nullLiteral(Node node, MethodCompilation compilation) throws CompilerException {
+        compilation.getByteCode().addInstruction(new Instruction(InstructionSet.PushInteger, 0));
+    }
+
     protected void charLiteral(Node node, MethodCompilation compilation) throws CompilerException {
         String value = ((ASTCharLiteral) node).jjtGetValue().toString();
+        //Trim the parenthesis
+        value = value.substring(1, value.length()-1);
         char charValue = 0;
 
         if (value.length() == 1) {
@@ -976,11 +1007,12 @@ public class OSTRAJavaCompiler {
         String methodDescriptor = method.getDescriptor();
 
         try {
-            method = objClass.lookupMethod(methodDescriptor);
+            method = objClass.lookupMethod(methodDescriptor, this.classPool);
         } catch (LookupException e) {
             //It can also be native method which won't be in the code
             //TODO: Do some check
             //throw new CompilerException("Method '" + methodDescriptor + "' not found in " + objClass.getClassName() );
+            System.out.println();
         }
 
 

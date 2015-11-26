@@ -1,9 +1,9 @@
 package cz.cvut.fit.ostrajava.Type;
 
-public class Reference extends Type{
+public class ReferenceType extends Type{
     private java.lang.String className;
 
-    public Reference(java.lang.String className){
+    public ReferenceType(java.lang.String className){
         this.className = className;
     }
 

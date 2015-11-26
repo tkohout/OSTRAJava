@@ -61,31 +61,32 @@ public interface OSTRAJavaParserTreeConstants
   public int JJTFLOATLITERAL = 55;
   public int JJTCHARLITERAL = 56;
   public int JJTSTRINGLITERAL = 57;
-  public int JJTBOOLEANLITERAL = 58;
-  public int JJTNULLLITERAL = 59;
-  public int JJTARGUMENTS = 60;
-  public int JJTALLOCATIONEXPRESSION = 61;
-  public int JJTARRAYSUFFIX = 62;
-  public int JJTSTATEMENT = 63;
-  public int JJTBLOCK = 64;
-  public int JJTLOCALVARIABLEDECLARATION = 65;
-  public int JJTDEBUGSTATEMENT = 66;
-  public int JJTEMPTYSTATEMENT = 67;
-  public int JJTSTATEMENTEXPRESSION = 68;
-  public int JJTSWITCHSTATEMENT = 69;
-  public int JJTSWITCHLABEL = 70;
-  public int JJTIFSTATEMENT = 71;
-  public int JJTWHILESTATEMENT = 72;
-  public int JJTDOSTATEMENT = 73;
-  public int JJTFORSTATEMENT = 74;
-  public int JJTFORINIT = 75;
-  public int JJTSTATEMENTEXPRESSIONLIST = 76;
-  public int JJTFORUPDATE = 77;
-  public int JJTBREAKSTATEMENT = 78;
-  public int JJTCONTINUESTATEMENT = 79;
-  public int JJTRETURNSTATEMENT = 80;
-  public int JJTTHROWSTATEMENT = 81;
-  public int JJTTRYSTATEMENT = 82;
+  public int JJTTRUE = 58;
+  public int JJTFALSE = 59;
+  public int JJTNULLLITERAL = 60;
+  public int JJTARGUMENTS = 61;
+  public int JJTALLOCATIONEXPRESSION = 62;
+  public int JJTARRAYSUFFIX = 63;
+  public int JJTSTATEMENT = 64;
+  public int JJTBLOCK = 65;
+  public int JJTLOCALVARIABLEDECLARATION = 66;
+  public int JJTDEBUGSTATEMENT = 67;
+  public int JJTEMPTYSTATEMENT = 68;
+  public int JJTSTATEMENTEXPRESSION = 69;
+  public int JJTSWITCHSTATEMENT = 70;
+  public int JJTSWITCHLABEL = 71;
+  public int JJTIFSTATEMENT = 72;
+  public int JJTWHILESTATEMENT = 73;
+  public int JJTDOSTATEMENT = 74;
+  public int JJTFORSTATEMENT = 75;
+  public int JJTFORINIT = 76;
+  public int JJTSTATEMENTEXPRESSIONLIST = 77;
+  public int JJTFORUPDATE = 78;
+  public int JJTBREAKSTATEMENT = 79;
+  public int JJTCONTINUESTATEMENT = 80;
+  public int JJTRETURNSTATEMENT = 81;
+  public int JJTTHROWSTATEMENT = 82;
+  public int JJTTRYSTATEMENT = 83;
 
 
   public String[] jjtNodeName = {
@@ -147,7 +148,8 @@ public interface OSTRAJavaParserTreeConstants
     "FloatLiteral",
     "CharLiteral",
     "StringLiteral",
-    "BooleanLiteral",
+    "True",
+    "False",
     "NullLiteral",
     "Arguments",
     "AllocationExpression",
@@ -174,4 +176,4 @@ public interface OSTRAJavaParserTreeConstants
     "TryStatement",
   };
 }
-/* JavaCC - OriginalChecksum=c3b8c5516df3b30b2063852245b2b589 (do not edit this line) */
+/* JavaCC - OriginalChecksum=f8f70b98e390d8bd5ad4f52e84a4fccb (do not edit this line) */

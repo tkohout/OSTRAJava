@@ -1,10 +1,10 @@
 package cz.cvut.fit.ostrajava.Type;
 
-public class Array extends Type{
+public class ArrayType extends Type{
 
     Type element;
 
-    Array(Type type){
+    ArrayType(Type type){
         element = type;
     }
 

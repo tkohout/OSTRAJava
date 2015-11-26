@@ -21,16 +21,16 @@ public class Types {
     public static void init(){
         singletons = new HashMap<>();
 
-        addSingleton(new Boolean());
-        addSingleton(new Char());
-        addSingleton(new Float());
-        addSingleton(new Number());
-        addSingleton(new String());
-        addSingleton(new Void());
-        addSingleton(new Array(Boolean()));
-        addSingleton(new Array(Number()));
-        addSingleton(new Array(Char()));
-        addSingleton(new Array(Float()));
+        addSingleton(new BooleanType());
+        addSingleton(new CharType());
+        addSingleton(new FloatType());
+        addSingleton(new NumberType());
+        addSingleton(new StringType());
+        addSingleton(new VoidType());
+        addSingleton(new ArrayType(Boolean()));
+        addSingleton(new ArrayType(Number()));
+        addSingleton(new ArrayType(Char()));
+        addSingleton(new ArrayType(Float()));
     }
 
     public static Type getSingleton(java.lang.String name){
@@ -42,54 +42,54 @@ public class Types {
         return type;
     }
 
-    public static Boolean Boolean(){
-        return (Boolean)getSingleton(Boolean.name);
+    public static BooleanType Boolean(){
+        return (BooleanType)getSingleton(BooleanType.name);
     }
 
-    public static Number Number(){
-        return (Number) getSingleton(Number.name);
+    public static NumberType Number(){
+        return (NumberType) getSingleton(NumberType.name);
     }
 
-    public static Char Char(){
-        return (Char) getSingleton(Char.name);
+    public static CharType Char(){
+        return (CharType) getSingleton(CharType.name);
     }
 
-    public static Float Float(){
-        return (Float) getSingleton(Float.name);
+    public static FloatType Float(){
+        return (FloatType) getSingleton(FloatType.name);
     }
 
-    public static String String(){
-        return (String) getSingleton(String.name);
+    public static StringType String(){
+        return (StringType) getSingleton(StringType.name);
     }
 
-    public static Void Void(){
-        return (Void) getSingleton(Void.name);
+    public static VoidType Void(){
+        return (VoidType) getSingleton(VoidType.name);
     }
 
-    public static Array NumberArray(){
+    public static ArrayType NumberArray(){
         return Array(Number());
     }
 
-    public static Array FloatArray(){
+    public static ArrayType FloatArray(){
         return Array(Float());
     }
 
-    public static Array CharArray(){
+    public static ArrayType CharArray(){
         return Array(Char());
     }
 
-    public static Array BooleanArray(){
+    public static ArrayType BooleanArray(){
         return Array(Boolean());
     }
 
-    public static Array Array(Type type){
-        return (Array)getSingleton(type.toString() + "[]");
+    public static ArrayType Array(Type type){
+        return (ArrayType)getSingleton(type.toString() + "[]");
     }
 
     public static Type Reference(java.lang.String className){
         Type type = getSingleton(className);
         if (type == null){
-            type = new Reference(className);
+            type = new ReferenceType(className);
             addSingleton(type);
         }
         return type;

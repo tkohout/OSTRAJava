@@ -1,15 +1,5 @@
 banik pyco
 
-/*tryda Dryst{
-    toz cyslo[] pismena pyco
-    toz cyslo velikost pyco
-
-    dryst(){
-        velikost = 2 pyco
-        pismena = zrob cyslo[velikost] pyco
-    }
-}*/
-
 
 tryda Ostrava{
 

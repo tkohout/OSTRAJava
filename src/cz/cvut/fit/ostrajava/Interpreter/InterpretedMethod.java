@@ -12,6 +12,9 @@ public class InterpretedMethod extends Method {
 
     public InterpretedMethod(Method method) {
         super(method.getName(), method.getArgs(), method.getReturnType());
+
+        setStaticMethod(method.isStaticMethod());
+
         //Copy
         this.setByteCode(method.getByteCode());
         this.setLocalVariablesCount(method.getLocalVariablesCount());

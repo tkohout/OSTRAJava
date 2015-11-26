@@ -12,17 +12,11 @@ import java.util.List;
  */
 public class PrintChars extends Native {
 
-    public PrintChars(ClassPool classPool, Heap heap) {
-        super(classPool, heap);
-    }
+    //arguments: char[]
+    public void invoke(NativeArgument args[])  {
+            NativeArgument arg = args[0];
+            char[] chars = arg.charArray();
 
-    public void invoke(Array array)  {
-            StringBuilder sb = new StringBuilder();
-
-            for (int i = 0; i < array.getSize(); i++){
-                sb.append((char)array.get(i));
-            }
-
-            System.out.println(sb.toString());
+            System.out.println(chars);
     }
 }

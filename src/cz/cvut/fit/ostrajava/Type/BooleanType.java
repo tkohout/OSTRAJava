@@ -1,7 +1,9 @@
 package cz.cvut.fit.ostrajava.Type;
 
-public class Void extends Type{
-    static java.lang.String name = "fraj";
+import java.lang.*;
+
+public class BooleanType extends Type{
+    static java.lang.String name = "bul";
     public java.lang.String toString() {
         return name;
     }

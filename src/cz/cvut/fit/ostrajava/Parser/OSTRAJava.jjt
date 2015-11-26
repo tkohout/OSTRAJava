@@ -628,12 +628,12 @@ void Literal() #void:
   NullLiteral()
 }
 
-void BooleanLiteral() :
+void BooleanLiteral() #void:
 {}
 {
-  "fajne"
+  "fajne" #True
 |
-  "nyt"
+  "nyt" #False
 }
 
 void NullLiteral() :

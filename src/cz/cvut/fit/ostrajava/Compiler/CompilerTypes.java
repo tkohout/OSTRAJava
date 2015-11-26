@@ -60,8 +60,10 @@ public class CompilerTypes {
     }
 
     public static boolean isBooleanLiteral(Node node){
-        return node instanceof ASTBooleanLiteral;
+        return node instanceof ASTTrue || node instanceof ASTFalse;
     }
+
+    public static boolean isNullLiteral(Node node){ return node instanceof ASTNullLiteral;}
 
     public static boolean isAllocationExpression(Node node){
         return node instanceof ASTAllocationExpression;
