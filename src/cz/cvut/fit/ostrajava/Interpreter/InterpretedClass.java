@@ -45,7 +45,9 @@ public class InterpretedClass extends Class {
 
 
 
-
+    public InterpretedMethod lookupMethod(String descriptor, ClassPool classPool) throws LookupException {
+        return (InterpretedMethod)super.lookupMethod(descriptor, classPool);
+    }
 
 
 

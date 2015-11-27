@@ -18,25 +18,36 @@ public class Method {
     protected Type returnType;
     protected ByteCode byteCode;
     protected int localVariablesCount =  0;
+    protected String className;
 
     boolean staticMethod = false;
 
-    public Method() {
-        args = new ArrayList<>();
-    }
-
     public Method(String name, List<Type> args) {
-        this(name, args, Types.Void());
+        this(name, args, null);
     }
 
-    public Method(String name, List<Type> args, Type returnType) {
+    public Method(String name, List<Type> args, String className) {
+        this(name, args, className, Types.Void());
+    }
+
+    public Method(String name, List<Type> args, String className, Type returnType) {
         this.name = name;
         this.args = args;
         this.returnType = returnType;
+        this.className = className;
     }
 
     public Method(String descriptor) {
-        String[] parts = descriptor.split(":");
+
+        int classIndex = descriptor.indexOf(".");
+        String methodPart = descriptor;
+        if (classIndex != -1){
+            this.className = descriptor.substring(0, classIndex);
+            methodPart = descriptor.substring(classIndex+1);
+        }
+
+
+        String[] parts = methodPart.split(":");
         args = new ArrayList<>();
         //TODO: Put real return type
         returnType = Types.Void();
@@ -139,8 +150,23 @@ public class Method {
         this.staticMethod = staticMethod;
     }
 
+    public String getClassName() {
+        return className;
+    }
+
+    public void setClassName(String className) {
+        this.className = className;
+    }
+
     public String getDescriptor(){
+        return Method.getDescriptor(name, args, className);
+    }
+
+    public static String getDescriptor(String name, List<Type> args, String className){
         StringBuilder sb = new StringBuilder();
+        if (className != null) {
+            sb.append(className + ".");
+        }
         sb.append(name);
 
         for (Type arg: args){

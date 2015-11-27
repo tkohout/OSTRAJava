@@ -257,39 +257,34 @@ public class OSTRAJavaInterpreter {
 
                 int constPosition = instruction.getOperand(0);
                 String methodDescriptor = constantPool.getConstant(constPosition);
-                InterpretedClass objectClass;
+
                 int objectRef;
+
+                String className = new Method(methodDescriptor).getClassName();
+
+                //Method class was not found in compilation that means it's a native
+                if (className == null){
+                    invokeNative(methodDescriptor);
+                    return;
+                }
 
 
                 try {
-
                     //Normal method
                     if (instruction.getInstruction() == InstructionSet.InvokeVirtual) {
                         //Get object the method is called on
                         objectRef = stack.currentFrame().pop();
 
-                        //We are in static method, the only non-static method we can call here is native
-                        if (objectRef == 0){
-                            invokeNative(methodDescriptor);
-                            return;
-                        }
-
-                        Object object = heap.loadObject(objectRef);
-
-                        objectClass = object.loadClass(classPool);
                     //Static method
                     }else{
-                        int classNamePos = instruction.getOperand(1);
-                        String className = constantPool.getConstant(classNamePos);
-                        //Load static class
-                        objectClass = classPool.lookupClass(className);
-
                         //Set This to null
                         objectRef = 0;
                     }
 
+                    InterpretedClass objectClass = classPool.lookupClass(className);
 
-                    Method method = objectClass.lookupMethod(methodDescriptor, classPool);
+                    //Lookup real interpreted method
+                    InterpretedMethod method = objectClass.lookupMethod(methodDescriptor, classPool);
 
                     //Return to next instruction
                     int returnAddress = instructions.getCurrentPosition() + 1;
@@ -314,11 +309,7 @@ public class OSTRAJavaInterpreter {
                     instructions.goTo(((InterpretedMethod) method).getInstructionPosition());
 
                 } catch (LookupException e) {
-
-                    //Method doesn't exist try to load native
-                    invokeNative(methodDescriptor);
-
-
+                    throw new InterpreterException("Trying to call non-existent method '" + methodDescriptor +"'");
                 }
 
 
@@ -326,8 +317,12 @@ public class OSTRAJavaInterpreter {
 
     public void invokeNative(String methodDescriptor) throws InterpreterException {
         if (!natives.nativeExist(methodDescriptor)){
-            throw new InterpreterException("Trying to call non-existent method '" + methodDescriptor +"'");
+            throw new InterpreterException("Trying to call non-existent native method '" + methodDescriptor +"'");
         }
+
+        //Pop obj reference from stack (we don't need it but need to pop it)
+        int objectRef = stack.currentFrame().pop();
+
 
         //Load approximate method from descriptor so we can count the arguments
         Method methodFromDescriptor = new Method(methodDescriptor);

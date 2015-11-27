@@ -4,11 +4,24 @@ class A{
     void foo(X x, Z z){
         System.out.println("A:foo()");
     }
+
+    void boo(){
+        System.out.println("A:boo()");
+    }
 }
 
 class B extends A{
-    void foo(X x, Y y){
+    void foo(X x, Z z){
         System.out.println("B:foo()");
+        super.foo(x, z);
+        this.goo();
+
+        super.boo();
+        this.boo();
+    }
+
+    static void goo(){
+        System.out.println("B:goo()");
     }
 }
 

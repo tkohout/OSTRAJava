@@ -139,9 +139,10 @@ public class OSTRAJavaCompiler {
             }
         }
 
+        String className = aClass.getClassName();
         //TODO: add probably some super call
 
-        Type classType = Types.Reference(aClass.getClassName());
+        Type classType = Types.Reference(className);
 
         MethodCompilation compilation = new MethodCompilation();
 
@@ -156,9 +157,7 @@ public class OSTRAJavaCompiler {
         compilation.getByteCode().addInstruction(new Instruction(InstructionSet.ReturnReference, thisPosition));
 
         //Create new method
-        Method constructor = new Method();
-        constructor.setName(aClass.getClassName());
-        constructor.setReturnType(classType);
+        Method constructor = new Method(className, new ArrayList<Type>(), className, classType);
         constructor.setByteCode(compilation.getByteCode());
         constructor.setLocalVariablesCount(compilation.getNumberOfLocalVariables());
 
@@ -258,7 +257,7 @@ public class OSTRAJavaCompiler {
             throw new CompilerException("Missing method name in " + node );
         }
 
-        Method method = new Method(name, args, returnType);
+        Method method = new Method(name, args, aClass.getClassName(), returnType);
 
 
         if (mode == Mode.COMPILE) {
@@ -653,10 +652,14 @@ public class OSTRAJavaCompiler {
             }
         }else if (CompilerTypes.isThis(value)) {
             return Types.Reference(currentClass.getClassName());
-        }else if (CompilerTypes.isSuper(value) || CompilerTypes.isNullLiteral(value)){
-            //TODO: Super
+        }else if (CompilerTypes.isSuper(value)){
+            if (currentClass.getSuperClass() != null){
+                return currentClass.getSuperClass().getClassType();
+            }
+            return null;
+        }else if (CompilerTypes.isNullLiteral(value)){
             //Any reference
-            return Types.Reference("");
+            return null;
         }else if (CompilerTypes.isCallExpression(value)){
             return getTypeForMethodCall(value, compilation);
         }else if (CompilerTypes.isFieldExpression(value)) {
@@ -746,8 +749,7 @@ public class OSTRAJavaCompiler {
         ASTArguments args = (ASTArguments)node.jjtGetChild(node.jjtGetNumChildren() - 1);
         List<Type> argTypes = getArgumentsTypes(args,compilation);
 
-        String methodDescriptor = new Method(methodName, argTypes).getDescriptor();
-
+        String methodDescriptor = Method.getDescriptor(methodName, argTypes, callerClass.getClassName());
 
         try {
             Method method = callerClass.lookupMethod(methodDescriptor, classPool);
@@ -759,21 +761,35 @@ public class OSTRAJavaCompiler {
     }
 
     protected void call(Node node, MethodCompilation compilation) throws CompilerException{
+        boolean staticCall = false;
+
         node = simplifyExpression(node);
 
         if (!CompilerTypes.isCallExpression(node) || node.jjtGetNumChildren() <= 1){
             throw new CompilerException("Expected method call");
         }
 
-        // This / Super / Name
         Node caller = node.jjtGetChild(0);
 
-        //Method name is one before last
+
+        //If it's just the method and arguments
+        if (node.jjtGetNumChildren() == 2){
+            //super(...) || this(...) - it's constructor call
+            if (CompilerTypes.isSuper(caller) || CompilerTypes.isThis(caller)){
+                constructorCall(node, compilation);
+                return;
+            }else {
+                caller = new ASTThis();
+            }
+        }
+
+
+        //Method name is one before last child
         ASTName method = (ASTName)node.jjtGetChild(node.jjtGetNumChildren() - 2);
         String methodName = method.jjtGetValue().toString().toLowerCase();
 
 
-        //Arguments are last
+        //Arguments are last child
         ASTArguments args = (ASTArguments)node.jjtGetChild(node.jjtGetNumChildren() - 1);
         //Push arguments on the stack
         arguments(args, compilation);
@@ -781,32 +797,36 @@ public class OSTRAJavaCompiler {
 
         Class objectClass;
 
-        //Evaluate the caller
-        //It is simple method call, it has to be called on This
-        if (node.jjtGetNumChildren() == 2){
-            objectClass = currentClass;
-            thisReference(compilation);
-            //TODO: Super
-        }else{
-            Type type = getTypeForExpression(caller, compilation);
-            if (!(type instanceof ReferenceType)){
-                throw new CompilerException("Trying to call method on non-object");
-            }
 
-            String className = ((ReferenceType) type).getClassName();
 
-            try {
-                objectClass = classPool.lookupClass(className);
-            } catch (LookupException e) {
-                throw new CompilerException("Class '" + className  + "' not found");
-            }
+        Type type = getTypeForExpression(caller, compilation);
 
+        if (!(type instanceof ReferenceType)){
+            throw new CompilerException("Trying to call method on non-object");
+        }
+
+        String className = ((ReferenceType) type).getClassName();
+
+        try {
+            objectClass = classPool.lookupClass(className);
+        } catch (LookupException e) {
+            throw new CompilerException("Class '" + className  + "' not found");
+        }
+
+
+        if (CompilerTypes.isVariable(caller)){
             int variablePosition = compilation.getPositionOfLocalVariable(((ASTName)caller).jjtGetValue().toString());
 
-            //If it's variable. If it's not it has to be static class
+            //If it's variable.
             if (variablePosition != -1) {
                 variable((ASTName) caller, compilation);
+            //It has to be static class
+            }else{
+                staticCall = true;
             }
+        }else{
+            //Evaluate caller
+            expression(caller, compilation);
         }
 
         //Load fields (if any)
@@ -818,8 +838,28 @@ public class OSTRAJavaCompiler {
         //Get types of arguments (whether they are expression, variables or method call)
         List<Type> argTypes = getArgumentsTypes(args,compilation);
 
-        invokeMethod(objectClass, methodName, argTypes, compilation);
+        invokeMethod(objectClass, methodName, argTypes, compilation, staticCall);
 
+    }
+
+    protected void constructorCall(Node node, MethodCompilation compilation) throws CompilerException {
+        Node caller = node.jjtGetChild(0);
+        Node arguments = node.jjtGetChild(1);
+
+        //Put arguments on stack
+        arguments(arguments, compilation);
+
+        //Load argument types
+        List<Type> argTypes = getArgumentsTypes(arguments, compilation);
+
+        //Get classname
+        ReferenceType type = (ReferenceType)getTypeForExpression(caller, compilation);
+        String className =  type.getClassName();
+
+        //Put caller ref on stack
+        expression(caller, compilation);
+
+        invokeConstructor(className, argTypes, compilation);
     }
 
     protected void fields(Node node, MethodCompilation compilation) throws CompilerException{
@@ -1015,8 +1055,10 @@ public class OSTRAJavaCompiler {
             allocationExpression((ASTAllocationExpression)node, compilation);
         }else if (CompilerTypes.isVariable(node)) {
             variable((ASTName) node, compilation);
-        }else if (CompilerTypes.isThis(node)){
+        }else if (CompilerTypes.isThis(node)) {
             thisReference(compilation);
+        }else if (CompilerTypes.isSuper(node)){
+            superReference(compilation);
         }else if (CompilerTypes.isNumberLiteral(node)) {
             numberLiteral(node, compilation);
         }else if (CompilerTypes.isCharLiteral(node)) {
@@ -1045,6 +1087,14 @@ public class OSTRAJavaCompiler {
         compilation.getByteCode().addInstruction(new Instruction(InstructionSet.LoadReference, position));
     }
 
+    protected void superReference(MethodCompilation compilation) throws CompilerException {
+        if (currentClass.getSuperClass() == null){
+            throw new CompilerException("Calling super on top-object");
+        }
+
+        thisReference(compilation);
+    }
+
     protected void variable(ASTName node, MethodCompilation compilation) throws CompilerException{
         String name =  node.jjtGetValue().toString();
         int position = compilation.getPositionOfLocalVariable(name);
@@ -1064,7 +1114,7 @@ public class OSTRAJavaCompiler {
 
     protected void array(Node node, MethodCompilation compilation) throws CompilerException{
         //Load variable reference on stack
-        variable((ASTName)node.jjtGetChild(0), compilation);
+        variable((ASTName) node.jjtGetChild(0), compilation);
 
         //Load index
         Node arrayIndexExpression = simplifyExpression(node.jjtGetChild(1).jjtGetChild(0));
@@ -1101,7 +1151,7 @@ public class OSTRAJavaCompiler {
             charValue = value.charAt(0);
         }
 
-        compilation.getByteCode().addInstruction(new Instruction(InstructionSet.PushInteger, (int)charValue));
+        compilation.getByteCode().addInstruction(new Instruction(InstructionSet.PushInteger, (int) charValue));
     }
 
     protected void stringLiteral(Node node, MethodCompilation compilation) throws CompilerException {
@@ -1125,8 +1175,8 @@ public class OSTRAJavaCompiler {
         argTypes.add(Types.CharArray());
 
         //New string constructor
-        Method method = new Method(STRING_CLASS, argTypes, Types.Void());
-        int constructorIndex = constantPool.addConstant(method.getDescriptor());
+        String methodDescriptor = Method.getDescriptor(STRING_CLASS, argTypes, STRING_CLASS);
+        int constructorIndex = constantPool.addConstant(methodDescriptor);
 
         compilation.getByteCode().addInstruction(new Instruction(InstructionSet.InvokeVirtual, constructorIndex));
 
@@ -1186,6 +1236,11 @@ public class OSTRAJavaCompiler {
         int index = constantPool.addConstant(className);
         compilation.getByteCode().addInstruction(new Instruction(InstructionSet.New, index));
 
+
+        invokeConstructor(className, args, compilation);
+    }
+
+    protected void invokeConstructor(String className, List<Type> args,  MethodCompilation compilation) throws CompilerException{
         try {
             Class objClass = classPool.lookupClass(className);
 
@@ -1198,34 +1253,39 @@ public class OSTRAJavaCompiler {
     }
 
     protected void invokeMethod(Class objClass, String name, List<Type> argTypes, MethodCompilation compilation) throws CompilerException {
+        invokeMethod(objClass, name, argTypes, compilation, false);
+    }
 
-        //Get method descriptor based on it's name, arguments and return type
-        Method method = new Method(name, argTypes);
+    protected void invokeMethod(Class objClass, String name, List<Type> argTypes, MethodCompilation compilation, boolean staticCall) throws CompilerException {
+
+        //Get method based on it's name, arguments and className
+        Method method = new Method(name, argTypes, objClass.getClassName());
         String methodDescriptor = method.getDescriptor();
 
         try {
+            //We try to lookup the method
             method = objClass.lookupMethod(methodDescriptor, this.classPool);
         } catch (LookupException e) {
-            //It can also be native method which won't be in the code
-            //TODO: Do some check
-            //throw new CompilerException("Method '" + methodDescriptor + "' not found in " + objClass.getClassName() );
-
+            //We didn't find it, use the method constructed from what we know
+            //It's a native method - we don't know it's class
+            method.setClassName(null);
         }
 
 
-            int methodIndex = constantPool.addConstant(method.getDescriptor());
+        int methodIndex = constantPool.addConstant(method.getDescriptor());
 
-            if (method.isStaticMethod()){
-                int classIndex = constantPool.addConstant(objClass.getClassName());
-
-                compilation.getByteCode().addInstruction(new Instruction(InstructionSet.InvokeStatic, methodIndex, classIndex));
-            }else {
-                compilation.getByteCode().addInstruction(new Instruction(InstructionSet.InvokeVirtual, methodIndex));
-            }
+        //We can't invoke non-static method statically
+        // (We can invoke static method non-statically though
+        if (staticCall && !method.isStaticMethod()) {
+            throw new CompilerException("Trying to invoke non-static method with a static call");
+        }
 
 
-
-
+        if (method.isStaticMethod()){
+            compilation.getByteCode().addInstruction(new Instruction(InstructionSet.InvokeStatic, methodIndex));
+        }else{
+            compilation.getByteCode().addInstruction(new Instruction(InstructionSet.InvokeVirtual, methodIndex));
+        }
 
     }
 

@@ -11,7 +11,7 @@ public class InterpretedMethod extends Method {
     int instructionPosition;
 
     public InterpretedMethod(Method method) {
-        super(method.getName(), method.getArgs(), method.getReturnType());
+        super(method.getName(), method.getArgs(), method.getClassName(), method.getReturnType());
 
         setStaticMethod(method.isStaticMethod());
 

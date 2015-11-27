@@ -5,6 +5,9 @@ import com.sun.tools.corba.se.idl.InvalidArgument;
 import cz.cvut.fit.ostrajava.Interpreter.ClassPool;
 import cz.cvut.fit.ostrajava.Interpreter.InterpretedMethod;
 import cz.cvut.fit.ostrajava.Interpreter.LookupException;
+import cz.cvut.fit.ostrajava.Type.ReferenceType;
+import cz.cvut.fit.ostrajava.Type.Type;
+import cz.cvut.fit.ostrajava.Type.Types;
 
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
@@ -91,6 +94,10 @@ public class Class {
 
     public void setFlags(List<String> flags) {
         this.flags = flags;
+    }
+
+    public Type getClassType() {
+        return Types.Reference(getClassName());
     }
 
     public ConstantPool getConstantPool() {
