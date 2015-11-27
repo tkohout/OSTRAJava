@@ -1200,9 +1200,7 @@ public class OSTRAJavaCompiler {
     protected void invokeMethod(Class objClass, String name, List<Type> argTypes, MethodCompilation compilation) throws CompilerException {
 
         //Get method descriptor based on it's name, arguments and return type
-        //TODO: return type?
-
-        Method method = new Method(name, argTypes, Types.Void());
+        Method method = new Method(name, argTypes);
         String methodDescriptor = method.getDescriptor();
 
         try {
@@ -1211,7 +1209,7 @@ public class OSTRAJavaCompiler {
             //It can also be native method which won't be in the code
             //TODO: Do some check
             //throw new CompilerException("Method '" + methodDescriptor + "' not found in " + objClass.getClassName() );
-            System.out.println();
+
         }
 
 

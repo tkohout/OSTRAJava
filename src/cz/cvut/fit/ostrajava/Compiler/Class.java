@@ -125,8 +125,19 @@ public class Class {
         Method methodFromDescriptor = new Method(descriptor);
         int minSimilarity = Integer.MAX_VALUE;
         Method closestMethod = null;
+        List<Method> allMethods = new ArrayList<>();
+        allMethods.addAll(methods);
 
-        for (Method method: methods){
+        if (superClass != null) {
+            try {
+                Method superMethod = superClass.lookupMethod(descriptor, classPool);
+                allMethods.add(superMethod);
+            }catch (LookupException e){
+                //Supress exception in super call
+            }
+        }
+
+        for (Method method: allMethods){
             int similarity = methodFromDescriptor.getSimilarity(method, classPool);
             if (similarity != -1 && similarity < minSimilarity){
                 minSimilarity = similarity;
@@ -136,11 +147,6 @@ public class Class {
 
         if (closestMethod != null){
             return closestMethod;
-        }
-
-        if (superClass != null) {
-            //TODO: check parent?
-            return superClass.lookupMethod(descriptor, classPool);
         }
 
         throw new LookupException("Method '" + descriptor + "' not found");
