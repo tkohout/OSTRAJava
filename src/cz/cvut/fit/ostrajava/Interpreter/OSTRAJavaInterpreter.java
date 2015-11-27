@@ -317,7 +317,7 @@ public class OSTRAJavaInterpreter {
 
     public void invokeNative(String methodDescriptor) throws InterpreterException {
         if (!natives.nativeExist(methodDescriptor)){
-            throw new InterpreterException("Trying to call non-existent native method '" + methodDescriptor +"'");
+            throw new InterpreterException("Trying to call non-existent method '" + methodDescriptor +"'");
         }
 
         //Pop obj reference from stack (we don't need it but need to pop it)

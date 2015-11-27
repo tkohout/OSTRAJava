@@ -98,12 +98,13 @@ public class OSTRAJavaCompiler {
                 e.printStackTrace();
             }
 
-            this.constantPool = new ConstantPool();
-            aClass.setConstantPool(this.constantPool);
+            this.constantPool = aClass.getConstantPool();
         }else{
             aClass = new Class();
             aClass.setClassName(className);
             aClass.setSuperName(extending);
+            this.constantPool = new ConstantPool();
+            aClass.setConstantPool(this.constantPool);
         }
 
         currentClass = aClass;
@@ -131,7 +132,7 @@ public class OSTRAJavaCompiler {
         return aClass;
     }
 
-    protected void addGenericConstructor(Class aClass)  {
+    protected void addGenericConstructor(Class aClass) throws CompilerException {
         //Skip if class already has constructor
         for (Method method: aClass.getMethods()){
             if (method.getName().equals(aClass.getClassName())){
@@ -140,7 +141,6 @@ public class OSTRAJavaCompiler {
         }
 
         String className = aClass.getClassName();
-        //TODO: add probably some super call
 
         Type classType = Types.Reference(className);
 
@@ -152,8 +152,23 @@ public class OSTRAJavaCompiler {
         //Get it's position
         int thisPosition = compilation.getPositionOfLocalVariable(THIS_VARIABLE);
 
-        //Load This on stack and return it
-        compilation.getByteCode().addInstruction(new Instruction(InstructionSet.LoadReference, thisPosition));
+        String superClass = aClass.getSuperName();
+
+        //Call super constructor
+        if (superClass != null){
+            //Call on this
+            compilation.getByteCode().addInstruction(new Instruction(InstructionSet.LoadReference, thisPosition));
+
+            //Create descriptor for super
+            String superConstructorDescriptor = Method.getDescriptor(superClass, new ArrayList<Type>(), superClass);
+            int constructorIndex = constantPool.addConstant(superConstructorDescriptor);
+            //Call the method
+            compilation.getByteCode().addInstruction(new Instruction(InstructionSet.InvokeVirtual, constructorIndex));
+        }else{
+            //Load This on stack and return it
+            compilation.getByteCode().addInstruction(new Instruction(InstructionSet.LoadReference, thisPosition));
+        }
+
         compilation.getByteCode().addInstruction(new Instruction(InstructionSet.ReturnReference, thisPosition));
 
         //Create new method

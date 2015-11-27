@@ -43,7 +43,6 @@ tryda Z fagan od Y {
 tryda A {
   A(){
   	Konzola.pravit("A:construct") pyco
-  	joch(1) pyco
   }
 
   A(cyslo i){
@@ -60,10 +59,6 @@ tryda A {
 }
 
 tryda B fagan od A {
-	B(){
-		Konzola.pravit("B:construct") pyco
-		forant(2) pyco
-	}
 
 	foo(X x, Z z) {
 		Konzola.pravit("In B::foo(X,Z)") pyco
