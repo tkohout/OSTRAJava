@@ -87,6 +87,7 @@ public class Types {
     }
 
     public static Type Reference(java.lang.String className){
+        className = className.toLowerCase();
         Type type = getSingleton(className);
         if (type == null){
             type = new ReferenceType(className);

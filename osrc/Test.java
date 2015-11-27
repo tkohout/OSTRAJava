@@ -1,22 +1,27 @@
 import java.lang.Object;
 
 class A{
-    A(int a, int b, int c, int d){
+    void foo(){
+        System.out.println("A:foo()");
+    }
+}
 
+class B extends A{
+    void foo(){
+        System.out.println("B:foo()");
     }
 }
 
 class Test{
 
-    void something(){
-        A o = new A(1,2,3,4);
+    public static void main(String[] args){
+        A a = new A();
+        B b = new B();
 
-        String s = "super";
+        a.foo();
 
-        char[] c = new char[15];
-        c[0] = 'a';
-        /*s = s + " ze jo";
+        a = b;
 
-        Object o = new Object();*/
+        a.foo();
     }
 }

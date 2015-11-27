@@ -25,6 +25,10 @@ public class Method {
         args = new ArrayList<>();
     }
 
+    public Method(String name, List<Type> args) {
+        this(name, args, Types.Void());
+    }
+
     public Method(String name, List<Type> args, Type returnType) {
         this.name = name;
         this.args = args;
@@ -81,6 +85,7 @@ public class Method {
             }else if (methodArgType != argType){
                 return -1;
             }
+            i++;
         }
 
         return similarity;

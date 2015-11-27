@@ -159,6 +159,19 @@ public class Class {
         throw new LookupException("Field '" + name + "' not found");
     }
 
+    public Field getField(int position) {
+        int i = 0;
+
+        for (Field field: getAllFields()){
+            if (position == i){
+                return field;
+            }
+            i++;
+        }
+
+        return null;
+    }
+
     public boolean inheritsFrom(Class anotherClass){
         if (this.getClassName().equals(anotherClass.className)){
             return true;

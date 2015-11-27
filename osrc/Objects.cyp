@@ -3,65 +3,73 @@ banik pyco
 tryda Ostrava {
 
      rynek(){
-        toz A a pyco
-        toz B b pyco
-        toz C c pyco
+        	toz A a pyco
+        	toz B b pyco
+        	toz X x pyco
+        	toz Y y pyco
+        	toz Z z pyco
 
-        a = zrob A() pyco
-        b = zrob B() pyco
-        c = zrob C() pyco
+        	a = zrob A() pyco
+        	x = zrob X() pyco
+        	y = zrob Y() pyco
+        	a.foo(x, y) pyco
 
-        a.b = b pyco
-        a.b.neco = 5 pyco
-        a.b.neco() pyco
+        	a = zrob B() pyco
+        	x = zrob X() pyco
+        	y = zrob Z() pyco
+        	a.foo(x, y) pyco
 
-        c.b = b pyco
+        	b = zrob B() pyco
+        	x = zrob X() pyco
+        	y = zrob Z() pyco
+        	b.foo(x, y) pyco
 
-        dechrobok pyco
+        	b = zrob B() pyco
+        	x = zrob X() pyco
+        	z = zrob Z() pyco
+        	b.foo(x, z) pyco
 
-        a.foo() pyco
-        b.foo() pyco
-        c.foo() pyco
-
-        a.bar() pyco
-        b.bar() pyco
-        c.bar() pyco
 
     }
 
 }
 
-tryda A{
-    toz B b pyco
-    toz cyslo neco pyco
+tryda X {
+  print() {
+	Konzola.pravit("   I'm X") pyco
+  }
+}
 
-    cyslo foo(){
-        davaj 1 pyco
-    }
+tryda Y {
+  print() {
+	Konzola.pravit("   I'm Y") pyco
+  }
+}
 
-    cyslo bar(){
-        davaj 3 pyco
-    }
+tryda Z fagan od Y {
+  print() {
+	Konzola.pravit("   I'm Z") pyco
+  }
+}
+
+
+tryda A {
+  foo(X x, Y y) {
+	Konzola.pravit("In A::foo(X,Y)") pyco
+	x.print() pyco
+	y.print() pyco
+  }
 }
 
 tryda B fagan od A {
-    toz cyslo neco pyco
-
-    cyslo neco(){
-        dechrobok pyco
-        davaj 27 pyco
-    }
-
-    cyslo foo(){
-        davaj 2 pyco
-    }
+  foo(X x, Z y) {
+	Konzola.pravit("In B::foo(X,Z)") pyco
+	x.print() pyco
+	y.print() pyco
+  }
 }
 
-tryda C fagan od B {
-    cyslo bar(){
-        davaj 4 pyco
-    }
-}
+
 
 
 fajront pyco

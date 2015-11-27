@@ -614,7 +614,6 @@ public class OSTRAJavaCompiler {
     protected Type getTypeForExpression(Node value, MethodCompilation compilation) throws CompilerException{
         if (CompilerTypes.isConditionalExpression(value) || CompilerTypes.isBooleanLiteral(value)){
             return Types.Boolean();
-            //TODO: Additive might be also for Strings in future
         }else if (CompilerTypes.isNumberLiteral(value) || CompilerTypes.isAdditiveExpression(value) || CompilerTypes.isMultiplicativeExpression(value)){
             return Types.Number();
         }else if (CompilerTypes.isCharLiteral(value)){
@@ -649,7 +648,8 @@ public class OSTRAJavaCompiler {
 
                 return Types.Array(elementType);
             }else{
-                return Types.Reference("");
+                String className = ((ASTName)value.jjtGetChild(0)).jjtGetValue().toString();
+                return Types.Reference(className);
             }
         }else if (CompilerTypes.isThis(value)) {
             return Types.Reference(currentClass.getClassName());
@@ -658,8 +658,7 @@ public class OSTRAJavaCompiler {
             //Any reference
             return Types.Reference("");
         }else if (CompilerTypes.isCallExpression(value)){
-            return null;
-            //TODO: we don't know return type of the method
+            return getTypeForMethodCall(value, compilation);
         }else if (CompilerTypes.isFieldExpression(value)) {
             return null;
             //TODO: we don't know type of field
@@ -678,7 +677,19 @@ public class OSTRAJavaCompiler {
 
         //Don't type control when it's both references (They can inherit from each other)
         if (type instanceof ReferenceType && valueType instanceof ReferenceType) {
-            return;
+            try {
+                Class valueClass = classPool.lookupClass(((ReferenceType) valueType).getClassName());
+                Class typeClass = classPool.lookupClass(((ReferenceType) type).getClassName());
+
+                if (!valueClass.inheritsFrom(typeClass)){
+                    throw new CompilerException("Trying to assign not compatible types " + valueType + " to " + type);
+                }else{
+                    return;
+                }
+
+            } catch (LookupException e) {
+                throw new CompilerException(e.getMessage());
+            }
         }
 
         //Char and Int are the same
@@ -688,6 +699,62 @@ public class OSTRAJavaCompiler {
 
         if (valueType != type){
             throw new TypeException("Trying to assign '" + valueType  + "' to '" + type + "')");
+        }
+    }
+
+    protected Type getTypeForMethodCall(Node node, MethodCompilation compilation) throws CompilerException {
+
+        Class callerClass = null;
+
+        try {
+
+            //Get type for first member
+            //It's method call on This
+            if (node.jjtGetNumChildren() == 2){
+                callerClass = currentClass;
+            //It's variable or static class
+            }else{
+                Type classType = getTypeForExpression(node.jjtGetChild(0), compilation);
+
+                if (classType instanceof ReferenceType) {
+                    callerClass = classPool.lookupClass(((ReferenceType) classType).getClassName());
+                }
+            }
+
+            //Get type for field
+            for (int i=1; i<node.jjtGetNumChildren()-2; i++) {
+                String fieldName = ((ASTName) node.jjtGetChild(i)).jjtGetValue().toString();
+
+                int fieldPosition = callerClass.lookupField(fieldName);
+                Field field = callerClass.getField(fieldPosition);
+
+                Type fieldType = field.getType();
+
+                if (fieldType instanceof ReferenceType){
+                    callerClass = classPool.lookupClass(((ReferenceType) fieldType).getClassName());
+                }else{
+                    throw new CompilerException("Calling method on non-object field" + fieldName);
+                }
+            }
+        } catch (LookupException e) {
+            throw new CompilerException(e.getMessage());
+        }
+
+        ASTName methodNode = (ASTName)node.jjtGetChild(node.jjtGetNumChildren() - 2);
+        String methodName = methodNode.jjtGetValue().toString().toLowerCase();
+
+        ASTArguments args = (ASTArguments)node.jjtGetChild(node.jjtGetNumChildren() - 1);
+        List<Type> argTypes = getArgumentsTypes(args,compilation);
+
+        String methodDescriptor = new Method(methodName, argTypes).getDescriptor();
+
+
+        try {
+            Method method = callerClass.lookupMethod(methodDescriptor, classPool);
+            return method.getReturnType();
+        } catch (LookupException e) {
+            //TODO:it can still be native
+            return null;
         }
     }
 
@@ -787,8 +854,8 @@ public class OSTRAJavaCompiler {
     protected List<Type> getArgumentsTypes(Node node, MethodCompilation compilation) throws CompilerException {
         List<Type> types = new ArrayList<>();
 
-        //Put arguments on stack in reverse order
-        for (int i=node.jjtGetNumChildren()-1; i>=0; i--) {
+
+        for (int i=0; i<node.jjtGetNumChildren(); i++) {
             Node child = node.jjtGetChild(i);
             child = simplifyExpression(child);
             Type type = getTypeForExpression(child, compilation);
