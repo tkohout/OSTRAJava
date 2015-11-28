@@ -21,7 +21,7 @@ public class Stack {
         this.frameStackSize = frameStackSize;
     }
 
-    public Frame newFrame(int returnAddress, int thisReference, Method method) throws InterpreterException {
+    public Frame newFrame(int returnAddress, StackValue thisReference, Method method) throws InterpreterException {
         if (framesNumber >= frames.length){
             throw new InterpreterException("Exceeded number of frames in stack");
         }
@@ -30,11 +30,19 @@ public class Stack {
         return currentFrame();
     }
 
-    public Frame currentFrame(){
+    public Frame getFrame(int i){
         if (framesNumber <= 0){
             return null;
         }
-        return frames[framesNumber-1];
+        return frames[i];
+    }
+
+    public int getFramesNumber(){
+        return framesNumber;
+    }
+
+    public Frame currentFrame(){
+        return getFrame(framesNumber - 1);
     }
 
     public void deleteCurrentFrame() throws InterpreterException {
@@ -54,6 +62,8 @@ public class Stack {
 
         return sb.toString();
     }
+
+
 
     @Override
     public String toString() {

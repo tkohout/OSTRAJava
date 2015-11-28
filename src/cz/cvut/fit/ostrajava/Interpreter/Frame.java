@@ -8,11 +8,10 @@ import java.nio.ByteBuffer;
 /**
  * Created by tomaskohout on 11/17/15.
  */
-public class Frame {
+public class Frame extends ByteArrayWrapper{
     final int RETURN_ADDRESS_SIZE = NumberType.size;
     final int LOCAL_VAR_BYTE_SIZE = 4;
 
-    protected ByteBuffer byteArray;
     protected int maxSize;
     protected int count;
     protected int localVariablesCount = 0;
@@ -20,16 +19,16 @@ public class Frame {
     protected String methodName;
 
 
-    public Frame(int size, int returnAddress, int thisReference, Method method) throws InterpreterException {
-        byteArray = ByteBuffer.allocate(size);
+    public Frame(int size, int returnAddress, StackValue thisReference, Method method) throws InterpreterException {
+        byteArray = new byte[size];
         maxSize = size;
         count = 0;
 
         //Save return address
-        push(returnAddress);
+        setBytes(0, Converter.intToByteArray(returnAddress));
 
         //Push this as a first variable
-        push(thisReference);
+        set(RETURN_ADDRESS_SIZE, thisReference);
 
         //Arguments and this ref counted in locals
         localVariablesCount = method.getLocalVariablesCount();
@@ -42,62 +41,58 @@ public class Frame {
     }
 
 
-    public void push(int i) throws InterpreterException {
-        overflowCheck(NumberType.size);
-        setInt(count, i);
-        count += NumberType.size;
+    public void push(StackValue i) {
+        overflowCheck(StackValue.size);
+        set(count, i);
+        count += StackValue.size;
+        return;
     }
 
-    public int pop() throws InterpreterException {
-        underflowCheck(NumberType.size);
-        count -= NumberType.size;
-        return getInt(count);
+    public StackValue pop() {
+        underflowCheck(StackValue.size);
+        StackValue value = get(count - StackValue.size);
+        count -= StackValue.size;
+        return value;
     }
 
-    public byte[] popBytes(int size) throws InterpreterException {
-        underflowCheck(size);
-        count -= size;
-        byte[] bytes = new byte[size];
-
-        for (int i = 0; i< size; i++){
-            bytes[i] = byteArray.get(i+count);
-        }
-
-        return bytes;
+    public void pushBytes(StackValue i) {
+        overflowCheck(StackValue.size);
+        set(count, i);
+        count += StackValue.size;
     }
 
-    public void pushBytes(byte[] bytes) throws InterpreterException {
-        overflowCheck(bytes.length);
-
-        for (int i = 0; i< bytes.length; i++){
-            byteArray.put(i+count, bytes[i]);
-        }
-
-        count += bytes.length;
+    public StackValue popBytes() {
+        underflowCheck(StackValue.size);
+        count -= StackValue.size;
+        return get(count);
     }
 
-    public void setInt(int from, int i){
-        byteArray.putInt(from, i);
+    public void set(int from, StackValue value){
+        byte[] bytes = value.getBytes();
+        setBytes(from, bytes);
+
     }
 
-    public int getInt(int from){
-        int index = from;
-        int i = byteArray.getInt(index);
-        return i;
+    public StackValue get(int from) {
+        byte[] bytes = getBytes(from);
+        return new StackValue(bytes);
     }
 
-    public void storeVariable(int index, int value) throws InterpreterException {
+
+
+    public void storeVariable(int index, StackValue value) throws InterpreterException {
         if (index > localVariablesCount - 1 ){
             throw new InterpreterException("Trying to store to non-existent variable");
         }
-        setInt(getVariablePosition(index), value);
+        set(getVariablePosition(index), value);
     }
 
-    public int loadVariable(int index) throws InterpreterException {
+    public StackValue loadVariable(int index) throws InterpreterException {
         if (index > localVariablesCount - 1 ){
             throw new InterpreterException("Trying to load non-existent variable");
         }
-        return getInt(getVariablePosition(index));
+
+        return get(getVariablePosition(index));
     }
 
     protected int getVariablePosition(int index){
@@ -105,11 +100,15 @@ public class Frame {
     }
 
     protected int getReturnAddress(){
-        return getInt(0);
+        return Converter.byteArrayToInt(getBytes(0));
     }
 
     protected int getStackOffset() {
         return RETURN_ADDRESS_SIZE + localVariablesCount * LOCAL_VAR_BYTE_SIZE;
+    }
+
+    public int getLocalVariablesCount() {
+        return localVariablesCount;
     }
 
     public String getMethodName() {
@@ -139,9 +138,7 @@ public class Frame {
         for (int i=0; i < localVariablesCount; i++){
             int start = getVariablePosition(i);
 
-            //TODO: right now just INT
-            int var = getInt(start);
-
+            StackValue var = get(start);
             sb.append("Var " + i + ": " + var + "\n");
         }
 
@@ -149,7 +146,7 @@ public class Frame {
 
         //Show values on stack
         for (int j=getStackOffset(); j < count; j++){
-            sb.append(byteArray.get(j)+ " ");
+            sb.append(byteArray[j]+ " ");
         }
 
         return sb.toString();

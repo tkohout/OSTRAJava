@@ -8,12 +8,17 @@ tryda Ostrava {
         	toz X x pyco
         	toz Y y pyco
         	toz Z z pyco
+			toz cyslo neco = 15 pyco
+
+			Konzola.pravit(neco) pyco
 
         	a = zrob A() pyco
         	b = zrob B() pyco
 
         	x = zrob X() pyco
         	z = zrob Z() pyco
+
+        	dechrobok pyco
 
         	a.foo(x, z) pyco
         	b.foo(x, z) pyco

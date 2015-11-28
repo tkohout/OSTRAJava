@@ -16,9 +16,7 @@ public class Object extends HeapObject{
     final int OBJECT_CLASS_ADDRESS_SIZE = 4;
     final int OBJECT_SIZE_TYPE = 4;
 
-    final int OBJECT_HEADER_SIZE = OBJECT_CLASS_ADDRESS_SIZE + OBJECT_SIZE_TYPE;
-
-    ByteBuffer byteArray;
+    final int OBJECT_HEADER_SIZE = GC_STATE_SIZE + OBJECT_CLASS_ADDRESS_SIZE + OBJECT_SIZE_TYPE;
 
     public Object(InterpretedClass objectClass) {
 
@@ -27,33 +25,53 @@ public class Object extends HeapObject{
 
         int size = OBJECT_HEADER_SIZE + OBJECT_FIELD_SIZE * numberOfFields;
 
-        byteArray = ByteBuffer.allocate(size);
-        byteArray.putInt(objectClass.getClassPoolAddress());
+        byteArray = new byte[size];
+
+        setBytes(GC_STATE_SIZE, Converter.intToByteArray(objectClass.getClassPoolAddress()));
+
 
     }
 
     protected int getClassAddress(){
-        return byteArray.getInt(0);
+        return Converter.byteArrayToInt(getBytes(GC_STATE_SIZE));
     }
 
     protected int getSize(){
-        return byteArray.getInt(OBJECT_CLASS_ADDRESS_SIZE);
+        return Converter.byteArrayToInt(getBytes(GC_STATE_SIZE + OBJECT_CLASS_ADDRESS_SIZE));
     }
 
     protected int getFieldsSize(){
         return getSize() - OBJECT_HEADER_SIZE;
     }
-
-    //TODO: What if not int?
-    public int getField(int index){
-        return byteArray.getInt(OBJECT_HEADER_SIZE + index * OBJECT_FIELD_SIZE);
+    public int getFieldsNumber(){
+        return getFieldsSize() / OBJECT_FIELD_SIZE;
     }
 
-    protected void setField(int index, int value){
-         byteArray.putInt(OBJECT_HEADER_SIZE + index * OBJECT_FIELD_SIZE, value);
+
+    public StackValue getField(int index){
+        return new StackValue(getBytes(OBJECT_HEADER_SIZE + index * OBJECT_FIELD_SIZE));
+    }
+
+    protected void setField(int index, StackValue value){
+         setBytes(OBJECT_HEADER_SIZE + index * OBJECT_FIELD_SIZE, value.getBytes());
     }
 
     public InterpretedClass loadClass(ClassPool pool) throws InterpreterException {
         return pool.getClass(getClassAddress());
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+
+        sb.append(super.toString() + "\n");
+        sb.append("Class: " + getClassAddress() + "\n");
+        sb.append("Size: " + getSize() + "\n");
+
+        for (int i = 0; i<getFieldsNumber(); i++){
+            sb.append(getField(i) + " ");
+        }
+
+        return sb.toString();
     }
 }

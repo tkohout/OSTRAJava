@@ -59,7 +59,7 @@ public class OSTRAJavaInterpreter {
                 throw new InterpreterException("Main method not found. The name has to be '" + MAIN_METHOD_NAME + "'");
         }
 
-        int objectPointer = heap.allocObject(mainClass);
+        StackValue objectPointer = heap.allocObject(mainClass);
 
         //Create new frame for main method
         stack.newFrame(END_RETURN_ADDRESS, objectPointer, mainMethod);
@@ -152,27 +152,28 @@ public class OSTRAJavaInterpreter {
     public void executeArrayInstruction(Instruction instruction, Stack stack) throws InterpreterException {
         switch (instruction.getInstruction()) {
             case NewArray:
-                int size = stack.currentFrame().pop();
+                int size = stack.currentFrame().pop().intValue();
 
-                int reference = heap.allocArray(size);
+                StackValue reference = heap.allocArray(size);
                 stack.currentFrame().push(reference);
                 break;
             case StoreIntegerArray: {
-                int value = stack.currentFrame().pop();
-                int index = stack.currentFrame().pop();
-                int arrayRef = stack.currentFrame().pop();
+                int value = stack.currentFrame().pop().intValue();;
+                int index = stack.currentFrame().pop().intValue();;
+                StackValue arrayRef = stack.currentFrame().pop();
 
                 Array array = heap.loadArray(arrayRef);
                 array.set(index, value);
             }
                 break;
             case LoadIntegerArray: {
-                int index = stack.currentFrame().pop();
-                int arrayRef = stack.currentFrame().pop();
+                int index = stack.currentFrame().pop().intValue();;
+                StackValue arrayRef = stack.currentFrame().pop();;
 
                 Array array = heap.loadArray(arrayRef);
-                int value = array.get(index);
 
+                //TODO: Right now it's always primitive
+                StackValue value = new StackValue(array.get(index), StackValue.Type.Primitive);
                 stack.currentFrame().push(value);
             }
                 break;
@@ -184,7 +185,8 @@ public class OSTRAJavaInterpreter {
         String constant = constantPool.getConstant(constPosition);
 
         //Create array of chars and push it on stack
-        int reference = heap.allocArray(constant.length());
+        StackValue reference = heap.allocArray(constant.length());
+
         Array charArray = heap.loadArray(reference);
 
         for (int i = 0; i < constant.length(); i++){
@@ -202,7 +204,7 @@ public class OSTRAJavaInterpreter {
                 try {
                     InterpretedClass objectClass = classPool.lookupClass(className);
 
-                    int reference = heap.allocObject(objectClass);
+                    StackValue reference = heap.allocObject(objectClass);
                     stack.currentFrame().push(reference);
 
                 } catch (LookupException e) {
@@ -211,14 +213,14 @@ public class OSTRAJavaInterpreter {
     }
 
     public void executeDuplicateInstruction(Instruction instruction, Stack stack) throws InterpreterException {
-        int value = stack.currentFrame().pop();
+        StackValue value = stack.currentFrame().pop();
 
         stack.currentFrame().push(value);
         stack.currentFrame().push(value);
     }
 
     public void executeFieldInstruction(Instruction instruction, Stack stack) throws InterpreterException {
-        int value = 0;
+        StackValue value = null;
 
         //If we are setting we must first pop the value
         if (instruction.getInstruction() == InstructionSet.PutField){
@@ -226,7 +228,7 @@ public class OSTRAJavaInterpreter {
         }
 
         //Get object and find the field
-        int reference = stack.currentFrame().pop();
+        StackValue reference = stack.currentFrame().pop();
 
         int constPosition = instruction.getOperand(0);
         String fieldName = constantPool.getConstant(constPosition);
@@ -258,7 +260,7 @@ public class OSTRAJavaInterpreter {
                 int constPosition = instruction.getOperand(0);
                 String methodDescriptor = constantPool.getConstant(constPosition);
 
-                int objectRef;
+                StackValue objectRef;
 
                 String className = new Method(methodDescriptor).getClassName();
 
@@ -277,8 +279,8 @@ public class OSTRAJavaInterpreter {
 
                     //Static method
                     }else{
-                        //Set This to null
-                        objectRef = 0;
+                        //Set This to null pointer
+                        objectRef = new StackValue(0, StackValue.Type.Pointer);
                     }
 
                     InterpretedClass objectClass = classPool.lookupClass(className);
@@ -291,7 +293,7 @@ public class OSTRAJavaInterpreter {
 
                     //Pop arguments from the caller stack
                     int numberOfArgs = method.getArgs().size();
-                    int[] argValues = new int[numberOfArgs];
+                    StackValue[] argValues = new StackValue[numberOfArgs];
 
                     for (int i = 0; i<numberOfArgs; i++){
                         argValues[i] = stack.currentFrame().pop();
@@ -321,7 +323,7 @@ public class OSTRAJavaInterpreter {
         }
 
         //Pop obj reference from stack (we don't need it but need to pop it)
-        int objectRef = stack.currentFrame().pop();
+        StackValue objectRef = stack.currentFrame().pop();
 
 
         //Load approximate method from descriptor so we can count the arguments
@@ -337,13 +339,13 @@ public class OSTRAJavaInterpreter {
 
            if (type instanceof ArrayType){
 
-                int ref = stack.currentFrame().pop();
+                StackValue ref = stack.currentFrame().pop();
                 argValues[i] = new NativeValue(heap.loadArray(ref).getBytes());
 
            }else if (type instanceof NumberType || type instanceof CharType || type instanceof BooleanType) {
 
-               byte[] bytes = stack.currentFrame().popBytes(NumberType.size);
-               argValues[i] = new NativeValue(bytes);
+               int value = stack.currentFrame().pop().intValue();
+               argValues[i] = new NativeValue(value);
 
             }else{
                 throw new InterpreterException("Passing " + type + " in native functions is not supported");
@@ -354,7 +356,8 @@ public class OSTRAJavaInterpreter {
         NativeValue returnValue = natives.invoke(methodDescriptor, argValues);
 
         if (returnValue != null){
-            stack.currentFrame().pushBytes(returnValue.getBytes());
+            //TODO: Fix
+            stack.currentFrame().pushBytes(new StackValue(returnValue.getBytes()));
         }
     }
 
@@ -367,7 +370,7 @@ public class OSTRAJavaInterpreter {
                 stack.deleteCurrentFrame();
             break;
             case ReturnInteger: {
-                int var = stack.currentFrame().pop();
+                StackValue var = stack.currentFrame().pop();
 
                 //Remove current frame
                 stack.deleteCurrentFrame();
@@ -379,7 +382,7 @@ public class OSTRAJavaInterpreter {
             case ReturnReference: {
                 //TODO: change to reference later
 
-                int var = stack.currentFrame().pop();
+                StackValue var = stack.currentFrame().pop();
                 //Remove current frame
                 stack.deleteCurrentFrame();
 
@@ -395,28 +398,32 @@ public class OSTRAJavaInterpreter {
     public void executeStackInstruction(Instruction instruction, Stack stack) throws InterpreterException{
         switch (instruction.getInstruction()) {
             case PushInteger: {
-                stack.currentFrame().push(instruction.getOperand(0));
+                StackValue value = new StackValue(instruction.getOperand(0), StackValue.Type.Primitive);
+                stack.currentFrame().push(value);
             }
             break;
             case StoreInteger: {
-                int var = stack.currentFrame().pop();
+                StackValue var = stack.currentFrame().pop();
                 stack.currentFrame().storeVariable(instruction.getOperand(0), var);
             }
             break;
             case LoadInteger: {
-                int var = stack.currentFrame().loadVariable(instruction.getOperand(0));
+                StackValue var = stack.currentFrame().loadVariable(instruction.getOperand(0));
                 stack.currentFrame().push(var);
             }
             break;
 
-            //TODO: so far it's the same
             case StoreReference: {
-                int var = stack.currentFrame().pop();
-                stack.currentFrame().storeVariable(instruction.getOperand(0), var);
+
+                StackValue var = stack.currentFrame().pop();
+
+                //Convert int to reference
+                StackValue reference = new StackValue(var.intValue(), StackValue.Type.Pointer);
+                stack.currentFrame().storeVariable(instruction.getOperand(0), reference);
             }
             break;
             case LoadReference: {
-                int var = stack.currentFrame().loadVariable(instruction.getOperand(0));
+                StackValue var = stack.currentFrame().loadVariable(instruction.getOperand(0));
                 stack.currentFrame().push(var);
             }
             break;
@@ -425,36 +432,40 @@ public class OSTRAJavaInterpreter {
     }
 
     public void executeArithmeticInstruction(Instruction instruction, Stack stack) throws InterpreterException{
-        int b = stack.currentFrame().pop();
-        int a = stack.currentFrame().pop();
+        int b = stack.currentFrame().pop().intValue();
+        int a = stack.currentFrame().pop().intValue();
+        int result = 0;
 
         switch (instruction.getInstruction()) {
 
             case AddInteger:
-                stack.currentFrame().push(a + b);
+               result = a + b;
                break;
             case SubstractInteger:
-                stack.currentFrame().push(a - b);
+                result = a - b;
                break;
             case MultiplyInteger:
-                stack.currentFrame().push(a * b);
+                result = a * b;
                break;
             case DivideInteger:
 
                 if (b == 0){
                     throw new InterpreterException("Division by zero");
                 }
-                stack.currentFrame().push(a / b);
+                result = a / b;
                break;
             case ModuloInteger:
-                stack.currentFrame().push(a % b);
+
+                result = a % b;
                break;
         }
+        StackValue value = new StackValue(result, StackValue.Type.Primitive);
+        stack.currentFrame().push(value);
     }
 
     public void executeCompareInstruction(Instruction instruction, Stack stack) throws InterpreterException {
-        int b = stack.currentFrame().pop();
-        int a = stack.currentFrame().pop();
+        int b = stack.currentFrame().pop().intValue();
+        int a = stack.currentFrame().pop().intValue();
 
         int operand = instruction.getOperand(0);
 

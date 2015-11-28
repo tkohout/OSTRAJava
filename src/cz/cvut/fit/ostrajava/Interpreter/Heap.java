@@ -19,17 +19,17 @@ public class Heap {
         this.size = size;
     }
 
-    public int allocObject(InterpretedClass objectClass) throws InterpreterException {
+    public StackValue allocObject(InterpretedClass objectClass) throws InterpreterException {
         Object object = new Object(objectClass);
         return alloc(object);
     }
 
-    public int allocArray(int size) throws InterpreterException {
+    public StackValue allocArray(int size) throws InterpreterException {
         Array array = new Array(size);
         return alloc(array);
     }
 
-    private int alloc(HeapObject object) throws InterpreterException {
+    private StackValue alloc(HeapObject object) throws InterpreterException {
 
         last++;
         if (last >= size){
@@ -43,16 +43,18 @@ public class Heap {
         return indexToReference(index);
     }
 
-    private int referenceToIndex(int reference){
-        return reference - 1;
+    private int referenceToIndex(StackValue reference){
+        return reference.intValue() - 1;
     }
+
     //0 reference is null
-    private int indexToReference(int index){
-        return index + 1;
+    //Returns pointer
+    private StackValue indexToReference(int index){
+        return new StackValue(index + 1, StackValue.Type.Pointer);
     }
 
 
-    public Array loadArray(int reference) throws InterpreterException{
+    public Array loadArray(StackValue reference) throws InterpreterException{
         HeapObject obj = load(reference);
         if (obj instanceof Array) {
             return (Array)obj;
@@ -61,7 +63,7 @@ public class Heap {
         }
     }
 
-    public Object loadObject(int reference) throws InterpreterException{
+    public Object loadObject(StackValue reference) throws InterpreterException{
         HeapObject obj = load(reference);
         if (obj instanceof Object) {
             return (Object)obj;
@@ -70,8 +72,8 @@ public class Heap {
         }
     }
 
-    private HeapObject load(int reference) throws InterpreterException {
-        if (reference == 0){
+    public HeapObject load(StackValue reference) throws InterpreterException {
+        if (reference.isNullPointer()){
             throw new NullPointerException();
         }
 
@@ -82,6 +84,10 @@ public class Heap {
         }
 
         return objectArray[index];
+    }
+
+    public StackValue getLastReference(){
+        return indexToReference(last);
     }
 
     public void dealloc(int address){
