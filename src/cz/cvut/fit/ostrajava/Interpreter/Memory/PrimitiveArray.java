@@ -1,21 +1,26 @@
-package cz.cvut.fit.ostrajava.Interpreter;
+package cz.cvut.fit.ostrajava.Interpreter.Memory;
 
-import java.nio.ByteBuffer;
+import cz.cvut.fit.ostrajava.Interpreter.Converter;
+import cz.cvut.fit.ostrajava.Interpreter.Memory.GarbageCollector.State;
 
 /**
  * Created by tomaskohout on 11/21/15.
  */
-public class Array extends HeapObject {
+public class PrimitiveArray extends HeapItem {
 
     final int ITEM_SIZE = 4;
     final int HEADER_SIZE = GC_STATE_SIZE;
+
     int capacity;
 
 
 
-    public Array(int size) {
+    public PrimitiveArray(int size) {
+
         this.capacity = size;
         byteArray = new byte[HEADER_SIZE + size * ITEM_SIZE];
+
+        this.setGCState(State.Dead);
     }
 
     public int get(int index){

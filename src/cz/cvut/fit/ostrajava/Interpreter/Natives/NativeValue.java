@@ -1,10 +1,7 @@
 package cz.cvut.fit.ostrajava.Interpreter.Natives;
 
-import cz.cvut.fit.ostrajava.Interpreter.*;
-import cz.cvut.fit.ostrajava.Interpreter.Object;
 import cz.cvut.fit.ostrajava.Type.FloatType;
 import cz.cvut.fit.ostrajava.Type.NumberType;
-import cz.cvut.fit.ostrajava.Type.Type;
 
 import java.nio.ByteBuffer;
 

@@ -1,14 +1,14 @@
-package cz.cvut.fit.ostrajava.Interpreter;
+package cz.cvut.fit.ostrajava.Interpreter.Memory;
 
-import cz.cvut.fit.ostrajava.Interpreter.GarbageCollector.State;
-
-import java.nio.ByteBuffer;
+import cz.cvut.fit.ostrajava.Interpreter.ByteArrayWrapper;
+import cz.cvut.fit.ostrajava.Interpreter.Memory.GarbageCollector.State;
 
 /**
  * Created by tomaskohout on 11/21/15.
  */
-public abstract class HeapObject extends ByteArrayWrapper {
+public abstract class HeapItem extends ByteArrayWrapper {
     final int GC_STATE_SIZE = 1;
+
 
 
     public void setGCState(State state){

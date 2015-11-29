@@ -2,6 +2,10 @@ package cz.cvut.fit.ostrajava.Interpreter;
 
 import cz.cvut.fit.ostrajava.Compiler.*;
 import cz.cvut.fit.ostrajava.Compiler.Class;
+import cz.cvut.fit.ostrajava.Interpreter.Memory.GarbageCollector.GarbageCollector;
+import cz.cvut.fit.ostrajava.Interpreter.Memory.GarbageCollector.GenerationCollector;
+import cz.cvut.fit.ostrajava.Interpreter.Memory.GarbageCollector.MarkAndSweepCollector;
+import cz.cvut.fit.ostrajava.Interpreter.Memory.*;
 import cz.cvut.fit.ostrajava.Interpreter.Natives.NativeValue;
 import cz.cvut.fit.ostrajava.Interpreter.Natives.Natives;
 import cz.cvut.fit.ostrajava.Type.*;
@@ -19,7 +23,7 @@ public class OSTRAJavaInterpreter {
     final String MAIN_METHOD_NAME = "rynek";
     final int FRAMES_NUMBER = 64;
     final int FRAME_STACK_SIZE = 256;
-    final int MAX_HEAP_OBJECTS = 256;
+    final int MAX_HEAP_OBJECTS = 200;
 
     final int END_RETURN_ADDRESS = -1;
 
@@ -27,7 +31,7 @@ public class OSTRAJavaInterpreter {
     ClassPool classPool;
     ConstantPool constantPool;
     Stack stack;
-    Heap heap;
+    GenerationHeap heap;
     Instructions instructions;
     Natives natives;
 
@@ -35,14 +39,20 @@ public class OSTRAJavaInterpreter {
     public OSTRAJavaInterpreter(List<Class> compiledClasses) throws InterpreterException, LookupException {
         this.stack = new Stack(FRAMES_NUMBER, FRAME_STACK_SIZE);
         this.classPool = new ClassPool(compiledClasses);
-        this.heap = new Heap(MAX_HEAP_OBJECTS);
+
+        //Eden:Tenure 1:9
+        this.heap = new GenerationHeap((int)(MAX_HEAP_OBJECTS * 0.1), (int)(MAX_HEAP_OBJECTS * 0.9), stack);
+
+        GarbageCollector gc = new GenerationCollector(stack, heap);
+        this.heap.setGarbageCollector(gc);
+
         this.instructions = new Instructions(classPool);
         this.constantPool = new ConstantPool(classPool);
         this.natives = new Natives();
     }
 
 
-    public void run() throws InterpreterException {
+    public void run() throws InterpreterException, HeapOverflow {
 
         InterpretedClass mainClass = null;
         Method mainMethod = null;
@@ -69,7 +79,7 @@ public class OSTRAJavaInterpreter {
         interpret(mainMethodPosition);
     }
 
-    public void interpret(int startingPosition) throws InterpreterException{
+    public void interpret(int startingPosition) throws InterpreterException, HeapOverflow {
         instructions.goTo(startingPosition);
 
         Iterator<Instruction> itr = instructions.getIterator();
@@ -84,7 +94,7 @@ public class OSTRAJavaInterpreter {
         return;
     }
 
-    public void executeInstruction(Instruction instruction, Stack stack) throws InterpreterException{
+    public void executeInstruction(Instruction instruction, Stack stack) throws InterpreterException, HeapOverflow {
 
         switch (instruction.getInstruction()) {
             case PushInteger:
@@ -149,7 +159,7 @@ public class OSTRAJavaInterpreter {
 
     }
 
-    public void executeArrayInstruction(Instruction instruction, Stack stack) throws InterpreterException {
+    public void executeArrayInstruction(Instruction instruction, Stack stack) throws InterpreterException, HeapOverflow {
         switch (instruction.getInstruction()) {
             case NewArray:
                 int size = stack.currentFrame().pop().intValue();
@@ -162,7 +172,7 @@ public class OSTRAJavaInterpreter {
                 int index = stack.currentFrame().pop().intValue();;
                 StackValue arrayRef = stack.currentFrame().pop();
 
-                Array array = heap.loadArray(arrayRef);
+                PrimitiveArray array = heap.loadArray(arrayRef);
                 array.set(index, value);
             }
                 break;
@@ -170,7 +180,7 @@ public class OSTRAJavaInterpreter {
                 int index = stack.currentFrame().pop().intValue();;
                 StackValue arrayRef = stack.currentFrame().pop();;
 
-                Array array = heap.loadArray(arrayRef);
+                PrimitiveArray array = heap.loadArray(arrayRef);
 
                 //TODO: Right now it's always primitive
                 StackValue value = new StackValue(array.get(index), StackValue.Type.Primitive);
@@ -180,14 +190,14 @@ public class OSTRAJavaInterpreter {
         }
     }
 
-    public void executeStringInstruction(Instruction instruction, Stack stack) throws InterpreterException {
+    public void executeStringInstruction(Instruction instruction, Stack stack) throws InterpreterException, HeapOverflow {
         int constPosition = instruction.getOperand(0);
         String constant = constantPool.getConstant(constPosition);
 
         //Create array of chars and push it on stack
         StackValue reference = heap.allocArray(constant.length());
 
-        Array charArray = heap.loadArray(reference);
+        PrimitiveArray charArray = heap.loadArray(reference);
 
         for (int i = 0; i < constant.length(); i++){
             charArray.set(i, constant.charAt(i));
@@ -198,7 +208,7 @@ public class OSTRAJavaInterpreter {
 
 
 
-    public void executeNewInstruction(Instruction instruction, Stack stack) throws InterpreterException {
+    public void executeNewInstruction(Instruction instruction, Stack stack) throws InterpreterException, HeapOverflow {
                 int constPosition = instruction.getOperand(0);
                 String className = constantPool.getConstant(constPosition);
                 try {
@@ -233,7 +243,7 @@ public class OSTRAJavaInterpreter {
         int constPosition = instruction.getOperand(0);
         String fieldName = constantPool.getConstant(constPosition);
 
-        Object object = heap.loadObject(reference);
+        cz.cvut.fit.ostrajava.Interpreter.Memory.Object object = heap.loadObject(reference);
 
         InterpretedClass objectClass = object.loadClass(classPool);
         try {

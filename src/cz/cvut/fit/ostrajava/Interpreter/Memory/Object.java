@@ -1,16 +1,15 @@
-package cz.cvut.fit.ostrajava.Interpreter;
+package cz.cvut.fit.ostrajava.Interpreter.Memory;
 
 import cz.cvut.fit.ostrajava.Compiler.*;
-import cz.cvut.fit.ostrajava.Compiler.Class;
+import cz.cvut.fit.ostrajava.Interpreter.*;
+import cz.cvut.fit.ostrajava.Interpreter.Memory.GarbageCollector.State;
 
-import java.nio.ByteBuffer;
-import java.util.List;
 import java.util.Set;
 
 /**
  * Created by tomaskohout on 11/19/15.
  */
-public class Object extends HeapObject{
+public class Object extends HeapItem {
 
     final int OBJECT_FIELD_SIZE = 4;
     final int OBJECT_CLASS_ADDRESS_SIZE = 4;
@@ -19,6 +18,7 @@ public class Object extends HeapObject{
     final int OBJECT_HEADER_SIZE = GC_STATE_SIZE + OBJECT_CLASS_ADDRESS_SIZE + OBJECT_SIZE_TYPE;
 
     public Object(InterpretedClass objectClass) {
+
 
         Set<Field> fieldList = objectClass.getAllFields();
         int numberOfFields = fieldList.size();
@@ -29,7 +29,7 @@ public class Object extends HeapObject{
 
         setBytes(GC_STATE_SIZE, Converter.intToByteArray(objectClass.getClassPoolAddress()));
 
-
+        this.setGCState(State.Dead);
     }
 
     protected int getClassAddress(){
@@ -52,8 +52,8 @@ public class Object extends HeapObject{
         return new StackValue(getBytes(OBJECT_HEADER_SIZE + index * OBJECT_FIELD_SIZE));
     }
 
-    protected void setField(int index, StackValue value){
-         setBytes(OBJECT_HEADER_SIZE + index * OBJECT_FIELD_SIZE, value.getBytes());
+    public void setField(int index, StackValue value){
+        setBytes(OBJECT_HEADER_SIZE + index * OBJECT_FIELD_SIZE, value.getBytes());
     }
 
     public InterpretedClass loadClass(ClassPool pool) throws InterpreterException {

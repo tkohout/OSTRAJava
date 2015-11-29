@@ -80,16 +80,16 @@ public class Frame extends ByteArrayWrapper{
 
 
 
-    public void storeVariable(int index, StackValue value) throws InterpreterException {
+    public void storeVariable(int index, StackValue value) {
         if (index > localVariablesCount - 1 ){
-            throw new InterpreterException("Trying to store to non-existent variable");
+            throw new IndexOutOfBoundsException("Trying to store to non-existent variable");
         }
         set(getVariablePosition(index), value);
     }
 
-    public StackValue loadVariable(int index) throws InterpreterException {
+    public StackValue loadVariable(int index) {
         if (index > localVariablesCount - 1 ){
-            throw new InterpreterException("Trying to load non-existent variable");
+            throw new IndexOutOfBoundsException("Trying to load non-existent variable");
         }
 
         return get(getVariablePosition(index));
