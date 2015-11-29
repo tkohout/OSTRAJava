@@ -5,40 +5,55 @@ import cz.cvut.fit.ostrajava.Interpreter.Memory.HeapItem;
 import cz.cvut.fit.ostrajava.Interpreter.Memory.Object;
 import cz.cvut.fit.ostrajava.Interpreter.Memory.SimpleHeap;
 
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
 /**
  * Created by tomaskohout on 11/28/15.
  */
 public class MarkAndSweepCollector extends GarbageCollector{
+    SimpleHeap heap;
 
-
-    public MarkAndSweepCollector(Stack stack, SimpleHeap heap) {
-        super(stack, heap);
+    public MarkAndSweepCollector(SimpleHeap heap) {
+        super(heap);
+        this.heap = heap;
     }
 
-    public void run() {
-        mark();
+    public Set<StackValue> run(Set<StackValue> roots) {
+
+        Set<StackValue> dirtyLinks = mark(roots);
         sweep();
+
+        return dirtyLinks;
     }
 
-    protected void mark()  {
-        //markAllDead(heap);
+    protected Set<StackValue> mark(Set<StackValue> roots)  {
+        Set<StackValue> dirtyLinks = new HashSet<>();
 
-        for (int i = 0; i < stack.getFramesNumber(); i++) {
-            Frame frame = stack.currentFrame();
-            markFrame(frame);
+        for (StackValue rootRef: roots) {
+
+            //We clean only stuff from this heap
+            if (!heap.referenceIsOutOfBounds(rootRef)) {
+                dirtyLinks.addAll(markObject(rootRef));
+            }
         }
+
+        return dirtyLinks;
     }
 
-    protected void markFrame(Frame frame)  {
-        for (int i = 0; i < frame.getLocalVariablesCount(); i++){
-            StackValue reference = frame.loadVariable(i);
 
-            markObject(reference);
-        }
-    }
+    protected Set<StackValue> markObject(StackValue reference)  {
+        Set<StackValue> dirtyLinks = new HashSet<>();
 
-    protected void markObject(StackValue reference)  {
         if (reference.isPointer() && !reference.isNullPointer()){
+            //Reference is leading to different generation, don't follow, mark dirty link
+            if (heap.referenceIsOutOfBounds(reference)) {
+                dirtyLinks.add(reference);
+                return dirtyLinks;
+            }
+
             HeapItem heapObj = heap.load(reference);
             heapObj.setGCState(State.Live);
 
@@ -47,10 +62,12 @@ public class MarkAndSweepCollector extends GarbageCollector{
 
                 for (int i =0; i< obj.getFieldsNumber(); i++){
                     StackValue fieldRef = obj.getField(i);
-                    markObject(fieldRef);
+                    dirtyLinks.addAll(markObject(fieldRef));
                 }
             }
         }
+
+        return dirtyLinks;
     }
 
     public void markAllDead(SimpleHeap heap){
@@ -66,9 +83,9 @@ public class MarkAndSweepCollector extends GarbageCollector{
     }
 
     public void sweep(){
-        for (int i=1; i<heap.getSize(); i++){
+        for (int i=0; i<heap.getSize(); i++){
 
-                StackValue reference = new StackValue(i, StackValue.Type.Pointer);
+                StackValue reference = heap.indexToReference(i);
 
                 HeapItem obj = heap.load(reference);
 

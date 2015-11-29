@@ -21,9 +21,9 @@ public class OSTRAJavaInterpreter {
 
     final String MAIN_CLASS_NAME = "ostrava";
     final String MAIN_METHOD_NAME = "rynek";
-    final int FRAMES_NUMBER = 64;
+    final int FRAMES_NUMBER = 128;
     final int FRAME_STACK_SIZE = 256;
-    final int MAX_HEAP_OBJECTS = 200;
+    final int MAX_HEAP_OBJECTS = 100;
 
     final int END_RETURN_ADDRESS = -1;
 
@@ -43,7 +43,7 @@ public class OSTRAJavaInterpreter {
         //Eden:Tenure 1:9
         this.heap = new GenerationHeap((int)(MAX_HEAP_OBJECTS * 0.1), (int)(MAX_HEAP_OBJECTS * 0.9), stack);
 
-        GarbageCollector gc = new GenerationCollector(stack, heap);
+        GenerationCollector gc = new GenerationCollector(stack, heap);
         this.heap.setGarbageCollector(gc);
 
         this.instructions = new Instructions(classPool);
@@ -255,6 +255,8 @@ public class OSTRAJavaInterpreter {
                 break;
 
                 case PutField:
+                    heap.addDirtyLink(reference, value);
+
                     object.setField(fieldPosition, value);
                     break;
             }

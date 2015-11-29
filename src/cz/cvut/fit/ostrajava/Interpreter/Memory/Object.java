@@ -27,7 +27,12 @@ public class Object extends HeapItem {
 
         byteArray = new byte[size];
 
+        //Set class address
         setBytes(GC_STATE_SIZE, Converter.intToByteArray(objectClass.getClassPoolAddress()));
+
+        //Set size
+        setBytes(GC_STATE_SIZE + OBJECT_CLASS_ADDRESS_SIZE, Converter.intToByteArray(size));
+
 
         this.setGCState(State.Dead);
     }

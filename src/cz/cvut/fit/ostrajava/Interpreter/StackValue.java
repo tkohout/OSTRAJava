@@ -5,6 +5,7 @@ import cz.cvut.fit.ostrajava.Type.NumberType;
 import cz.cvut.fit.ostrajava.Type.Type;
 
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 
 /**
  * Created by tomaskohout on 11/28/15.
@@ -94,4 +95,18 @@ public class StackValue extends ByteArrayWrapper {
         return sb.toString();
     }
 
+    @Override
+    public boolean equals(Object obj) {
+
+        if (obj instanceof StackValue) {
+            StackValue value = (StackValue) obj;
+            return this.hashCode() == value.hashCode();
+        }
+
+        return false;
+    }
+
+    public int hashCode() {
+        return Converter.byteArrayToInt(this.getBytes());
+    }
 }

@@ -678,8 +678,7 @@ public class OSTRAJavaCompiler {
         }else if (CompilerTypes.isCallExpression(value)){
             return getTypeForMethodCall(value, compilation);
         }else if (CompilerTypes.isFieldExpression(value)) {
-            return null;
-            //TODO: we don't know type of field
+            return getTypeForFields(value, compilation);
         }else if (CompilerTypes.isStringLiteral(value)){
             return Types.String();
         }else{
@@ -875,6 +874,51 @@ public class OSTRAJavaCompiler {
         expression(caller, compilation);
 
         invokeConstructor(className, argTypes, compilation);
+    }
+
+    protected Type getTypeForFields(Node node, MethodCompilation compilation) throws CompilerException {
+        Node first = node.jjtGetChild(0);
+
+        Type firstType = getTypeForExpression(first, compilation);
+
+        if (firstType instanceof ReferenceType){
+            String className = ((ReferenceType) firstType).getClassName();
+            try {
+                Class objClass = classPool.lookupClass(className);
+
+                for (int i=1; i<node.jjtGetNumChildren(); i++) {
+                    ASTName fieldNode = (ASTName) node.jjtGetChild(i);
+
+                    //Find field in class
+                    int fieldPosition = objClass.lookupField(fieldNode.jjtGetValue().toString());
+                    Field field = objClass.getField(fieldPosition);
+
+                    Type fieldType = field.getType();
+
+                    //If it's last field
+                    if (i == node.jjtGetNumChildren() - 1){
+                        return fieldType;
+                    }
+
+                    //Not last field - it has to be object
+                    if (fieldType instanceof ReferenceType) {
+                        objClass = classPool.lookupClass(((ReferenceType) fieldType).getClassName());
+                    }else{
+                        throw new CompilerException("Trying to get field from a non-object ");
+                    }
+
+                }
+
+            } catch (LookupException e) {
+                throw new CompilerException(e.getMessage());
+            }
+
+
+        }else{
+            throw new CompilerException("Trying to get field from a non-object ");
+        }
+
+        return null;
     }
 
     protected void fields(Node node, MethodCompilation compilation) throws CompilerException{

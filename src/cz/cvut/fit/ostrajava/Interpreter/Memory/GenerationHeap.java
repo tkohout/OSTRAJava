@@ -2,9 +2,13 @@ package cz.cvut.fit.ostrajava.Interpreter.Memory;
 
 import cz.cvut.fit.ostrajava.Interpreter.Memory.GarbageCollector.GarbageCollector;
 import cz.cvut.fit.ostrajava.Interpreter.InterpretedClass;
+import cz.cvut.fit.ostrajava.Interpreter.Memory.GarbageCollector.GenerationCollector;
 import cz.cvut.fit.ostrajava.Interpreter.Memory.GarbageCollector.MarkAndSweepCollector;
 import cz.cvut.fit.ostrajava.Interpreter.Stack;
 import cz.cvut.fit.ostrajava.Interpreter.StackValue;
+
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Created by tomaskohout on 11/28/15.
@@ -14,7 +18,7 @@ public class GenerationHeap implements Heap {
     protected SimpleHeap eden, tenure;
 
     protected int edenSize, tenureSize;
-    protected GarbageCollector garbageCollector;
+    protected GenerationCollector garbageCollector;
 
     public GenerationHeap(int edenSize, int tenureSize, Stack stack){
 
@@ -22,10 +26,11 @@ public class GenerationHeap implements Heap {
         this.tenureSize = tenureSize;
 
         eden = new SimpleHeap(edenSize);
-        eden.setGarbageCollector(new MarkAndSweepCollector(stack, eden));
+        eden.setGarbageCollector(new MarkAndSweepCollector(eden));
 
-        tenure = new SimpleHeap(tenureSize);
-        tenure.setGarbageCollector(new MarkAndSweepCollector(stack, tenure));
+        //Address start at end of eden
+        tenure = new SimpleHeap(tenureSize, edenSize+1);
+        tenure.setGarbageCollector(new MarkAndSweepCollector(tenure));
     }
 
 
@@ -46,24 +51,23 @@ public class GenerationHeap implements Heap {
     }
 
     public StackValue allocObject(InterpretedClass objectClass) throws HeapOverflow {
-
-        try {
-            return eden.allocObject(objectClass);
-        } catch (HeapOverflow heapOverflow) {
-            garbageCollector.run();
-            //Try again
-            return allocObject(objectClass);
-        }
-
+        Object object = new Object(objectClass);
+        return alloc(object);
     }
 
     public StackValue allocArray(int size) throws HeapOverflow {
+        PrimitiveArray array = new PrimitiveArray(size);
+        return alloc(array);
+    }
+
+    public StackValue alloc(HeapItem obj) throws HeapOverflow{
         try {
-            return eden.allocArray(size);
+            return eden.alloc(obj);
         } catch (HeapOverflow heapOverflow) {
-            garbageCollector.run();
+            garbageCollector.run(null);
+
             //Try again
-            return allocArray(size);
+            return alloc(obj);
         }
     }
 
@@ -96,12 +100,8 @@ public class GenerationHeap implements Heap {
         }
     }
 
-    public StackValue referenceToTenure(StackValue reference){
-        return new StackValue(reference.intValue() - edenSize, StackValue.Type.Pointer);
-    }
-
     public boolean isEdenReference(StackValue reference){
-        return (reference.intValue() < edenSize);
+        return !eden.referenceIsOutOfBounds(reference);
     }
 
     public HeapItem load(StackValue reference){
@@ -109,8 +109,7 @@ public class GenerationHeap implements Heap {
         if (isEdenReference(reference)){
             return eden.load(reference);
         }else{
-            StackValue tenureRef = referenceToTenure(reference);
-            return tenure.load(tenureRef);
+            return tenure.load(reference);
         }
     }
 
@@ -124,16 +123,24 @@ public class GenerationHeap implements Heap {
         if (isEdenReference(reference)){
             eden.dealloc(reference);
         }else{
-            StackValue tenureRef = referenceToTenure(reference);
-            tenure.dealloc(tenureRef);
+            tenure.dealloc(reference);
         }
     }
 
+    public void addDirtyLink(StackValue from, StackValue reference){
+        garbageCollector.addDirtyLink(from, reference);
+    }
 
-    public GarbageCollector getGarbageCollector() {
+
+    public GenerationCollector getGarbageCollector() {
         return garbageCollector;
     }
 
 
-    public void setGarbageCollector(GarbageCollector garbageCollector) { this.garbageCollector = garbageCollector; }
+    public void setGarbageCollector(GenerationCollector garbageCollector) { this.garbageCollector = garbageCollector; }
+
+    @Override
+    public String toString() {
+        return "Eden: \n " + eden.toString() + " \n Tenure: \n " + tenure.toString();
+    }
 }

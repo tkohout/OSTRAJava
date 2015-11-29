@@ -15,16 +15,23 @@ public class SimpleHeap implements Heap{
 
     protected GarbageCollector garbageCollector;
     int size;
+    int addressStart;
 
-    public SimpleHeap(int size){
+    public SimpleHeap(int size, int addressStart){
         objectArray = new HeapItem[size];
         emptyList = new LinkedList<>();
+        this.addressStart = addressStart;
 
         this.size = size;
 
         for (int i=size-1; i >=0; i--){
             emptyList.add(i);
         }
+    }
+
+    public SimpleHeap(int size){
+        //We start address at, 0 is reserved for null
+        this(size, 1);
     }
 
     public GarbageCollector getGarbageCollector() {
@@ -71,13 +78,18 @@ public class SimpleHeap implements Heap{
     }
 
     public int referenceToIndex(StackValue reference){
-        return reference.intValue() - 1;
+        return reference.intValue() - addressStart;
     }
 
     //0 reference is null
     //Returns pointer
     public StackValue indexToReference(int index){
-        return new StackValue(index + 1, StackValue.Type.Pointer);
+        return new StackValue(index + addressStart, StackValue.Type.Pointer);
+    }
+
+    public boolean referenceIsOutOfBounds(StackValue reference){
+        int i = referenceToIndex(reference);
+        return (i < 0 || i >= getSize());
     }
 
 
@@ -130,8 +142,20 @@ public class SimpleHeap implements Heap{
     public void dealloc(StackValue address){
         int index = referenceToIndex(address);
         objectArray[index] = null;
-
-        emptyList.add(index);
+        emptyList.addFirst(index);
     }
 
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+
+        for (int i = 0; i < getSize(); i++) {
+            StackValue ref = indexToReference(i);
+            if (load(ref) != null){
+                sb.append(ref + " ");
+            }
+        }
+
+        return sb.toString();
+    }
 }

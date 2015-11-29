@@ -11,7 +11,6 @@ public interface Heap {
 
     public GarbageCollector getGarbageCollector();
 
-    public void setGarbageCollector(GarbageCollector garbageCollector);
 
     public StackValue allocObject(InterpretedClass objectClass) throws HeapOverflow;
     public StackValue allocArray(int size) throws HeapOverflow;
@@ -23,4 +22,6 @@ public interface Heap {
     public int getSize();
 
     public void dealloc(StackValue address);
+
+
 }
