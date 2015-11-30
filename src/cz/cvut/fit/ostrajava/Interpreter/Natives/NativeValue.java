@@ -1,5 +1,7 @@
 package cz.cvut.fit.ostrajava.Interpreter.Natives;
 
+import cz.cvut.fit.ostrajava.Interpreter.Converter;
+import cz.cvut.fit.ostrajava.Interpreter.StackValue;
 import cz.cvut.fit.ostrajava.Type.FloatType;
 import cz.cvut.fit.ostrajava.Type.NumberType;
 
@@ -11,6 +13,10 @@ import java.nio.ByteBuffer;
 public class NativeValue {
     protected byte[] bytes;
 
+
+    public NativeValue(float f){
+        this.bytes = Converter.floatToByteArray(f);
+    }
 
     public NativeValue(int i){
         this.bytes = intToByteArray(i);

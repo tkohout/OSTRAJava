@@ -43,6 +43,7 @@ public class ConstantPool {
                         case GetField:
                         case PutField:
                         case InvokeStatic:
+                        case PushFloat:
                             int i = 0;
                             for (int operand: inst.getOperands()){
                                 String constant = pool.getConstant(operand);

@@ -25,9 +25,23 @@ public class Converter {
         return ByteBuffer.wrap(bytes, from, NumberType.size).getInt();
     }
 
+    public static float stringToFloat(String floatString){
+        return Float.parseFloat(floatString);
+    }
+
+    public static float intToFloat(int i) {
+        return (float)i;
+    }
+
+    public static int floatToInt(float f) {
+        return (int)f;
+    }
+
     public static byte[] intToByteArray(int i) {
         return ByteBuffer.allocate(NumberType.size).putInt(i).array();
     }
+
+
     public static byte[] floatToByteArray(float i) {
         return ByteBuffer.allocate(FloatType.size).putFloat(i).array();
     }

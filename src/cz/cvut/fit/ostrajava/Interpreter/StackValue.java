@@ -16,6 +16,11 @@ public class StackValue extends ByteArrayWrapper {
     }
 
     final int POINTER_LAST_BIT = 1;
+    final int FLOAT_BIAS = 127;
+    final int REDUCED_FLOAT_BIAS = 63;
+    final int MANTISA_SIZE = 23;
+
+
     public static final int size = 4;
 
 
@@ -25,35 +30,79 @@ public class StackValue extends ByteArrayWrapper {
     }
 
     public StackValue(int number, Type type){
-        this(Converter.intToByteArray(number));
-        setType(type);
-    }
-
-    public StackValue(float number){
-        this(Converter.floatToByteArray(number));
-        //Only int can be pointer
-        setType(Type.Primitive);
+         this.byteArray = integerToInnerRepresentation(number, type);
     }
 
 
-    //Shifts bytes to the left and adds flag if it's a pointer
-    private void setType(Type type){
-        if (byteArray.length != size){
-            throw new IllegalArgumentException("Stack value has to be of size " + size);
-        }
+    public StackValue(String floatString){
+        this(Converter.stringToFloat(floatString));
+    }
 
-        int i = Converter.byteArrayToInt(byteArray);
+    public StackValue(float floatNumber){
+        this.byteArray = floatToInnerRepresentation(floatNumber);
+    }
+
+    //Shifts integer by 1 so that the top bit signifies whether it's a pointer
+    protected byte[] integerToInnerRepresentation(int i, Type type){
         int lastBit = (type == Type.Pointer) ? POINTER_LAST_BIT : 0;
-
         int pointer = i << 1 | lastBit;
-        this.byteArray = Converter.intToByteArray(pointer);
+        return Converter.intToByteArray(pointer);
     }
+
+    //Shifts float by 1, but has to reduce exponent to make space in float
+    protected byte[] floatToInnerRepresentation(float f){
+        byte[] bytes = Converter.floatToByteArray(f);
+
+        int i = Converter.byteArrayToInt(bytes);
+
+        //last 23 bits
+        int mantisa = (i & 0x7FFFFF);
+
+        //8 bits after mantisa
+        int exponent = (i & 0x7F800000) >> MANTISA_SIZE;
+
+        //Make it unsigned
+        exponent = exponent - FLOAT_BIAS + REDUCED_FLOAT_BIAS;
+
+        //If the exponent is too big, throw exception
+        if (exponent >= 128 || exponent < 0){
+            throw new IllegalArgumentException("Float overflow");
+        }
+        exponent <<= 23;
+
+        //Shift by 1
+        int sign = (i & 0x80000000) >> 1;
+        int result = sign | exponent | mantisa;
+
+        return Converter.intToByteArray(result);
+    }
+
+
 
     //Shifts bytes back
-    private byte[] getValue(){
+    public int innerRepresentationToIntValue(){
         int i = Converter.byteArrayToInt(byteArray);
         int value = i >> 1;
-        return Converter.intToByteArray(value);
+        return value;
+    }
+
+    public float innerRepresentationToFloat(byte[] bytes) {
+
+        int i = Converter.byteArrayToInt(bytes);
+
+        //23 bits
+        int mantisa = (i & 0x7FFFFF);
+        //7 bits after mantisa
+        int exponent = (i & 0x3F800000) >> MANTISA_SIZE;
+        //Change exponent back to the bias
+        exponent = exponent - REDUCED_FLOAT_BIAS + FLOAT_BIAS;
+        exponent <<= MANTISA_SIZE;
+
+        int sign = (i & 0x80000000) << 1;
+
+        int result = sign | exponent | mantisa;
+
+        return Converter.byteArrayToFloat(Converter.intToByteArray(result));
     }
 
     public boolean isPointer() {
@@ -73,11 +122,11 @@ public class StackValue extends ByteArrayWrapper {
     }
 
     public int intValue(){
-        return Converter.byteArrayToInt(getValue(), 0);
+        return innerRepresentationToIntValue();
     }
 
     public float floatValue(){
-        return Converter.byteArrayToFloat(getValue(), 0);
+        return innerRepresentationToFloat(this.byteArray);
     }
 
     public boolean boolValue(){

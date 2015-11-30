@@ -3,10 +3,7 @@ package cz.cvut.fit.ostrajava.Compiler;
 import cz.cvut.fit.ostrajava.Interpreter.ClassPool;
 import cz.cvut.fit.ostrajava.Interpreter.LookupException;
 import cz.cvut.fit.ostrajava.Parser.*;
-import cz.cvut.fit.ostrajava.Type.ArrayType;
-import cz.cvut.fit.ostrajava.Type.ReferenceType;
-import cz.cvut.fit.ostrajava.Type.Type;
-import cz.cvut.fit.ostrajava.Type.Types;
+import cz.cvut.fit.ostrajava.Type.*;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.util.*;
@@ -210,6 +207,8 @@ public class OSTRAJavaCompiler {
             type = Types.Char();
         }else if (typeNode instanceof  ASTString){
             type = Types.String();
+        }else if (typeNode instanceof  ASTFloat){
+            type = Types.Float();
         }else if (typeNode instanceof  ASTName) {
             String className = (String) ((ASTName) typeNode).jjtGetValue();
             type = Types.Reference(className);
@@ -591,6 +590,8 @@ public class OSTRAJavaCompiler {
             instruction = InstructionSet.StoreInteger;
         }else if (type == Types.Char()) {
             instruction = InstructionSet.StoreInteger;
+        }else if (type == Types.Float()) {
+            instruction = InstructionSet.StoreFloat;
         }else if (type instanceof ArrayType){
             instruction = InstructionSet.StoreReference;
         }else{
@@ -616,6 +617,8 @@ public class OSTRAJavaCompiler {
             instruction = InstructionSet.LoadInteger;
         }else if (type == Types.Char()){
             instruction = InstructionSet.LoadInteger;
+        }else if (type == Types.Float()){
+            instruction = InstructionSet.LoadFloat;
         }else if (type instanceof ArrayType){
             instruction = InstructionSet.LoadReference;
         }else{
@@ -628,8 +631,12 @@ public class OSTRAJavaCompiler {
     protected Type getTypeForExpression(Node value, MethodCompilation compilation) throws CompilerException{
         if (CompilerTypes.isConditionalExpression(value) || CompilerTypes.isBooleanLiteral(value)){
             return Types.Boolean();
-        }else if (CompilerTypes.isNumberLiteral(value) || CompilerTypes.isAdditiveExpression(value) || CompilerTypes.isMultiplicativeExpression(value)){
+        }else if (CompilerTypes.isNumberLiteral(value)){
             return Types.Number();
+        }else if (CompilerTypes.isFloatLiteral(value)) {
+            return Types.Float();
+        }else if (CompilerTypes.isAdditiveExpression(value) || CompilerTypes.isMultiplicativeExpression(value)){
+            return getTypeForArithmeticExpression(value, compilation);
         }else if (CompilerTypes.isCharLiteral(value)){
             return Types.Char();
         }else if (CompilerTypes.isVariable(value)) {
@@ -719,6 +726,18 @@ public class OSTRAJavaCompiler {
         }
     }
 
+    protected Type getTypeForArithmeticExpression(Node value, MethodCompilation compilation) throws CompilerException{
+        Type expType = Types.Number();
+        for (int i=0; i<value.jjtGetNumChildren(); i+=2) {
+            Type type = getTypeForExpression(value.jjtGetChild(0), compilation);
+            if (type == Types.Float()){
+                expType = type;
+            }else if (type != Types.Number() && type != null){
+                throw new CompilerException("Unexpected " + type + " in arithmetic expression");
+            }
+        }
+        return expType;
+    }
     protected Type getTypeForMethodCall(Node node, MethodCompilation compilation) throws CompilerException {
 
         Class callerClass = null;
@@ -1120,6 +1139,8 @@ public class OSTRAJavaCompiler {
             superReference(compilation);
         }else if (CompilerTypes.isNumberLiteral(node)) {
             numberLiteral(node, compilation);
+        }else if (CompilerTypes.isFloatLiteral(node)) {
+            floatLiteral(node, compilation);
         }else if (CompilerTypes.isCharLiteral(node)) {
             charLiteral(node, compilation);
         }else if (CompilerTypes.isCallExpression(node)) {
@@ -1185,6 +1206,13 @@ public class OSTRAJavaCompiler {
     protected void numberLiteral(Node node, MethodCompilation compilation) throws CompilerException {
         String value = ((ASTNumberLiteral) node).jjtGetValue().toString();
         compilation.getByteCode().addInstruction(new Instruction(InstructionSet.PushInteger, Integer.parseInt(value)));
+    }
+
+    protected void floatLiteral(Node node, MethodCompilation compilation) throws CompilerException {
+        String value = ((ASTFloatLiteral) node).jjtGetValue().toString();
+        int floatIndex = constantPool.addConstant(value);
+
+        compilation.getByteCode().addInstruction(new Instruction(InstructionSet.PushFloat, floatIndex));
     }
 
     protected void booleanLiteral(Node node, MethodCompilation compilation) throws CompilerException {
@@ -1365,42 +1393,92 @@ public class OSTRAJavaCompiler {
     protected List<Instruction> compareExpression(Node node, MethodCompilation compilation) throws CompilerException {
         List<Instruction> instructions = new ArrayList<>();
 
-        Node first = node.jjtGetChild(0);
-        expression(first, compilation);
+        Type lastType = null;
+        Type type = null;
 
-        for (int i = 1; i < node.jjtGetNumChildren(); i += 2) {
-            Node operator = node.jjtGetChild(i);
+
+
+        for (int i = -1; i < node.jjtGetNumChildren(); i += 2) {
             Node child = node.jjtGetChild(i + 1);
+
+            type = getTypeForExpression(child, compilation);
+
+            //Convert first member to float
+            if (lastType != null){
+                if (lastType == Types.Number() && type == Types.Float()){
+                    compilation.getByteCode().addInstruction(new Instruction(InstructionSet.IntegerToFloat));
+                    lastType = Types.Float();
+                }
+            }
 
             expression(child, compilation);
 
-            Instruction instruction = null;
+            if (i != -1) {
 
-            if (CompilerTypes.isEqualityExpression(node)) {
-                if (operator instanceof ASTEqualOperator) {
-                    instruction = new Instruction(InstructionSet.IfCompareEqualInteger, -1);
-                } else {
-                    instruction = new Instruction(InstructionSet.IfCompareNotEqualInteger, -1);
+                //Convert second member to float
+                if (lastType == Types.Float() && type == Types.Number()){
+                    compilation.getByteCode().addInstruction(new Instruction(InstructionSet.IntegerToFloat));
+                    type = Types.Float();
                 }
-            } else if (CompilerTypes.isRelationalExpression(node)) {
 
-                if (operator instanceof ASTGreaterThanOperator) {
-                    instruction = new Instruction(InstructionSet.IfCompareGreaterThanInteger, -1);
-                } else if (operator instanceof ASTGreaterThanOrEqualOperator) {
-                    instruction = new Instruction(InstructionSet.IfCompareGreaterThanOrEqualInteger, -1);
-                } else if (operator instanceof ASTLessThanOperator) {
-                    instruction = new Instruction(InstructionSet.IfCompareLessThanInteger, -1);
-                } else if (operator instanceof ASTLessThanOrEqualOperator) {
-                    instruction = new Instruction(InstructionSet.IfCompareLessThanOrEqualInteger, -1);
+                try {
+                    typeCheck(lastType, type);
+                } catch (TypeException e) {
+                    throw new CompilerException("Comparing incompatible types: " + e.getMessage());
                 }
+
+                Node operator = node.jjtGetChild(i);
+
+                InstructionSet instruction = null;
+
+                if (type == Types.Float()){
+                    //Puts 0 if equal -1 if less and 1 if greater
+                    compilation.getByteCode().addInstruction(new Instruction(InstructionSet.FloatCompare));
+
+                    if (operator instanceof ASTEqualOperator) {
+                        instruction = InstructionSet.IfEqualZero;
+                    } else if (operator instanceof ASTNotEqualOperator) {
+                        instruction = InstructionSet.IfNotEqualZero;
+                    } else if (operator instanceof ASTGreaterThanOperator) {
+                        instruction = InstructionSet.IfGreaterThanZero;
+                    } else if (operator instanceof ASTGreaterThanOrEqualOperator) {
+                        instruction = InstructionSet.IfGreaterOrEqualThanZero;
+                    } else if (operator instanceof ASTLessThanOperator) {
+                        instruction = InstructionSet.IfLessThanZero;
+                    } else if (operator instanceof ASTLessThanOrEqualOperator) {
+                        instruction = InstructionSet.IfLessOrEqualThanZero;
+                    }
+                }else if (type == Types.Number() || type == Types.Boolean() || type == Types.Char() || type instanceof ReferenceType || type == null) {
+                    if (operator instanceof ASTEqualOperator) {
+                        instruction = InstructionSet.IfCompareEqualInteger;
+                    } else if (operator instanceof ASTNotEqualOperator) {
+                        instruction = InstructionSet.IfCompareNotEqualInteger;
+                    }
+
+                    if (type == Types.Number() || type == Types.Char()) {
+                        if (operator instanceof ASTGreaterThanOperator) {
+                            instruction = InstructionSet.IfCompareGreaterThanInteger;
+                        } else if (operator instanceof ASTGreaterThanOrEqualOperator) {
+                            instruction = InstructionSet.IfCompareGreaterThanOrEqualInteger;
+                        } else if (operator instanceof ASTLessThanOperator) {
+                            instruction = InstructionSet.IfCompareLessThanInteger;
+                        } else if (operator instanceof ASTLessThanOrEqualOperator) {
+                            instruction = InstructionSet.IfCompareLessThanOrEqualInteger;
+                        }
+                    }
+                }
+
+                if (instruction == null) {
+                    throw new NotImplementedException();
+                }
+
+                Instruction ins = new Instruction(instruction, -1);
+
+                instructions.add(ins);
+                compilation.getByteCode().addInstruction(ins);
             }
 
-            if (instruction == null){
-                throw new NotImplementedException();
-            }
-
-            instructions.add(instruction);
-            compilation.getByteCode().addInstruction(instruction);
+            lastType = type;
         }
 
         return instructions;
@@ -1524,37 +1602,72 @@ public class OSTRAJavaCompiler {
 
     protected void arithmeticExpression(Node node, MethodCompilation compilation) throws CompilerException {
         Node first = node.jjtGetChild(0);
-        expression(first, compilation);
 
-        for (int i = 1; i < node.jjtGetNumChildren(); i += 2) {
-            Node operator = node.jjtGetChild(i);
+        Type expressionType = getTypeForExpression(node, compilation);
+
+
+
+
+        for (int i = -1; i < node.jjtGetNumChildren(); i += 2) {
+
             Node child = node.jjtGetChild(i + 1);
-
             expression(child, compilation);
 
-            Instruction instruction = null;
 
-            if (CompilerTypes.isAdditiveExpression(node)) {
-                if (operator instanceof ASTPlusOperator) {
-                    instruction = new Instruction(InstructionSet.AddInteger);
-                } else {
-                    instruction = new Instruction(InstructionSet.SubstractInteger);
-                }
-            } else if (CompilerTypes.isMultiplicativeExpression(node)) {
-                if (operator instanceof ASTMultiplyOperator) {
-                    instruction = new Instruction(InstructionSet.MultiplyInteger);
-                } else if (operator instanceof ASTDivideOperator) {
-                    instruction = new Instruction(InstructionSet.DivideInteger);
-                } else if (operator instanceof ASTModuloOperator) {
-                    instruction = new Instruction(InstructionSet.ModuloInteger);
-                }
+            Type type = getTypeForExpression(child, compilation);
+
+            //Expression type == float
+            if (type != expressionType) {
+                //Convert value on stack
+                compilation.getByteCode().addInstruction(new Instruction(InstructionSet.IntegerToFloat));
             }
 
-            if (instruction == null) {
-                throw new NotImplementedException();
-            }
+            InstructionSet instruction = null;
 
-            compilation.getByteCode().addInstruction(instruction);
+            //Have two values on stack
+            if (i != -1) {
+                Node operator = node.jjtGetChild(i);
+
+
+                    if (operator instanceof ASTPlusOperator) {
+                        if (expressionType == Types.Number()) {
+                            instruction = InstructionSet.AddInteger;
+                        }else{
+                            instruction = InstructionSet.AddFloat;
+                        }
+                    } else if (operator instanceof ASTMinusOperator) {
+                        if (expressionType == Types.Number()) {
+                            instruction = InstructionSet.SubtractInteger;
+                        }else{
+                            instruction = InstructionSet.SubtractFloat;
+                        }
+                    } else if (operator instanceof ASTMultiplyOperator) {
+                        if (expressionType == Types.Number()) {
+                            instruction = InstructionSet.MultiplyInteger;
+                        }else{
+                            instruction = InstructionSet.MultiplyFloat;
+                        }
+                    } else if (operator instanceof ASTDivideOperator) {
+                        if (expressionType == Types.Number()) {
+                            instruction = InstructionSet.DivideInteger;
+                        }else{
+                            instruction = InstructionSet.DivideFloat;
+                        }
+                    } else if (operator instanceof ASTModuloOperator) {
+                        if (expressionType == Types.Number()) {
+                            instruction = InstructionSet.ModuloInteger;
+                        }else{
+                            instruction = InstructionSet.ModuloFloat;
+                        }
+
+                    }
+
+                if (instruction == null) {
+                    throw new NotImplementedException();
+                }
+
+                compilation.getByteCode().addInstruction(new Instruction(instruction));
+            }
         }
 
     }

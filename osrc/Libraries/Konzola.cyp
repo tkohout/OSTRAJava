@@ -28,6 +28,11 @@ tryda Konzola{
       print(d) pyco
     }
 
+    statyk pravit(cyslo_desetinne d){
+        //Native call
+        print(d) pyco
+    }
+
     statyk pravit(chachar c){
         print(c) pyco
     }

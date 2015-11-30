@@ -1,4 +1,5 @@
 import java.lang.Object;
+import java.lang.System;
 
 class A{
     void foo(X x, Z z){
@@ -47,5 +48,31 @@ class Test{
 
         a.foo(x, z);
         b.foo(x, z);
+    }
+
+    public static void floatTest(){
+        float f = 1;
+        float g = (float)2.2;
+
+        int i=1, j=2;
+
+        float res = i*g;
+
+        char b='a', d='c';
+        if (b>d){
+            System.out.println("Tada");
+        }
+
+        if (f == g){
+            System.out.println("Tada");
+        }
+
+        if (f > g){
+            System.out.println("Tada");
+        }
+
+        if (i > j){
+            System.out.println("Tada");
+        }
     }
 }

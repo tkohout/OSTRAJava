@@ -98,18 +98,28 @@ public class OSTRAJavaInterpreter {
 
         switch (instruction.getInstruction()) {
             case PushInteger:
+            case PushFloat:
             case StoreInteger:
             case LoadInteger:
             case StoreReference:
             case LoadReference:
+            case LoadFloat:
+            case StoreFloat:
                 executeStackInstruction(instruction, stack);
                 break;
             case AddInteger:
-            case SubstractInteger:
+            case SubtractInteger:
             case MultiplyInteger:
             case DivideInteger:
             case ModuloInteger:
-                executeArithmeticInstruction(instruction, stack);
+                executeIntegerArithmeticInstruction(instruction, stack);
+                break;
+            case AddFloat:
+            case SubtractFloat:
+            case MultiplyFloat:
+            case DivideFloat:
+            case ModuloFloat:
+                executeFloatArithmeticInstruction(instruction, stack);
                 break;
             case IfCompareEqualInteger:
             case IfCompareNotEqualInteger:
@@ -117,7 +127,17 @@ public class OSTRAJavaInterpreter {
             case IfCompareLessThanOrEqualInteger:
             case IfCompareGreaterThanInteger:
             case IfCompareGreaterThanOrEqualInteger:
-                executeCompareInstruction(instruction, stack);
+                executeIntegerCompareInstruction(instruction, stack);
+            case IfEqualZero:
+            case IfNotEqualZero:
+            case IfLessThanZero:
+            case IfLessOrEqualThanZero:
+            case IfGreaterThanZero:
+            case IfGreaterOrEqualThanZero:
+                executeZeroCompareInstruction(instruction, stack);
+                break;
+            case FloatCompare:
+                executeFloatCompareInstruction(instruction, stack);
                 break;
             case GoTo:
                 executeGoToInstruction(instruction, stack);
@@ -151,6 +171,10 @@ public class OSTRAJavaInterpreter {
             case StoreIntegerArray:
             case LoadIntegerArray:
                 executeArrayInstruction(instruction, stack);
+                break;
+            case FloatToInteger:
+            case IntegerToFloat:
+                executeConvertInstruction(instruction, stack);
                 break;
             default:
                 throw new NotImplementedException();
@@ -356,10 +380,10 @@ public class OSTRAJavaInterpreter {
 
            }else if (type instanceof NumberType || type instanceof CharType || type instanceof BooleanType) {
 
-               int value = stack.currentFrame().pop().intValue();
-               argValues[i] = new NativeValue(value);
-
-            }else{
+               argValues[i] = new NativeValue(stack.currentFrame().pop().intValue());
+           }else if (type instanceof FloatType) {
+               argValues[i] = new NativeValue(stack.currentFrame().pop().floatValue());
+           }else{
                 throw new InterpreterException("Passing " + type + " in native functions is not supported");
             }
 
@@ -414,12 +438,23 @@ public class OSTRAJavaInterpreter {
                 stack.currentFrame().push(value);
             }
             break;
-            case StoreInteger: {
+            case PushFloat: {
+                int constantIndex = instruction.getOperand(0);
+                String floatString = constantPool.getConstant(constantIndex);
+                StackValue value = new StackValue(floatString);
+                stack.currentFrame().push(value);
+            }
+            break;
+            case StoreInteger:
+            case StoreFloat:{
                 StackValue var = stack.currentFrame().pop();
                 stack.currentFrame().storeVariable(instruction.getOperand(0), var);
             }
             break;
-            case LoadInteger: {
+            case LoadInteger:
+            case LoadFloat:
+            case LoadReference:
+            {
                 StackValue var = stack.currentFrame().loadVariable(instruction.getOperand(0));
                 stack.currentFrame().push(var);
             }
@@ -434,16 +469,12 @@ public class OSTRAJavaInterpreter {
                 stack.currentFrame().storeVariable(instruction.getOperand(0), reference);
             }
             break;
-            case LoadReference: {
-                StackValue var = stack.currentFrame().loadVariable(instruction.getOperand(0));
-                stack.currentFrame().push(var);
-            }
-            break;
+
 
         }
     }
 
-    public void executeArithmeticInstruction(Instruction instruction, Stack stack) throws InterpreterException{
+    public void executeIntegerArithmeticInstruction(Instruction instruction, Stack stack) throws InterpreterException{
         int b = stack.currentFrame().pop().intValue();
         int a = stack.currentFrame().pop().intValue();
         int result = 0;
@@ -453,7 +484,7 @@ public class OSTRAJavaInterpreter {
             case AddInteger:
                result = a + b;
                break;
-            case SubstractInteger:
+            case SubtractInteger:
                 result = a - b;
                break;
             case MultiplyInteger:
@@ -475,7 +506,39 @@ public class OSTRAJavaInterpreter {
         stack.currentFrame().push(value);
     }
 
-    public void executeCompareInstruction(Instruction instruction, Stack stack) throws InterpreterException {
+    public void executeFloatArithmeticInstruction(Instruction instruction, Stack stack) throws InterpreterException{
+        float b = stack.currentFrame().pop().floatValue();
+        float a = stack.currentFrame().pop().floatValue();
+        float result = 0;
+
+        switch (instruction.getInstruction()) {
+
+            case AddFloat:
+                result = a + b;
+                break;
+            case SubtractFloat:
+                result = a - b;
+                break;
+            case MultiplyFloat:
+                result = a * b;
+                break;
+            case DivideFloat:
+
+                if (b == 0){
+                    throw new InterpreterException("Division by zero");
+                }
+                result = a / b;
+                break;
+            case ModuloFloat:
+
+                result = a % b;
+                break;
+        }
+        StackValue value = new StackValue(result);
+        stack.currentFrame().push(value);
+    }
+
+    public void executeIntegerCompareInstruction(Instruction instruction, Stack stack) throws InterpreterException {
         int b = stack.currentFrame().pop().intValue();
         int a = stack.currentFrame().pop().intValue();
 
@@ -507,6 +570,75 @@ public class OSTRAJavaInterpreter {
         if (condition){
             instructions.goTo(operand);
         }
+    }
+
+    public void executeZeroCompareInstruction(Instruction instruction, Stack stack) throws InterpreterException {
+        int a = stack.currentFrame().pop().intValue();
+
+        int operand = instruction.getOperand(0);
+
+        boolean condition = false;
+
+        switch (instruction.getInstruction()) {
+            case IfEqualZero:
+                condition = (a == 0);
+                break;
+            case IfNotEqualZero:
+                condition = (a != 0);
+                break;
+            case IfLessThanZero:
+                condition = (a < 0);
+                break;
+            case IfLessOrEqualThanZero:
+                condition = (a <= 0);
+                break;
+            case IfGreaterThanZero:
+                condition = (a > 0);
+                break;
+            case IfGreaterOrEqualThanZero:
+                condition = (a >= 0);
+                break;
+        }
+
+        if (condition){
+            instructions.goTo(operand);
+        }
+    }
+
+    public void executeFloatCompareInstruction(Instruction instruction, Stack stack) throws InterpreterException {
+        float b = stack.currentFrame().pop().floatValue();
+        float a = stack.currentFrame().pop().floatValue();
+
+        int result;
+        if (a < b){
+            result = -1;
+        }else if (a > b){
+            result = 1;
+        }else{
+            result = 0;
+        }
+
+        StackValue value = new StackValue(result, StackValue.Type.Primitive);
+        stack.currentFrame().push(value);
+    }
+
+    public void executeConvertInstruction(Instruction instruction, Stack stack) throws InterpreterException {
+        StackValue value = stack.currentFrame().pop();
+        StackValue convertedValue = null;
+
+        switch (instruction.getInstruction()) {
+            case FloatToInteger:
+                float floatValue = value.floatValue();
+                convertedValue = new StackValue(Converter.floatToInt(floatValue), StackValue.Type.Primitive);
+
+                break;
+            case IntegerToFloat:
+                int intValue = value.intValue();
+                convertedValue = new StackValue(Converter.intToFloat(intValue));
+                break;
+        }
+
+        stack.currentFrame().push(convertedValue);
     }
 
     public void executeGoToInstruction(Instruction instruction, Stack stack) throws InterpreterException {

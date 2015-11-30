@@ -51,6 +51,10 @@ public class CompilerTypes {
         return node instanceof ASTNumberLiteral;
     }
 
+    public static boolean isFloatLiteral(Node node){
+        return node instanceof ASTFloatLiteral;
+    }
+
     public static boolean isCharLiteral(Node node){
         return node instanceof ASTCharLiteral;
     }
