@@ -1,5 +1,6 @@
 package cz.cvut.fit.ostrajava.Interpreter;
 
+import cz.cvut.fit.ostrajava.Interpreter.Memory.PrimitiveArray;
 import cz.cvut.fit.ostrajava.Type.FloatType;
 import cz.cvut.fit.ostrajava.Type.NumberType;
 
@@ -46,7 +47,7 @@ public class Converter {
         return ByteBuffer.allocate(FloatType.size).putFloat(i).array();
     }
 
-    public char[] byteArrayToCharArray(byte[] bytes){
+    public static char[] byteArrayToCharArray(byte[] bytes){
         int[] intArray = byteArrayToIntArray(bytes);
         char[] res = new char[intArray.length];
         for (int i = 0; i<intArray.length; i++){
@@ -56,7 +57,7 @@ public class Converter {
         return res;
     }
 
-    public boolean[] byteArrayToBoolArray(byte[] bytes){
+    public static boolean[] byteArrayToBoolArray(byte[] bytes){
         int[] intArray = byteArrayToIntArray(bytes);
         boolean[] res = new boolean[intArray.length];
         for (int i = 0; i<intArray.length; i++){
@@ -77,7 +78,7 @@ public class Converter {
         return res;
     }
 
-    public float[] byteArrayToFloatArray(byte[] bytes){
+    public static float[] byteArrayToFloatArray(byte[] bytes){
 
         int floatArrayLength = bytes.length / FloatType.size;
         float[] res = new float[floatArrayLength];
@@ -87,4 +88,7 @@ public class Converter {
 
         return res;
     }
+
+
+
 }

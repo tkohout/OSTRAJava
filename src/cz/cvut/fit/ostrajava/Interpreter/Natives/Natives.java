@@ -1,6 +1,14 @@
 package cz.cvut.fit.ostrajava.Interpreter.Natives;
 
 import cz.cvut.fit.ostrajava.Interpreter.*;
+import cz.cvut.fit.ostrajava.Interpreter.Memory.Heap;
+import cz.cvut.fit.ostrajava.Interpreter.Memory.HeapOverflow;
+import cz.cvut.fit.ostrajava.Interpreter.Natives.IO.Console.*;
+import cz.cvut.fit.ostrajava.Interpreter.Natives.IO.File.CloseReader;
+import cz.cvut.fit.ostrajava.Interpreter.Natives.IO.File.OpenReader;
+import cz.cvut.fit.ostrajava.Interpreter.Natives.IO.File.ReadLine;
+import cz.cvut.fit.ostrajava.Interpreter.Natives.Math.LogInt;
+import cz.cvut.fit.ostrajava.Interpreter.Natives.Math.PowInt;
 import cz.cvut.fit.ostrajava.Type.Types;
 
 import java.util.HashMap;
@@ -11,26 +19,29 @@ import java.util.Map;
  */
 public class Natives {
 
-    private Map<String, Native> nativesMap;
+    protected  Map<String, Native> nativesMap;
 
-    public Natives(){
+    protected Heap heap;
+
+    public Natives(Heap heap)
+    {
+        this.heap = heap;
         init();
     }
 
     private void init(){
         if (nativesMap == null) {
             nativesMap = new HashMap<>();
-            nativesMap.put("print:" + Types.Char(), new PrintChar());
-            nativesMap.put("print:" + Types.CharArray(), new PrintChars());
-            nativesMap.put("print:" + Types.Number(), new PrintInt());
-            nativesMap.put("print:" + Types.NumberArray(), new PrintInts());
-            nativesMap.put("print:" + Types.Boolean(), new PrintBool());
-            nativesMap.put("print:" + Types.BooleanArray(), new PrintBools());
-            nativesMap.put("print:" + Types.Float(), new PrintFloat());
-            nativesMap.put("print:" + Types.FloatArray(), new PrintFloats());
-            nativesMap.put("logint:" + Types.Number() + ":" + Types.Number(), new LogInt());
-            nativesMap.put("powint:" + Types.Number() + ":" + Types.Number(), new PowInt());
-
+            nativesMap.put("print:" + Types.Char(), new PrintChar(heap));
+            nativesMap.put("print:" + Types.CharArray(), new PrintChars(heap));
+            nativesMap.put("print:" + Types.Number(), new PrintInt(heap));
+            nativesMap.put("print:" + Types.Boolean(), new PrintBool(heap));
+            nativesMap.put("print:" + Types.Float(), new PrintFloat(heap));
+            nativesMap.put("logint:" + Types.Number() + ":" + Types.Number(), new LogInt(heap));
+            nativesMap.put("powint:" + Types.Number() + ":" + Types.Number(), new PowInt(heap));
+            nativesMap.put("openreader:" + Types.CharArray(), new OpenReader(heap));
+            nativesMap.put("readline:" + Types.Number(), new ReadLine(heap));
+            nativesMap.put("closereader:" + Types.Number(), new CloseReader(heap));
         }
     }
 
@@ -39,7 +50,7 @@ public class Natives {
     }
 
 
-    public NativeValue invoke(String descriptor, NativeValue[] args) throws InterpreterException {
+    public StackValue invoke(String descriptor, StackValue[] args) throws InterpreterException, HeapOverflow {
 
         if (nativeExist(descriptor)){
             return nativesMap.get(descriptor).invoke(args);

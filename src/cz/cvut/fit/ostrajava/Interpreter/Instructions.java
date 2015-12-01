@@ -38,6 +38,12 @@ public class Instructions{
                         case IfCompareGreaterThanOrEqualInteger:
                         case IfCompareEqualInteger:
                         case IfCompareNotEqualInteger:
+                        case IfLessThanZero:
+                        case IfLessOrEqualThanZero:
+                        case IfGreaterThanZero:
+                        case IfGreaterOrEqualThanZero:
+                        case IfEqualZero:
+                        case IfNotEqualZero:
                             int operand = inst.getOperand(0);
                             inst.setOperand(0,operand + position);
                             break;

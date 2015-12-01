@@ -6,6 +6,7 @@ import cz.cvut.fit.ostrajava.Parser.*;
 import cz.cvut.fit.ostrajava.Type.*;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
+import java.lang.reflect.Array;
 import java.util.*;
 
 /**
@@ -24,6 +25,7 @@ public class OSTRAJavaCompiler {
     protected ConstantPool constantPool;
     protected ClassPool classPool;
     protected Class currentClass;
+    protected Method currentMethod;
     protected Mode mode;
 
 
@@ -48,6 +50,7 @@ public class OSTRAJavaCompiler {
         this.constantPool = null;
         this.classPool = null;
         this.currentClass = null;
+        this.currentMethod = null;
     }
 
 
@@ -233,6 +236,8 @@ public class OSTRAJavaCompiler {
         boolean isStatic = false;
         boolean isConstructor = false;
 
+        Method method = null;
+
         for (int i=0; i<node.jjtGetNumChildren(); i++) {
             Node child = node.jjtGetChild(i);
 
@@ -245,6 +250,8 @@ public class OSTRAJavaCompiler {
                 }
             }else if (child instanceof ASTMethod){
 
+
+
                 name = ((ASTMethod) child).jjtGetValue().toString().toLowerCase();
 
                 //It's a constructor
@@ -254,12 +261,32 @@ public class OSTRAJavaCompiler {
                     returnType = Types.Reference(aClass.getClassName());
                 }
 
+
                 //Add This as first argument
                 compilation.addLocalVariable(THIS_VARIABLE, Types.Reference(aClass.getClassName()));
 
                 //Add the rest of arguments
                 ASTFormalParameters params = (ASTFormalParameters)child.jjtGetChild(0);
                 args = formalParameters(params, compilation);
+
+                method = new Method(name, args, aClass.getClassName(), returnType);
+
+
+                if (mode == Mode.COMPILE) {
+                    //Find already declared method
+                    for (Method m : aClass.getMethods()) {
+                        if (m.getDescriptor().equals(method.getDescriptor())) {
+                            method = m;
+                            break;
+                        }
+                    }
+                }else{
+                    aClass.addMethod(method);
+                }
+
+                currentMethod = method;
+
+
             }else if (child instanceof ASTBlock){
                 if (mode == Mode.COMPILE) {
                     methodBlock((ASTBlock) child, name, returnType, isConstructor, compilation);
@@ -271,20 +298,7 @@ public class OSTRAJavaCompiler {
             throw new CompilerException("Missing method name in " + node );
         }
 
-        Method method = new Method(name, args, aClass.getClassName(), returnType);
 
-
-        if (mode == Mode.COMPILE) {
-            //Find already declared method
-            for (Method m : aClass.getMethods()) {
-                if (m.getDescriptor().equals(method.getDescriptor())) {
-                    method = m;
-                    break;
-                }
-            }
-        }else{
-            aClass.addMethod(method);
-        }
 
         method.setStaticMethod(isStatic);
         method.setLocalVariablesCount(compilation.getNumberOfLocalVariables());
@@ -312,44 +326,18 @@ public class OSTRAJavaCompiler {
     }
 
     protected void methodBlock(ASTBlock node, String name, Type returnType, boolean isConstructor, MethodCompilation compilation) throws CompilerException {
-        try{
             block(node, -1, compilation);
 
             //Constructor always return this
             if (isConstructor) {
                 returnStatement(new ASTThis(), compilation);
             //On the end of a method is always empty return
-            }else{
-                returnStatement(null, compilation);
-            }
-        } catch (ReturnException e) {
-            Node value = e.getValue();
-            if (value == null) {
-                if (returnType != Types.Void()) {
-                    throw new CompilerException("Method '" + name + "' must return non-void value");
-                }
-
+            }else if (returnType == Types.Void()) {
                 compilation.getByteCode().addInstruction(new Instruction(InstructionSet.ReturnVoid));
-            } else {
-                try {
-                    Type valueType = getTypeForExpression(value, compilation);
-                    typeCheck(returnType, valueType);
-
-                    if (returnType == Types.Number() || returnType == Types.Boolean() || returnType == Types.Char()) {
-                        compilation.getByteCode().addInstruction(new Instruction(InstructionSet.ReturnInteger));
-                    } else if (returnType instanceof ReferenceType || returnType instanceof ArrayType) {
-                        compilation.getByteCode().addInstruction(new Instruction(InstructionSet.ReturnReference));
-                    } else {
-                        throw new NotImplementedException();
-                    }
-                } catch (TypeException te) {
-                    throw new CompilerException("Returning incompatible type in method '" + name + "': " + te.getMessage());
-                }
             }
-        }
     }
 
-    protected List<Instruction> block(ASTBlock node, int cycleStart, MethodCompilation compilation) throws CompilerException, ReturnException {
+    protected List<Instruction> block(ASTBlock node, int cycleStart, MethodCompilation compilation) throws CompilerException  {
         List<Instruction> allBreakInstructions = new ArrayList<>();
         for (int i = 0; i < node.jjtGetNumChildren(); i++) {
                 Node child = node.jjtGetChild(i);
@@ -366,7 +354,7 @@ public class OSTRAJavaCompiler {
         return allBreakInstructions;
     }
 
-    protected List<Instruction> statement(ASTStatement node, int cycleStart, MethodCompilation compilation) throws CompilerException, ReturnException {
+    protected List<Instruction> statement(ASTStatement node, int cycleStart, MethodCompilation compilation) throws CompilerException {
         Node child = node.jjtGetChild(0);
 
 
@@ -420,16 +408,40 @@ public class OSTRAJavaCompiler {
         }
     }
 
-    protected void returnStatement(Node child, MethodCompilation compilation) throws CompilerException,ReturnException {
-        if (child != null){
-            child = simplifyExpression(child);
-            evaluateExpression(child, compilation);
-        }
+    protected void returnStatement(Node value, MethodCompilation compilation) throws CompilerException {
+        Type returnType = currentMethod.getReturnType();
+        String name = currentMethod.getName();
 
-        throw new ReturnException(child);
+        if (value != null){
+            value = simplifyExpression(value);
+            evaluateExpression(value, compilation);
+
+
+            try {
+                Type valueType = getTypeForExpression(value, compilation);
+                typeCheck(returnType, valueType);
+
+                if (returnType == Types.Number() || returnType == Types.Boolean() || returnType == Types.Char()) {
+                    compilation.getByteCode().addInstruction(new Instruction(InstructionSet.ReturnInteger));
+                } else if (returnType instanceof ReferenceType || returnType instanceof ArrayType) {
+                    compilation.getByteCode().addInstruction(new Instruction(InstructionSet.ReturnReference));
+                } else {
+                    throw new NotImplementedException();
+                }
+            } catch (TypeException te) {
+                throw new CompilerException("Returning incompatible type in method '" + name + "': " + te.getMessage());
+            }
+
+        }else{
+            if (returnType != Types.Void()) {
+                throw new CompilerException("Method '" + name + "' must return non-void value");
+            }
+
+            compilation.getByteCode().addInstruction(new Instruction(InstructionSet.ReturnVoid));
+        }
     }
 
-    protected void debugStatement(MethodCompilation compilation) throws CompilerException,ReturnException {
+    protected void debugStatement(MethodCompilation compilation) throws CompilerException {
         compilation.getByteCode().addInstruction(new Instruction(InstructionSet.Breakpoint));
     }
 
@@ -985,7 +997,7 @@ public class OSTRAJavaCompiler {
 
 
 
-    protected List<Instruction> ifStatement(ASTIfStatement node, int cycleStart, MethodCompilation compilation) throws CompilerException, ReturnException {
+    protected List<Instruction> ifStatement(ASTIfStatement node, int cycleStart, MethodCompilation compilation) throws CompilerException {
 
         List<Instruction> gotoInstructions = new ArrayList<>();
         List<Instruction> allBreakInstructions = new ArrayList<>();
@@ -1021,6 +1033,8 @@ public class OSTRAJavaCompiler {
                 for (Instruction ebi : endBlockInstructions) {
                     ebi.setOperand(0, compilation.getByteCode().getLastInstructionPosition() + 1);
                 }
+
+                continue;
             }
 
         }
@@ -1033,7 +1047,7 @@ public class OSTRAJavaCompiler {
         return allBreakInstructions;
     }
 
-    protected void whileStatement(ASTWhileStatement node, MethodCompilation compilation) throws CompilerException,ReturnException {
+    protected void whileStatement(ASTWhileStatement node, MethodCompilation compilation) throws CompilerException {
 
 
        Node expression = simplifyExpression(node.jjtGetChild(0));
@@ -1448,7 +1462,7 @@ public class OSTRAJavaCompiler {
                     } else if (operator instanceof ASTLessThanOrEqualOperator) {
                         instruction = InstructionSet.IfLessOrEqualThanZero;
                     }
-                }else if (type == Types.Number() || type == Types.Boolean() || type == Types.Char() || type instanceof ReferenceType || type == null) {
+                }else{
                     if (operator instanceof ASTEqualOperator) {
                         instruction = InstructionSet.IfCompareEqualInteger;
                     } else if (operator instanceof ASTNotEqualOperator) {

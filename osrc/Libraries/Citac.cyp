@@ -1,0 +1,31 @@
+/**
+ * Created by tomaskohout on 12/1/15.
+ */
+
+banik pyco
+
+tryda Citac {
+
+   toz cyslo readerAddress pyco
+
+   otevr(Dryst jmeno){
+      joch.readerAddress = openReader(jmeno.naChachar()) pyco
+   }
+
+   Dryst citajRadku(){
+      toz chachar[] radka = readLine(joch.readerAddress) pyco
+
+      kaj (radka != chuj){
+         davaj zrob Dryst(radka) pyco
+      }
+
+      davaj chuj pyco
+   }
+
+   zavr(){
+      closeReader(joch.readerAddress) pyco
+   }
+    
+}
+
+fajront pyco 

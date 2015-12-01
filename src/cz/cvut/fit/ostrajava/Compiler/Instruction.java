@@ -79,6 +79,25 @@ public class Instruction {
                 newInst = InstructionSet.IfCompareGreaterThanInteger;
                 break;
 
+            case IfEqualZero:
+                newInst = InstructionSet.IfNotEqualZero;
+                break;
+            case IfNotEqualZero:
+                newInst = InstructionSet.IfEqualZero;
+                break;
+            case IfGreaterThanZero:
+                newInst = InstructionSet.IfLessOrEqualThanZero;
+                break;
+            case IfGreaterOrEqualThanZero:
+                newInst = InstructionSet.IfLessThanZero;
+                break;
+            case IfLessThanZero:
+                newInst = InstructionSet.IfGreaterOrEqualThanZero;
+                break;
+            case IfLessOrEqualThanZero:
+                newInst = InstructionSet.IfGreaterThanZero;
+                break;
+
             default:
                     throw new CompilerException("Not supported invert operation");
 

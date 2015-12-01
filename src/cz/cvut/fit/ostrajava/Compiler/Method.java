@@ -175,4 +175,9 @@ public class Method {
 
         return sb.toString();
     }
+
+    @Override
+    public String toString() {
+        return getDescriptor();
+    }
 }

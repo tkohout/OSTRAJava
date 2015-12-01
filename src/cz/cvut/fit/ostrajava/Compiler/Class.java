@@ -162,8 +162,10 @@ public class Class {
     public int lookupField(String name) throws LookupException {
         int i = 0;
 
+        String lowerCase = name.toLowerCase();
+
         for (Field field: getAllFields()){
-            if (field.getName().equals(name)){
+            if (field.getName().equals(lowerCase)){
                 return i;
             }
             i++;

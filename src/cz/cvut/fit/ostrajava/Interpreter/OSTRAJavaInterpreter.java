@@ -2,11 +2,8 @@ package cz.cvut.fit.ostrajava.Interpreter;
 
 import cz.cvut.fit.ostrajava.Compiler.*;
 import cz.cvut.fit.ostrajava.Compiler.Class;
-import cz.cvut.fit.ostrajava.Interpreter.Memory.GarbageCollector.GarbageCollector;
 import cz.cvut.fit.ostrajava.Interpreter.Memory.GarbageCollector.GenerationCollector;
-import cz.cvut.fit.ostrajava.Interpreter.Memory.GarbageCollector.MarkAndSweepCollector;
 import cz.cvut.fit.ostrajava.Interpreter.Memory.*;
-import cz.cvut.fit.ostrajava.Interpreter.Natives.NativeValue;
 import cz.cvut.fit.ostrajava.Interpreter.Natives.Natives;
 import cz.cvut.fit.ostrajava.Type.*;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
@@ -48,7 +45,7 @@ public class OSTRAJavaInterpreter {
 
         this.instructions = new Instructions(classPool);
         this.constantPool = new ConstantPool(classPool);
-        this.natives = new Natives();
+        this.natives = new Natives(this.heap);
     }
 
 
@@ -128,6 +125,7 @@ public class OSTRAJavaInterpreter {
             case IfCompareGreaterThanInteger:
             case IfCompareGreaterThanOrEqualInteger:
                 executeIntegerCompareInstruction(instruction, stack);
+                break;
             case IfEqualZero:
             case IfNotEqualZero:
             case IfLessThanZero:
@@ -290,7 +288,7 @@ public class OSTRAJavaInterpreter {
         }
     }
 
-    public void executeInvokeInstruction(Instruction instruction, Stack stack) throws InterpreterException{
+    public void executeInvokeInstruction(Instruction instruction, Stack stack) throws InterpreterException, HeapOverflow {
 
 
                 int constPosition = instruction.getOperand(0);
@@ -353,7 +351,7 @@ public class OSTRAJavaInterpreter {
 
     }
 
-    public void invokeNative(String methodDescriptor) throws InterpreterException {
+    public void invokeNative(String methodDescriptor) throws InterpreterException, HeapOverflow {
         if (!natives.nativeExist(methodDescriptor)){
             throw new InterpreterException("Trying to call non-existent method '" + methodDescriptor +"'");
         }
@@ -368,32 +366,26 @@ public class OSTRAJavaInterpreter {
 
         int numberOfArgs = methodFromDescriptor.getArgs().size();
 
-        NativeValue[] argValues = new NativeValue[numberOfArgs];
+        StackValue[] argValues = new StackValue[numberOfArgs];
 
         for (int i = 0; i<methodFromDescriptor.getArgs().size(); i++){
             Type type = methodFromDescriptor.getArgs().get(i);
 
-           if (type instanceof ArrayType){
+            if (type instanceof ArrayType || type == Types.Number() || type == Types.Char() || type == Types.Boolean() || type == Types.Float()){
 
-                StackValue ref = stack.currentFrame().pop();
-                argValues[i] = new NativeValue(heap.loadArray(ref).getBytes());
+                StackValue value = stack.currentFrame().pop();
+                argValues[i] = value;
 
-           }else if (type instanceof NumberType || type instanceof CharType || type instanceof BooleanType) {
-
-               argValues[i] = new NativeValue(stack.currentFrame().pop().intValue());
-           }else if (type instanceof FloatType) {
-               argValues[i] = new NativeValue(stack.currentFrame().pop().floatValue());
            }else{
                 throw new InterpreterException("Passing " + type + " in native functions is not supported");
             }
 
         }
 
-        NativeValue returnValue = natives.invoke(methodDescriptor, argValues);
+        StackValue returnValue = natives.invoke(methodDescriptor, argValues);
 
         if (returnValue != null){
-            //TODO: Fix
-            stack.currentFrame().pushBytes(new StackValue(returnValue.getBytes()));
+            stack.currentFrame().push(returnValue);
         }
     }
 
@@ -405,24 +397,14 @@ public class OSTRAJavaInterpreter {
             case ReturnVoid:
                 stack.deleteCurrentFrame();
             break;
-            case ReturnInteger: {
+            case ReturnInteger:
+            case ReturnReference: {
                 StackValue var = stack.currentFrame().pop();
 
                 //Remove current frame
                 stack.deleteCurrentFrame();
 
                 //Push return value on the calling frame
-                stack.currentFrame().push(var);
-            }
-            break;
-            case ReturnReference: {
-                //TODO: change to reference later
-
-                StackValue var = stack.currentFrame().pop();
-                //Remove current frame
-                stack.deleteCurrentFrame();
-
-                //Push it on the calling frame
                 stack.currentFrame().push(var);
             }
             break;

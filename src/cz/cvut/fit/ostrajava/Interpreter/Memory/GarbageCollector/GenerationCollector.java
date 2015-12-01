@@ -166,7 +166,7 @@ public class GenerationCollector extends GarbageCollector {
 
     protected void translateReferencesOnStack(StackValue[] referenceMap){
         for (int i = 0; i < stack.getFramesNumber(); i++) {
-            Frame frame = stack.currentFrame();
+            Frame frame = stack.getFrame(i);
 
             for (int j = 0; j < frame.getLocalVariablesCount(); j++){
                 StackValue reference = frame.loadVariable(j);

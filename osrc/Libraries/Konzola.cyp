@@ -16,9 +16,7 @@ tryda Konzola{
             Konzola.pravit("chuj") pyco
         }boinak{
             toz chachar[] chachari = dryst.naChachar() pyco
-
-            //Native call
-            print(chachari) pyco
+            Konzola.pravit(chachari) pyco
         }
     }
 
@@ -31,6 +29,12 @@ tryda Konzola{
     statyk pravit(cyslo_desetinne d){
         //Native call
         print(d) pyco
+    }
+
+    statyk pravit(chachar[] c){
+
+        //Native call
+        print(c) pyco
     }
 
     statyk pravit(chachar c){
