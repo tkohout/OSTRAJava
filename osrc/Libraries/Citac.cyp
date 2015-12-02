@@ -9,7 +9,8 @@ tryda Citac {
    toz cyslo readerAddress pyco
 
    otevr(Dryst jmeno){
-      joch.readerAddress = openReader(jmeno.naChachar()) pyco
+      toz chachar[] chachari = jmeno.naChachar() pyco
+      joch.readerAddress = openReader(chachari) pyco
    }
 
    Dryst citajRadku(){

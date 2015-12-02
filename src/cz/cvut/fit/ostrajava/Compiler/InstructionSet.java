@@ -31,9 +31,9 @@ public enum InstructionSet {
     //Array
     NewArray("newarray"),
     StoreIntegerArray("iastore"),
-    //StoreReferenceArray("aastore"),
+    StoreReferenceArray("aastore"),
     LoadIntegerArray("iaload"),
-    //LoadReferenceArray("aaload"),
+    LoadReferenceArray("aaload"),
     //Object
     New("new"),
     Duplicate("dup"),

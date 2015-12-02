@@ -83,7 +83,13 @@ public class Types {
     }
 
     public static ArrayType Array(Type type){
-        return (ArrayType)getSingleton(type.toString() + "[]");
+        ArrayType arrayType = (ArrayType)getSingleton(type.toString() + "[]");
+
+        if (arrayType == null){
+            arrayType = new ArrayType(type);
+            addSingleton(arrayType);
+        }
+        return arrayType;
     }
 
     public static Type Reference(java.lang.String className){
@@ -99,7 +105,12 @@ public class Types {
     public static Type fromString(java.lang.String name){
         Type type = getSingleton(name);
         if (type == null){
-            return Reference(name);
+            if (name.substring(name.length()-2, name.length()).equals("[]")){
+                type = Array(Reference(name.substring(0, name.length()-2)));
+            }else {
+                type = Reference(name);
+            }
+            addSingleton(type);
         }
 
         return type;

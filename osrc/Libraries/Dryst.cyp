@@ -10,7 +10,7 @@ tryda Dryst {
     toz cyslo kapacyta pyco
 
     Dryst dryst(chachar[] chachari){
-        //joch.kapacyta = 32 pyco
+        joch.dylka = arraySize(chachari) pyco
         joch.chachari = chachari pyco
         davaj joch pyco
     }
@@ -21,21 +21,64 @@ tryda Dryst {
         davaj joch.chachari pyco
     }
 
-    /*pridaj(cyslo chachar){
-        kaj (joch.dylka >= joch.kapacyta){
-            joch.kapacyta = joch.kapacyta * 2 pyco
-            zvetsi(joch.kapacyta) pyco
+    bul kantuje(Dryst d){
+        toz cyslo i = 0 pyco
+
+        kaj (joch.dylka != d.dylka){
+            davaj nyt pyco
         }
-        joch.chachari[joch.dylka - 1] = chachar pyco
+
+        rubat(i < joch.dylka){
+            kaj (joch.chachari[i] != d.chachari[i]){
+                davaj nyt pyco
+            }
+            i = i + 1 pyco
+        }
+
+        davaj fajne pyco
     }
 
-    zvetsi(cyslo velikost){
-        toz cyslo[] docasne = joch.pismena pyco
+    Dryst[] rozdel(chachar znak){
+        toz cyslo i = 0 pyco
+        toz cyslo pocet = 0 pyco
+        toz Dryst[] casti pyco
 
-        joch.pismena = zrob
-        //TODO: Na tohle potrebujem cyklus
+        //Napred spocitame
+        rubat(i < joch.dylka){
+            kaj (joch.chachari[i] == znak){
+                pocet = pocet + 1 pyco
+            }
+            i = i + 1 pyco
+        }
 
-    }*/
+        casti = zrob Dryst[pocet+1] pyco
+
+        i = 0 pyco
+        pocet = 0 pyco
+
+        //Buffer max velikosti stringu
+        toz Bafr bafr = zrob Bafr(joch.dylka) pyco
+
+        rubat(i < joch.dylka){
+            kaj (joch.chachari[i] == znak){
+                casti[pocet] = zrob Dryst(bafr.naChachar()) pyco
+                pocet = pocet + 1 pyco
+                //Reset
+                bafr.vyglancovat() pyco
+            } boinak {
+                bafr.pridaj(joch.chachari[i]) pyco
+            }
+            i = i + 1 pyco
+       }
+
+       kaj (bafr.pocet > 0){
+            casti[pocet] = zrob Dryst(bafr.naChachar()) pyco
+       }
+
+       davaj casti pyco
+    }
+
+
 }
 
 fajront pyco 

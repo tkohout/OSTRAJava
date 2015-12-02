@@ -2,6 +2,7 @@ package cz.cvut.fit.ostrajava.Compiler;
 
 import cz.cvut.fit.ostrajava.Interpreter.ClassPool;
 import cz.cvut.fit.ostrajava.Interpreter.LookupException;
+import cz.cvut.fit.ostrajava.Type.ArrayType;
 import cz.cvut.fit.ostrajava.Type.ReferenceType;
 import cz.cvut.fit.ostrajava.Type.Type;
 import cz.cvut.fit.ostrajava.Type.Types;
@@ -76,6 +77,12 @@ public class Method {
         int i = 0;
         for (Type methodArgType: method.getArgs()){
             Type argType = this.getArgs().get(i);
+
+            //If it's arrays, use their elements
+            if (methodArgType instanceof ArrayType && argType instanceof ArrayType){
+                methodArgType = ((ArrayType) methodArgType).getElement();
+                argType = ((ArrayType) argType).getElement();
+            }
 
             //If it's both objects
             if (methodArgType instanceof ReferenceType && argType instanceof ReferenceType){

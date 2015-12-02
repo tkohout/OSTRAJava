@@ -38,7 +38,7 @@ public class StackValue extends ByteArrayWrapper {
         this(Converter.stringToFloat(floatString));
     }
 
-    public StackValue(float floatNumber){
+    public StackValue(Float floatNumber){
         this.byteArray = floatToInnerRepresentation(floatNumber);
     }
 

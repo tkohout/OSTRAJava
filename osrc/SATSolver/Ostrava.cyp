@@ -7,22 +7,12 @@ banik pyco
 tryda Ostrava {
 
     rynek(){
+        toz Parsovac p = zrob Parsovac() pyco
+        toz Klauzule[] k = p.vyparsuj("resources/sats/01.txt") pyco
 
-        toz Citac c = zrob Citac() pyco
-        c.otevr("resources/sats/01.txt") pyco
-
-        toz Dryst radka pyco
-
-        radka = c.citajRadku() pyco
-
-        rubat (radka != chuj){
-            Konzola.pravit(radka) pyco
-            radka = c.citajRadku() pyco
-        }
-
-
-        c.zavr() pyco
     }
+
+
 
 }
 

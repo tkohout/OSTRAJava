@@ -1,14 +1,10 @@
 package cz.cvut.fit.ostrajava.Interpreter.Memory;
 
-import cz.cvut.fit.ostrajava.Interpreter.Memory.GarbageCollector.GarbageCollector;
 import cz.cvut.fit.ostrajava.Interpreter.InterpretedClass;
 import cz.cvut.fit.ostrajava.Interpreter.Memory.GarbageCollector.GenerationCollector;
 import cz.cvut.fit.ostrajava.Interpreter.Memory.GarbageCollector.MarkAndSweepCollector;
 import cz.cvut.fit.ostrajava.Interpreter.Stack;
 import cz.cvut.fit.ostrajava.Interpreter.StackValue;
-
-import java.util.HashSet;
-import java.util.Set;
 
 /**
  * Created by tomaskohout on 11/28/15.
@@ -56,7 +52,7 @@ public class GenerationHeap implements Heap {
     }
 
     public StackValue allocArray(int size) throws HeapOverflow {
-        PrimitiveArray array = new PrimitiveArray(size);
+        Array array = new Array(size);
         return alloc(array);
     }
 
@@ -67,20 +63,22 @@ public class GenerationHeap implements Heap {
             garbageCollector.run(null);
 
             //Try again
-            return alloc(obj);
+            StackValue ref =  eden.alloc(obj);
+
+            return ref;
         }
     }
 
 
-    public PrimitiveArray loadArray(StackValue reference){
+    public Array loadArray(StackValue reference){
         HeapItem obj = load(reference);
 
         if (obj == null){
             throw new NullPointerException();
         }
 
-        if (obj instanceof PrimitiveArray) {
-            return (PrimitiveArray)obj;
+        if (obj instanceof Array) {
+            return (Array)obj;
         }else{
             throw new IllegalArgumentException("Type mismatch on " + reference + ", expected ArrayType");
         }

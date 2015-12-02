@@ -3,7 +3,7 @@ package cz.cvut.fit.ostrajava.Interpreter.Natives.IO.File;
 import cz.cvut.fit.ostrajava.Interpreter.InterpreterException;
 import cz.cvut.fit.ostrajava.Interpreter.Memory.Heap;
 import cz.cvut.fit.ostrajava.Interpreter.Memory.HeapOverflow;
-import cz.cvut.fit.ostrajava.Interpreter.Memory.PrimitiveArray;
+import cz.cvut.fit.ostrajava.Interpreter.Memory.Array;
 import cz.cvut.fit.ostrajava.Interpreter.Natives.Native;
 import cz.cvut.fit.ostrajava.Interpreter.StackValue;
 
@@ -34,10 +34,11 @@ public class ReadLine extends Native {
 
                 //Create array of chars
                 reference = heap.allocArray(line.length());
-                PrimitiveArray charArray = heap.loadArray(reference);
+                Array charArray = heap.loadArray(reference);
 
                 for (int i = 0; i < line.length(); i++){
-                    charArray.set(i, line.charAt(i));
+                    StackValue charValue = new StackValue(line.charAt(i), StackValue.Type.Primitive);
+                    charArray.set(i, charValue);
                 }
 
             }else{

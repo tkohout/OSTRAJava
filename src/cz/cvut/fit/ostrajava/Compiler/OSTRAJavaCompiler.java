@@ -216,7 +216,7 @@ public class OSTRAJavaCompiler {
             String className = (String) ((ASTName) typeNode).jjtGetValue();
             type = Types.Reference(className);
         }else{
-            throw new CompilerException("Unexpected type of field " + typeNode );
+            throw new CompilerException("Unexpected type " + typeNode );
         }
 
         //name[]
@@ -483,10 +483,12 @@ public class OSTRAJavaCompiler {
                         Node arrayIndexExpression = simplifyExpression(left.jjtGetChild(childNumber-1).jjtGetChild(0));
                         evaluateExpression(arrayIndexExpression, compilation);
 
+                        Type type = getTypeForExpression(right, compilation);
+
                         //Value
                         evaluateExpression(right, compilation);
 
-                        storeArray(compilation);
+                        storeArray(type, compilation);
                     }else {
 
                         evaluateExpression(right, compilation);
@@ -551,7 +553,7 @@ public class OSTRAJavaCompiler {
                     //Value on stack
                     evaluateExpression(right, compilation);
 
-                    storeArray(compilation);
+                    storeArray(type,compilation);
                 }else {
                     //Evaluate and put value on stack
                     evaluateExpression(right, compilation);
@@ -576,16 +578,25 @@ public class OSTRAJavaCompiler {
         }
     }
 
-    protected void storeArray(MethodCompilation compilation){
+    protected void storeArray(Type type, MethodCompilation compilation){
         // Now on stack: (from furthest) Array Ref -> Index -> Value
-        //TODO: Other primitives
-        compilation.getByteCode().addInstruction(new Instruction(InstructionSet.StoreIntegerArray));
+        if (type instanceof ReferenceType) {
+            compilation.getByteCode().addInstruction(new Instruction(InstructionSet.StoreReferenceArray));
+        }else{
+            //TODO: StoreFloat?
+            compilation.getByteCode().addInstruction(new Instruction(InstructionSet.StoreIntegerArray));
+        }
     }
 
-    protected void loadArray(MethodCompilation compilation){
+    protected void loadArray(Type type, MethodCompilation compilation){
         // Now on stack: (from furthest) Array ->Index Ref
-        //TODO: Other primitives
-        compilation.getByteCode().addInstruction(new Instruction(InstructionSet.LoadIntegerArray));
+        if (type instanceof ReferenceType) {
+            compilation.getByteCode().addInstruction(new Instruction(InstructionSet.LoadReferenceArray));
+        }else{
+            //TODO: LoadFloat?
+            compilation.getByteCode().addInstruction(new Instruction(InstructionSet.LoadIntegerArray));
+        }
+
     }
 
     protected void storeVariable(Variable var, MethodCompilation compilation){
@@ -667,6 +678,8 @@ public class OSTRAJavaCompiler {
                 Type elementType;
                 Node element = value.jjtGetChild(0);
 
+
+
                 if (element instanceof ASTBool){
                     elementType = Types.Boolean();
                 }else if (element instanceof  ASTNumber){
@@ -675,8 +688,10 @@ public class OSTRAJavaCompiler {
                     elementType = Types.Char();
                 }else if (element instanceof  ASTFloat) {
                     elementType = Types.String();
+                }else if (element instanceof  ASTName) {
+                    elementType = Types.Reference(((ASTName) element).jjtGetValue().toString());
                 }else{
-                    throw new CompilerException("Non-primitive in array type");
+                    throw new CompilerException("Unexpected type in array type");
                 }
 
                 return Types.Array(elementType);
@@ -694,8 +709,19 @@ public class OSTRAJavaCompiler {
         }else if (CompilerTypes.isNullLiteral(value)){
             //Any reference
             return null;
-        }else if (CompilerTypes.isCallExpression(value)){
+        }else if (CompilerTypes.isCallExpression(value)) {
             return getTypeForMethodCall(value, compilation);
+        }else if (CompilerTypes.isArray(value) && value.jjtGetNumChildren() == 2){
+            String rightName = ((ASTName) value.jjtGetChild(0)).jjtGetValue().toString();
+
+            int rightPosition = compilation.getPositionOfLocalVariable(rightName);
+            if (rightPosition == -1) {
+                throw new CompilerException("Variable '" + rightName + "' is undeclared");
+            }
+
+            ArrayType arrayType = (ArrayType)compilation.getTypeOfLocalVariable(rightName);
+            return arrayType.getElement();
+
         }else if (CompilerTypes.isFieldExpression(value)) {
             return getTypeForFields(value, compilation);
         }else if (CompilerTypes.isStringLiteral(value)){
@@ -908,33 +934,54 @@ public class OSTRAJavaCompiler {
     }
 
     protected Type getTypeForFields(Node node, MethodCompilation compilation) throws CompilerException {
+        return getTypeForFields(node, node.jjtGetNumChildren()-1, compilation);
+    }
+
+    protected Type getTypeForFields(Node node, int fieldIndex, MethodCompilation compilation) throws CompilerException {
         Node first = node.jjtGetChild(0);
+
 
         Type firstType = getTypeForExpression(first, compilation);
 
-        if (firstType instanceof ReferenceType){
+        if (firstType instanceof ReferenceType || firstType instanceof ArrayType){
             String className = ((ReferenceType) firstType).getClassName();
             try {
                 Class objClass = classPool.lookupClass(className);
+                ArrayType arrayType = null;
 
                 for (int i=1; i<node.jjtGetNumChildren(); i++) {
-                    ASTName fieldNode = (ASTName) node.jjtGetChild(i);
 
-                    //Find field in class
-                    int fieldPosition = objClass.lookupField(fieldNode.jjtGetValue().toString());
-                    Field field = objClass.getField(fieldPosition);
+                    Node child = node.jjtGetChild(i);
+                    Type fieldType;
+                    if (child instanceof ASTName) {
 
-                    Type fieldType = field.getType();
+                        ASTName fieldNode = (ASTName) node.jjtGetChild(i);
 
-                    //If it's last field
-                    if (i == node.jjtGetNumChildren() - 1){
+                        //Find field in class
+                        int fieldPosition = objClass.lookupField(fieldNode.jjtGetValue().toString());
+                        Field field = objClass.getField(fieldPosition);
+
+                        fieldType = field.getType();
+
+                    }else if (child instanceof ASTArraySuffix){
+                        //Set type as an element of the array
+                        fieldType = arrayType.getElement();
+                    }else{
+                        throw new CompilerException("Unexpected element in fields");
+                    }
+
+                    //If it's required field
+                    if (i == fieldIndex) {
                         return fieldType;
                     }
 
                     //Not last field - it has to be object
                     if (fieldType instanceof ReferenceType) {
                         objClass = classPool.lookupClass(((ReferenceType) fieldType).getClassName());
-                    }else{
+                    //Or an array
+                    }else if (fieldType instanceof  ArrayType){
+                        arrayType = (ArrayType)fieldType;
+                    } else {
                         throw new CompilerException("Trying to get field from a non-object ");
                     }
 
@@ -956,13 +1003,23 @@ public class OSTRAJavaCompiler {
         Node first = node.jjtGetChild(0);
 
         if (CompilerTypes.isVariable(first) || CompilerTypes.isThis(first) || CompilerTypes.isSuper(first)) {
-            //TODO: type check
             expression(node.jjtGetChild(0), compilation);
 
             //Load fields (if any)
             for (int i=1; i<node.jjtGetNumChildren(); i++) {
-                ASTName field = (ASTName) node.jjtGetChild(i);
-                getField(field, compilation);
+                Node child = node.jjtGetChild(i);;
+                if (child instanceof ASTName) {
+                    ASTName field = (ASTName)child;
+                    getField(field, compilation);
+                }else if (child instanceof ASTArraySuffix){
+                    //It's an array
+                    Node arrayIndexExpression = simplifyExpression(child.jjtGetChild(0));
+                    evaluateExpression(arrayIndexExpression, compilation);
+
+                    Type type = getTypeForFields(node, i, compilation);
+
+                    loadArray(type, compilation);
+                }
             }
         }else{
             throw new CompilerException("Expected variable, this or super");
@@ -1159,7 +1216,7 @@ public class OSTRAJavaCompiler {
             charLiteral(node, compilation);
         }else if (CompilerTypes.isCallExpression(node)) {
             call(node, compilation);
-        }else if (CompilerTypes.isArray(node)){
+        }else if (CompilerTypes.isArray(node) && node.jjtGetNumChildren() == 2){
             array(node, compilation);
         }else if (CompilerTypes.isFieldExpression(node)) {
             fields(node, compilation);
@@ -1207,14 +1264,18 @@ public class OSTRAJavaCompiler {
     }
 
     protected void array(Node node, MethodCompilation compilation) throws CompilerException{
+        ASTName child = (ASTName) node.jjtGetChild(0);
+
         //Load variable reference on stack
-        variable((ASTName) node.jjtGetChild(0), compilation);
+        variable(child, compilation);
+
+        Type type = getTypeForExpression(child, compilation);
 
         //Load index
         Node arrayIndexExpression = simplifyExpression(node.jjtGetChild(1).jjtGetChild(0));
         evaluateExpression(arrayIndexExpression, compilation);
 
-        loadArray(compilation);
+        loadArray(type, compilation);
     }
 
     protected void numberLiteral(Node node, MethodCompilation compilation) throws CompilerException {
@@ -1297,13 +1358,18 @@ public class OSTRAJavaCompiler {
 
     protected void allocationExpression(ASTAllocationExpression node, MethodCompilation compilation) throws CompilerException {
         Node child = node.jjtGetChild(0);
-
+        Node suffix = node.jjtGetChild(1);
 
         //Allocation of primitives array
-        if (child instanceof ASTBool || child instanceof ASTNumber || child instanceof ASTChar){
-            Node expression = simplifyExpression(node.jjtGetChild(1).jjtGetChild(0));
+        if (suffix instanceof ASTArraySuffix){
+            Node expression = simplifyExpression(suffix.jjtGetChild(0));
 
             Type type = getTypeForExpression(expression, compilation);
+
+
+            if (type != Types.Number()){
+                throw new CompilerException("Expected number type in size of allocation");
+            }
 
             //Push size on stack
             expression(expression, compilation);
@@ -1311,11 +1377,11 @@ public class OSTRAJavaCompiler {
             compilation.getByteCode().addInstruction(new Instruction(InstructionSet.NewArray));
 
             //Allocation of object
-        }else if (child instanceof ASTName) {
-            String name = ((ASTName) node.jjtGetChild(0)).jjtGetValue().toString().toLowerCase();
+        }else if (suffix instanceof ASTArguments) {
+            String name = ((ASTName) child).jjtGetValue().toString().toLowerCase();
 
             //Constructor arguments
-            ASTArguments args = (ASTArguments) node.jjtGetChild(1);
+            ASTArguments args = (ASTArguments) suffix;
 
             //Push arguments on the stack
             arguments(args, compilation);
@@ -1631,7 +1697,7 @@ public class OSTRAJavaCompiler {
             Type type = getTypeForExpression(child, compilation);
 
             //Expression type == float
-            if (type != expressionType) {
+            if (type != expressionType && type == Types.Float()) {
                 //Convert value on stack
                 compilation.getByteCode().addInstruction(new Instruction(InstructionSet.IntegerToFloat));
             }

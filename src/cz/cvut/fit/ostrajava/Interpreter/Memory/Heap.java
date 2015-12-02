@@ -15,7 +15,7 @@ public interface Heap {
     public StackValue allocObject(InterpretedClass objectClass) throws HeapOverflow;
     public StackValue allocArray(int size) throws HeapOverflow;
 
-    public PrimitiveArray loadArray(StackValue reference);
+    public Array loadArray(StackValue reference);
     public Object loadObject(StackValue reference);
     public HeapItem load(StackValue reference);
 

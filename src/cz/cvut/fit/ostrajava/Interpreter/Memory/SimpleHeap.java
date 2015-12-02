@@ -48,7 +48,7 @@ public class SimpleHeap implements Heap{
     }
 
     public StackValue allocArray(int size) throws HeapOverflow {
-        PrimitiveArray array = new PrimitiveArray(size);
+        Array array = new Array(size);
         return alloc(array);
     }
 
@@ -93,15 +93,15 @@ public class SimpleHeap implements Heap{
     }
 
 
-    public PrimitiveArray loadArray(StackValue reference){
+    public Array loadArray(StackValue reference){
         HeapItem obj = load(reference);
 
         if (obj == null){
             throw new NullPointerException();
         }
 
-        if (obj instanceof PrimitiveArray) {
-            return (PrimitiveArray)obj;
+        if (obj instanceof Array) {
+            return (Array)obj;
         }else{
             throw new IllegalArgumentException("Type mismatch on " + reference + ", expected ArrayType");
         }

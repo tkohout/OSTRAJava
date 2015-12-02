@@ -798,7 +798,7 @@ void Type():
 {/*@bgen(jjtree) Type */
   try {
 /*@egen*/
-  ( PrimitiveType() [ ArrayType() ] | Name() )/*@bgen(jjtree)*/
+  ( PrimitiveType() [ ArrayType() ] | Name() [ ArrayType() ] )/*@bgen(jjtree)*/
   } catch (Throwable jjte000) {
     if (jjtc000) {
       jjtree.clearNodeScope(jjtn000);
@@ -2045,7 +2045,7 @@ void AllocationExpression() :
   LOOKAHEAD(2)
   "zrob" PrimitiveType() ArraySuffix()
 |
-  "zrob" Name()  Arguments()/*@bgen(jjtree)*/
+  "zrob" Name()  (Arguments() | ArraySuffix())/*@bgen(jjtree)*/
   } catch (Throwable jjte000) {
     if (jjtc000) {
       jjtree.clearNodeScope(jjtn000);
@@ -2066,7 +2066,7 @@ void AllocationExpression() :
       jjtn000.jjtSetLastToken(getToken(0));
     }
   }
-/*@egen*/ /*| ArrayDimensions()*/
+/*@egen*/
 }
 
 /*

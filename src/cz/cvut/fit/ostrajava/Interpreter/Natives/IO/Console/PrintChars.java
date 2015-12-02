@@ -1,6 +1,7 @@
 package cz.cvut.fit.ostrajava.Interpreter.Natives.IO.Console;
 
 import cz.cvut.fit.ostrajava.Interpreter.Converter;
+import cz.cvut.fit.ostrajava.Interpreter.Memory.Array;
 import cz.cvut.fit.ostrajava.Interpreter.Memory.Heap;
 import cz.cvut.fit.ostrajava.Interpreter.Natives.Native;
 import cz.cvut.fit.ostrajava.Interpreter.StackValue;
@@ -17,7 +18,9 @@ public class PrintChars extends Native {
     //arguments: char[]
     public StackValue invoke(StackValue args[])  {
         StackValue ref = args[0];
-        char[] chars = Converter.byteArrayToCharArray(heap.loadArray(ref).getBytes());
+
+        Array array = heap.loadArray(ref);
+        char[] chars = Converter.arrayToCharArray(array);
 
         System.out.println(chars);
         return null;

@@ -125,7 +125,7 @@ public class GenerationCollector extends GarbageCollector {
             }
             HeapItem heapObj = heap.getTenure().load(objRef);
 
-            //Only change fields of Object, not PrimitiveArray
+            //Only change fields of Object, not Array
             if (heapObj instanceof Object) {
                 Object obj = (Object)heapObj;
                 translateReferencesInObject(obj, referenceMap);
@@ -174,6 +174,16 @@ public class GenerationCollector extends GarbageCollector {
                 if (reference.isPointer() && !reference.isNullPointer() && heap.isEdenReference(reference)) {
                     StackValue newRef = translateReference(reference, referenceMap);
                     frame.storeVariable(j, newRef);
+                }
+            }
+
+            //There can also be references directly on stack
+            for (int j = frame.getStackOffset(); j < frame.getSize(); j+=StackValue.size){
+                StackValue reference = frame.get(j);
+                //Translate every value from stack if it's eden reference
+                if (reference.isPointer() && !reference.isNullPointer() && heap.isEdenReference(reference)) {
+                    StackValue newRef = translateReference(reference, referenceMap);
+                    frame.set(j, newRef);
                 }
             }
         }

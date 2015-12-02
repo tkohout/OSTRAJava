@@ -103,8 +103,12 @@ public class Frame extends ByteArrayWrapper{
         return Converter.byteArrayToInt(getBytes(0));
     }
 
-    protected int getStackOffset() {
+    public int getStackOffset() {
         return RETURN_ADDRESS_SIZE + localVariablesCount * LOCAL_VAR_BYTE_SIZE;
+    }
+
+    public int getSize() {
+        return count;
     }
 
     public int getLocalVariablesCount() {

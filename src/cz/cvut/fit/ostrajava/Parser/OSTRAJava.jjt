@@ -422,7 +422,7 @@ void ExplicitConstructorInvocation() :
 void Type():
 {}
 {
-  ( PrimitiveType() [ ArrayType() ] | Name() )
+  ( PrimitiveType() [ ArrayType() ] | Name() [ ArrayType() ] )
 }
 
 void ArrayType():
@@ -660,7 +660,7 @@ void AllocationExpression() :
   LOOKAHEAD(2)
   "zrob" PrimitiveType() ArraySuffix()
 |
-  "zrob" Name()  Arguments() /*| ArrayDimensions()*/
+  "zrob" Name()  (Arguments() | ArraySuffix())
 }
 
 /*

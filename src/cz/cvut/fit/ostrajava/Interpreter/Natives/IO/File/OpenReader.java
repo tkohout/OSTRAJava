@@ -2,6 +2,7 @@ package cz.cvut.fit.ostrajava.Interpreter.Natives.IO.File;
 
 import cz.cvut.fit.ostrajava.Interpreter.Converter;
 import cz.cvut.fit.ostrajava.Interpreter.InterpreterException;
+import cz.cvut.fit.ostrajava.Interpreter.Memory.Array;
 import cz.cvut.fit.ostrajava.Interpreter.Memory.Heap;
 import cz.cvut.fit.ostrajava.Interpreter.Natives.Native;
 import cz.cvut.fit.ostrajava.Interpreter.StackValue;
@@ -22,7 +23,9 @@ public class OpenReader extends Native {
     @Override
     public StackValue invoke(StackValue[] args) throws InterpreterException {
         StackValue charRef = args[0];
-        char[] chars = Converter.byteArrayToCharArray(heap.loadArray(charRef).getBytes());
+
+        Array array = heap.loadArray(charRef);
+        char[] chars = Converter.arrayToCharArray(array);
 
         String fileName = new String(chars);
         try {

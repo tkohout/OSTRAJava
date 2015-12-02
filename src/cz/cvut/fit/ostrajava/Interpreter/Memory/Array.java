@@ -2,20 +2,21 @@ package cz.cvut.fit.ostrajava.Interpreter.Memory;
 
 import cz.cvut.fit.ostrajava.Interpreter.Converter;
 import cz.cvut.fit.ostrajava.Interpreter.Memory.GarbageCollector.State;
+import cz.cvut.fit.ostrajava.Interpreter.StackValue;
 
 /**
  * Created by tomaskohout on 11/21/15.
  */
-public class PrimitiveArray extends HeapItem {
+public class Array extends HeapItem {
 
-    final int ITEM_SIZE = 4;
+    final int ITEM_SIZE = StackValue.size;
     final int HEADER_SIZE = GC_STATE_SIZE;
 
     int capacity;
 
 
 
-    public PrimitiveArray(int size) {
+    public Array(int size) {
 
         this.capacity = size;
         byteArray = new byte[HEADER_SIZE + size * ITEM_SIZE];
@@ -23,33 +24,36 @@ public class PrimitiveArray extends HeapItem {
         this.setGCState(State.Dead);
     }
 
-    public int get(int index){
+    public StackValue get(int index){
         if (index > capacity - 1 ){
             throw new IndexOutOfBoundsException();
         }
-        return Converter.byteArrayToInt(getBytes(HEADER_SIZE + index * ITEM_SIZE));
+        return new StackValue(getBytes(HEADER_SIZE + index * ITEM_SIZE));
     }
 
-    public void set(int index, int value){
+    public void set(int index, StackValue value){
         if (index > capacity - 1 ){
             throw new IndexOutOfBoundsException();
         }
 
-        setBytes(HEADER_SIZE + index * ITEM_SIZE, Converter.intToByteArray(value));
+        setBytes(HEADER_SIZE + index * ITEM_SIZE, value.getBytes());
     }
 
     public int getSize(){
         return this.capacity;
     }
 
-    public byte[] getBytes(){
+    /*public byte[] getItemsBytes(){
         byte[] bytes = new byte[getSize()*ITEM_SIZE];
-        for (int i = 0; i<getSize()*ITEM_SIZE; i++){
-            bytes[i] = byteArray[HEADER_SIZE+i];
+        for (int i = 0; i<getSize(); i+=1){
+             byte[] value = get(i).getValue();
+             for (int j = 0; i<getSize(); i+=1) {
+
+             }
         }
 
         return bytes;
-    }
+    }*/
 
     @Override
     public String toString() {

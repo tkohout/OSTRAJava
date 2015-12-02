@@ -20,7 +20,7 @@ public class OSTRAJavaInterpreter {
     final String MAIN_METHOD_NAME = "rynek";
     final int FRAMES_NUMBER = 128;
     final int FRAME_STACK_SIZE = 256;
-    final int MAX_HEAP_OBJECTS = 100;
+    final int MAX_HEAP_OBJECTS = 10000;
 
     final int END_RETURN_ADDRESS = -1;
 
@@ -45,7 +45,7 @@ public class OSTRAJavaInterpreter {
 
         this.instructions = new Instructions(classPool);
         this.constantPool = new ConstantPool(classPool);
-        this.natives = new Natives(this.heap);
+        this.natives = new Natives(this.heap, classPool);
     }
 
 
@@ -168,6 +168,8 @@ public class OSTRAJavaInterpreter {
             case NewArray:
             case StoreIntegerArray:
             case LoadIntegerArray:
+            case StoreReferenceArray:
+            case LoadReferenceArray:
                 executeArrayInstruction(instruction, stack);
                 break;
             case FloatToInteger:
@@ -189,24 +191,25 @@ public class OSTRAJavaInterpreter {
                 StackValue reference = heap.allocArray(size);
                 stack.currentFrame().push(reference);
                 break;
-            case StoreIntegerArray: {
-                int value = stack.currentFrame().pop().intValue();;
+            case StoreIntegerArray:
+            case StoreReferenceArray: {
+                StackValue value = stack.currentFrame().pop();;
                 int index = stack.currentFrame().pop().intValue();;
                 StackValue arrayRef = stack.currentFrame().pop();
 
-                PrimitiveArray array = heap.loadArray(arrayRef);
+                Array array = heap.loadArray(arrayRef);
                 array.set(index, value);
             }
                 break;
-            case LoadIntegerArray: {
+            case LoadIntegerArray:
+            case LoadReferenceArray:{
                 int index = stack.currentFrame().pop().intValue();;
                 StackValue arrayRef = stack.currentFrame().pop();;
 
-                PrimitiveArray array = heap.loadArray(arrayRef);
-
-                //TODO: Right now it's always primitive
-                StackValue value = new StackValue(array.get(index), StackValue.Type.Primitive);
+                Array array = heap.loadArray(arrayRef);
+                StackValue value = array.get(index);
                 stack.currentFrame().push(value);
+
             }
                 break;
         }
@@ -219,10 +222,11 @@ public class OSTRAJavaInterpreter {
         //Create array of chars and push it on stack
         StackValue reference = heap.allocArray(constant.length());
 
-        PrimitiveArray charArray = heap.loadArray(reference);
+        Array charArray = heap.loadArray(reference);
 
         for (int i = 0; i < constant.length(); i++){
-            charArray.set(i, constant.charAt(i));
+            StackValue charValue = new StackValue(constant.charAt(i), StackValue.Type.Primitive);
+            charArray.set(i, charValue);
         }
 
         stack.currentFrame().push(reference);
