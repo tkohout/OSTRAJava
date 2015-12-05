@@ -106,4 +106,29 @@ public class Instructions{
             throw new UnsupportedOperationException("Remove is not supported");
         }
     }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+
+        int numberToShow = 20;
+
+        int start = getCurrentPosition() - numberToShow / 2;
+
+        if (start < 0){
+            start = 0;
+        }
+
+        for (int i = start; i<start + numberToShow; i++){
+            sb.append(instructionList.get(i));
+
+            if (i == getCurrentPosition()){
+                sb.append("<--");
+            }
+
+            sb.append("\n");
+        }
+
+        return sb.toString();
+    }
 }

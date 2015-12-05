@@ -5,7 +5,7 @@
 banik pyco
 
 tryda Parsovac {
-    Klauzule[] vyparsuj(Dryst soubor){
+    CNF vyparsuj(Dryst soubor){
 
         toz Citac c = zrob Citac() pyco
         c.otevr(soubor) pyco
@@ -31,13 +31,13 @@ tryda Parsovac {
             kaj (pocet != 0 aj prvni.kantuje("c") == nyt ){
 
                 kaj (prvni.kantuje("p") == fajne ){
-                    toz cyslo klauzuli = CysloCele.preved(casti[2]) pyco
-                    promennych = CysloCele.preved(casti[3]) pyco
+                    toz cyslo klauzuli = CysloCele.preved(casti[3]) pyco
+                    promennych = CysloCele.preved(casti[2]) pyco
 
                     klauzule = zrob Klauzule[klauzuli] pyco
 
                 } boinak {
-                    toz Promenna[] promenne = zrob Promenna[pocet] pyco
+                    toz cyslo[] promenne = zrob cyslo[promennych] pyco
 
                     rubat (j < pocet){
                         toz Dryst cast = casti[j] pyco
@@ -46,10 +46,20 @@ tryda Parsovac {
                             zdybat pyco
                         }
 
-                        toz Promenna p = zrob Promenna(CysloCele.preved(casti[j])) pyco
-                        promenne[j] = p pyco
+                        toz cyslo p = CysloCele.preved(casti[j]) pyco
+                        toz cyslo hodnota pyco
+                        kaj (p < 0){
+                            p = p * (0-1) pyco
+                            hodnota = -1 pyco
+                        } boinak {
+                            hodnota = 1 pyco
+                        }
+
+                        promenne[p-1] = hodnota pyco
+
                         j = j + 1 pyco
                     }
+
                     klauzule[klauzuleIndex] = zrob Klauzule(promenne) pyco
                     klauzuleIndex = klauzuleIndex + 1 pyco
 
@@ -61,7 +71,9 @@ tryda Parsovac {
         }
         c.zavr() pyco
 
-        davaj klauzule pyco
+        toz CNF cnf = zrob CNF(klauzule, promennych, klauzuli) pyco
+
+        davaj cnf pyco
     }
 }
 

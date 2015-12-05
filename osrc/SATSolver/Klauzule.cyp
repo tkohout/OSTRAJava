@@ -2,11 +2,15 @@ banik pyco
 
 tryda Klauzule {
 
-    toz Promenna[] promenne pyco
+    toz cyslo[] promenne pyco
+    toz cyslo pocet pyco
 
-    Klauzule(Promenna[] promenne){
+    Klauzule(cyslo[] promenne){
         joch.promenne = promenne pyco
+        joch.pocet = arraySize(promenne) pyco
     }
+
+
 
 }
 

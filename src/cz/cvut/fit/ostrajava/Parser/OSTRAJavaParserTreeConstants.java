@@ -54,36 +54,37 @@ public interface OSTRAJavaParserTreeConstants
   public int JJTMODULOOPERATOR = 48;
   public int JJTUNARYEXPRESSION = 49;
   public int JJTUNARYEXPRESSIONNOTPLUSMINUS = 50;
-  public int JJTPRIMARYEXPRESSION = 51;
-  public int JJTPRIMARYPREFIX = 52;
-  public int JJTPRIMARYSUFFIX = 53;
-  public int JJTNUMBERLITERAL = 54;
-  public int JJTFLOATLITERAL = 55;
-  public int JJTCHARLITERAL = 56;
-  public int JJTSTRINGLITERAL = 57;
-  public int JJTTRUE = 58;
-  public int JJTFALSE = 59;
-  public int JJTNULLLITERAL = 60;
-  public int JJTARGUMENTS = 61;
-  public int JJTALLOCATIONEXPRESSION = 62;
-  public int JJTARRAYSUFFIX = 63;
-  public int JJTSTATEMENT = 64;
-  public int JJTBLOCK = 65;
-  public int JJTLOCALVARIABLEDECLARATION = 66;
-  public int JJTDEBUGSTATEMENT = 67;
-  public int JJTEMPTYSTATEMENT = 68;
-  public int JJTSTATEMENTEXPRESSION = 69;
-  public int JJTSWITCHSTATEMENT = 70;
-  public int JJTSWITCHLABEL = 71;
-  public int JJTIFSTATEMENT = 72;
-  public int JJTWHILESTATEMENT = 73;
-  public int JJTSTATEMENTEXPRESSIONLIST = 74;
-  public int JJTFORUPDATE = 75;
-  public int JJTBREAKSTATEMENT = 76;
-  public int JJTCONTINUESTATEMENT = 77;
-  public int JJTRETURNSTATEMENT = 78;
-  public int JJTTHROWSTATEMENT = 79;
-  public int JJTTRYSTATEMENT = 80;
+  public int JJTNEGATIONOPERATOR = 51;
+  public int JJTPRIMARYEXPRESSION = 52;
+  public int JJTPRIMARYPREFIX = 53;
+  public int JJTPRIMARYSUFFIX = 54;
+  public int JJTNUMBERLITERAL = 55;
+  public int JJTFLOATLITERAL = 56;
+  public int JJTCHARLITERAL = 57;
+  public int JJTSTRINGLITERAL = 58;
+  public int JJTTRUE = 59;
+  public int JJTFALSE = 60;
+  public int JJTNULLLITERAL = 61;
+  public int JJTARGUMENTS = 62;
+  public int JJTALLOCATIONEXPRESSION = 63;
+  public int JJTARRAYSUFFIX = 64;
+  public int JJTSTATEMENT = 65;
+  public int JJTBLOCK = 66;
+  public int JJTLOCALVARIABLEDECLARATION = 67;
+  public int JJTDEBUGSTATEMENT = 68;
+  public int JJTEMPTYSTATEMENT = 69;
+  public int JJTSTATEMENTEXPRESSION = 70;
+  public int JJTSWITCHSTATEMENT = 71;
+  public int JJTSWITCHLABEL = 72;
+  public int JJTIFSTATEMENT = 73;
+  public int JJTWHILESTATEMENT = 74;
+  public int JJTSTATEMENTEXPRESSIONLIST = 75;
+  public int JJTFORUPDATE = 76;
+  public int JJTBREAKSTATEMENT = 77;
+  public int JJTCONTINUESTATEMENT = 78;
+  public int JJTRETURNSTATEMENT = 79;
+  public int JJTTHROWSTATEMENT = 80;
+  public int JJTTRYSTATEMENT = 81;
 
 
   public String[] jjtNodeName = {
@@ -138,6 +139,7 @@ public interface OSTRAJavaParserTreeConstants
     "ModuloOperator",
     "UnaryExpression",
     "UnaryExpressionNotPlusMinus",
+    "NegationOperator",
     "PrimaryExpression",
     "PrimaryPrefix",
     "PrimarySuffix",
@@ -170,4 +172,4 @@ public interface OSTRAJavaParserTreeConstants
     "TryStatement",
   };
 }
-/* JavaCC - OriginalChecksum=a71fc68703f37fc825701df34728239d (do not edit this line) */
+/* JavaCC - OriginalChecksum=bfbd35de70feb0f2d98144ac769918c1 (do not edit this line) */

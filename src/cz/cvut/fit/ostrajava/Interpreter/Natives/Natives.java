@@ -5,6 +5,7 @@ import cz.cvut.fit.ostrajava.Interpreter.*;
 import cz.cvut.fit.ostrajava.Interpreter.Memory.Heap;
 import cz.cvut.fit.ostrajava.Interpreter.Memory.HeapOverflow;
 import cz.cvut.fit.ostrajava.Interpreter.Natives.Array.CharArraySize;
+import cz.cvut.fit.ostrajava.Interpreter.Natives.Array.IntArraySize;
 import cz.cvut.fit.ostrajava.Interpreter.Natives.Array.ReferenceArraySize;
 import cz.cvut.fit.ostrajava.Interpreter.Natives.Conversion.CharArrayToInt;
 import cz.cvut.fit.ostrajava.Interpreter.Natives.Conversion.IntToCharArray;
@@ -71,6 +72,7 @@ public class Natives {
             addNative("readline:" + Types.Number(), new ReadLine(heap));
             addNative("closereader:" + Types.Number(), new CloseReader(heap));
             addNative("arraysize:" + Types.CharArray(), new CharArraySize(heap));
+            addNative("arraysize:" + Types.NumberArray(), new IntArraySize(heap));
             addNative("arraysize:" + "bazmek[]", new ReferenceArraySize(heap));
             addNative("chararraytoint:" + Types.CharArray(), new CharArrayToInt(heap));
             addNative("inttochararray:" + Types.Number(), new IntToCharArray(heap));

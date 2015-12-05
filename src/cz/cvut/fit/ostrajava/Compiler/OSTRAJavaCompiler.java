@@ -5,6 +5,7 @@ import cz.cvut.fit.ostrajava.Interpreter.LookupException;
 import cz.cvut.fit.ostrajava.Parser.*;
 import cz.cvut.fit.ostrajava.Type.*;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
+import sun.tools.tree.UnaryExpression;
 
 import java.lang.reflect.Array;
 import java.util.*;
@@ -726,6 +727,13 @@ public class OSTRAJavaCompiler {
             return getTypeForFields(value, compilation);
         }else if (CompilerTypes.isStringLiteral(value)){
             return Types.String();
+        }else if (CompilerTypes.isUnaryExpression(value)){
+            if (value instanceof ASTUnaryExpression) {
+                return getTypeForExpression(value.jjtGetChild(1), compilation);
+            //It's negation
+            }else{
+                return Types.Boolean();
+            }
         }else{
             throw new NotImplementedException();
         }
@@ -1226,6 +1234,8 @@ public class OSTRAJavaCompiler {
             booleanLiteral(node, compilation);
         }else if (CompilerTypes.isNullLiteral(node)) {
             nullLiteral(node, compilation);
+        }else if (CompilerTypes.isUnaryExpression(node)){
+            unaryExpression(node, compilation);
         }else{
             throw new NotImplementedException();
         }
@@ -1281,6 +1291,32 @@ public class OSTRAJavaCompiler {
     protected void numberLiteral(Node node, MethodCompilation compilation) throws CompilerException {
         String value = ((ASTNumberLiteral) node).jjtGetValue().toString();
         compilation.getByteCode().addInstruction(new Instruction(InstructionSet.PushInteger, Integer.parseInt(value)));
+    }
+
+    protected void unaryExpression(Node node, MethodCompilation compilation) throws CompilerException {
+        Node operator = node.jjtGetChild(0);
+        Node value = node.jjtGetChild(1);
+        //+ -
+        if (node instanceof ASTUnaryExpression){
+            //Ignore plus
+            if (operator instanceof ASTMinusOperator){
+                Node additive = new ASTAdditiveExpression(node.getId());
+                ASTNumberLiteral zero = new ASTNumberLiteral(node.getId()+1);
+                zero.jjtSetValue(0);
+
+                // expr = 0 - value
+                additive.jjtAddChild(zero, 0);
+                additive.jjtAddChild(operator, 1);
+                additive.jjtAddChild(value, 2);
+
+                expression(additive, compilation);
+            }
+
+        //Negation
+        }else if (node instanceof ASTUnaryExpressionNotPlusMinus){
+            //TODO: this might not work
+            evaluateExpression(value, compilation);
+        }
     }
 
     protected void floatLiteral(Node node, MethodCompilation compilation) throws CompilerException {

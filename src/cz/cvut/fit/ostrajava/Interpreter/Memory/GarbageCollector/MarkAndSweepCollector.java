@@ -1,6 +1,7 @@
 package cz.cvut.fit.ostrajava.Interpreter.Memory.GarbageCollector;
 
 import cz.cvut.fit.ostrajava.Interpreter.*;
+import cz.cvut.fit.ostrajava.Interpreter.Memory.Array;
 import cz.cvut.fit.ostrajava.Interpreter.Memory.HeapItem;
 import cz.cvut.fit.ostrajava.Interpreter.Memory.Object;
 import cz.cvut.fit.ostrajava.Interpreter.Memory.SimpleHeap;
@@ -64,22 +65,17 @@ public class MarkAndSweepCollector extends GarbageCollector{
                     StackValue fieldRef = obj.getField(i);
                     dirtyLinks.addAll(markObject(fieldRef));
                 }
+            }else if (heapObj instanceof Array){
+                Array array = (Array) heapObj;
+
+                for (int i =0; i< array.getSize(); i++){
+                    StackValue itemRef = array.get(i);
+                    dirtyLinks.addAll(markObject(itemRef));
+                }
             }
         }
 
         return dirtyLinks;
-    }
-
-    public void markAllDead(SimpleHeap heap){
-        for (int i=1; i<heap.getSize(); i++){
-
-            HeapItem obj = heap.load(new StackValue(i, StackValue.Type.Pointer));
-
-            if (obj != null) {
-                obj.setGCState(State.Dead);
-            }
-
-        }
     }
 
     public void sweep(){

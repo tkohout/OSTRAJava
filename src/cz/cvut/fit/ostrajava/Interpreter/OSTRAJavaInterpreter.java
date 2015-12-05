@@ -20,7 +20,7 @@ public class OSTRAJavaInterpreter {
     final String MAIN_METHOD_NAME = "rynek";
     final int FRAMES_NUMBER = 128;
     final int FRAME_STACK_SIZE = 256;
-    final int MAX_HEAP_OBJECTS = 10000;
+    final int MAX_HEAP_OBJECTS = 100;
 
     final int END_RETURN_ADDRESS = -1;
 
@@ -196,6 +196,10 @@ public class OSTRAJavaInterpreter {
                 StackValue value = stack.currentFrame().pop();;
                 int index = stack.currentFrame().pop().intValue();;
                 StackValue arrayRef = stack.currentFrame().pop();
+
+                if (instruction.getInstruction() == InstructionSet.StoreReferenceArray) {
+                    heap.addDirtyLink(arrayRef, value);
+                }
 
                 Array array = heap.loadArray(arrayRef);
                 array.set(index, value);

@@ -565,7 +565,7 @@ void MultiplicativeExpression() :
 void UnaryExpression() :
 {}
 {
-  ( "+" | "-" ) UnaryExpression()
+  ( "+" | "-" #MinusOperator ) UnaryExpression()
 |
   UnaryExpressionNotPlusMinus()
 }
@@ -575,7 +575,7 @@ void UnaryExpression() :
 void UnaryExpressionNotPlusMinus() :
 {}
 {
-  ( "!" ) UnaryExpression()
+  ( "!" #NegationOperator ) UnaryExpression()
 |
   PrimaryExpression()
 }

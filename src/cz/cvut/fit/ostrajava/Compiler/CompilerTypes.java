@@ -73,6 +73,10 @@ public class CompilerTypes {
         return node instanceof ASTAllocationExpression;
     }
 
+    public static boolean isUnaryExpression(Node node){
+        return node instanceof ASTUnaryExpression || node instanceof  ASTUnaryExpressionNotPlusMinus;
+    }
+
     public static boolean isCallExpression(Node node){
         if (node instanceof ASTPrimaryExpression){
             Node last = node.jjtGetChild(node.jjtGetNumChildren() -1);

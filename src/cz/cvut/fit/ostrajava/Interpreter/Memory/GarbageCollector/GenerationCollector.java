@@ -125,10 +125,11 @@ public class GenerationCollector extends GarbageCollector {
             }
             HeapItem heapObj = heap.getTenure().load(objRef);
 
-            //Only change fields of Object, not Array
             if (heapObj instanceof Object) {
                 Object obj = (Object)heapObj;
                 translateReferencesInObject(obj, referenceMap);
+            }else if (heapObj instanceof Array){
+                translateReferencesInArray((Array)heapObj, referenceMap);
             }
         }
 
@@ -150,11 +151,32 @@ public class GenerationCollector extends GarbageCollector {
         }
     }
 
+    protected void translateReferencesInArray(Array array, StackValue[] referenceMap){
+        for (int i = 0; i < array.getSize(); i++) {
+            StackValue value = array.get(i);
+
+            if (value.isPointer() && !value.isNullPointer()) {
+
+                //If it points to tenure, there is nothing to translate
+                if (heap.isEdenReference(value)) {
+                    StackValue newRef = translateReference(value, referenceMap);
+                    array.set(i, newRef);
+                }
+            }
+        }
+    }
+
     protected void translateDirtyReferences(StackValue[] referenceMap){
-        Set<StackValue> roots = new HashSet<>();
         for (DirtyLink link:  dirtyLinks){
-            Object obj = heap.getTenure().loadObject(link.getFrom());
-            translateReferencesInObject(obj, referenceMap);
+            HeapItem obj = heap.getTenure().load(link.getFrom());
+            if (obj == null){
+                return;
+            }
+            if (obj instanceof Object) {
+                translateReferencesInObject((Object)obj, referenceMap);
+            }else{
+                translateReferencesInArray((Array)obj, referenceMap);
+            }
         }
     }
 
