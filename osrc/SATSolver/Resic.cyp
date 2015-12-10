@@ -20,9 +20,6 @@ tryda Resic {
         }boinak{
             Konzola.pravit("Neresitelne") pyco
         }
-
-        dechrobok pyco
-
     }
 
     bul vyres(){
@@ -41,8 +38,7 @@ tryda Resic {
         kaj (vseci == 1){
             Konzola.pravit("Konecne reseni: ") pyco
             Konzola.pravit(reseni.naDryst()) pyco
-            dechrobok pyco
-           davaj fajne pyco
+            davaj fajne pyco
         //Aspon jedna klauzule je nesplnena
         } kajtez (vseci == -1){
            davaj nyt pyco
@@ -88,7 +84,6 @@ tryda Resic {
         nove.nastavNyt(index) pyco
 
         kaj (vyres(nove) == fajne){
-           dechrobok pyco
            davaj fajne pyco
         }
 

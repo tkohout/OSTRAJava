@@ -16,6 +16,11 @@ tryda Parsovac {
 
         toz Klauzule[] klauzule pyco
 
+        toz Dryst nula = "0" pyco
+        toz Dryst komentar = "c" pyco
+        toz Dryst meta = "p" pyco
+
+
         toz cyslo promennych = 0 pyco
 
         toz cyslo klauzuleIndex = 0 pyco
@@ -28,9 +33,9 @@ tryda Parsovac {
 
             toz Dryst prvni = casti[0] pyco
 
-            kaj (pocet != 0 aj prvni.kantuje("c") == nyt ){
+            kaj (pocet != 0 aj prvni.kantuje(komentar) == nyt ){
 
-                kaj (prvni.kantuje("p") == fajne ){
+                kaj (prvni.kantuje(meta) == fajne ){
                     toz cyslo klauzuli = CysloCele.preved(casti[3]) pyco
                     promennych = CysloCele.preved(casti[2]) pyco
 
@@ -42,7 +47,7 @@ tryda Parsovac {
                     rubat (j < pocet){
                         toz Dryst cast = casti[j] pyco
 
-                        kaj (cast.kantuje("0") == fajne){
+                        kaj (cast.kantuje(nula) == fajne){
                             zdybat pyco
                         }
 
