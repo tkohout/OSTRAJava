@@ -49,7 +49,10 @@ tryda Konzola{
         }
     }
 
-
+    natyv print(chachar[] c) pyco
+    natyv print(cyslo i) pyco
+    natyv print(cyslo_desetinne i) pyco
+    natyv print(chachar c) pyco
 
 }
 

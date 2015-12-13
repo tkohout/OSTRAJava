@@ -13,7 +13,7 @@ public class InterpretedMethod extends Method {
     public InterpretedMethod(Method method) {
         super(method.getName(), method.getArgs(), method.getClassName(), method.getReturnType());
 
-        setStaticMethod(method.isStaticMethod());
+        this.addFlags(method.getFlags());
 
         //Copy
         this.setByteCode(method.getByteCode());

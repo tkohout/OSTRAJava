@@ -49,7 +49,31 @@ tryda Pole{
         joch.kapacyta = nova_kapacyta pyco
     }
 
+    statyk cyslo velikost(Bazmek[] pole){
+        davaj arraySize(pole) pyco
+    }
 
+    statyk cyslo velikost(cyslo[] pole){
+        davaj arraySize(pole) pyco
+    }
+
+    statyk cyslo velikost(cyslo_desetinne[] pole){
+        davaj arraySize(pole) pyco
+    }
+
+    statyk cyslo velikost(chachar[] pole){
+        davaj arraySize(pole) pyco
+    }
+
+    statyk cyslo velikost(bul[] pole){
+        davaj arraySize(pole) pyco
+    }
+
+    natyv cyslo arraySize(Bazmek[] pole) pyco
+    natyv cyslo arraySize(cyslo[] pole) pyco
+    natyv cyslo arraySize(cyslo_desetinne[] pole) pyco
+    natyv cyslo arraySize(chachar[] pole) pyco
+    natyv cyslo arraySize(bul[] pole) pyco
 }
 
 fajront pyco

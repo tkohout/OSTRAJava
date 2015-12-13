@@ -19,6 +19,9 @@ tryda CysloCele {
         toz chachar[] chachari = intToCharArray(joch.c) pyco
         davaj zrob Dryst(chachari) pyco
     }
+
+    natyv cyslo charArrayToInt(chachar[] c) pyco
+    natyv chachar[] intToCharArray(cyslo c) pyco
 }
 
 fajront pyco 

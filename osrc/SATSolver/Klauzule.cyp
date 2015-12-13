@@ -7,7 +7,7 @@ tryda Klauzule {
 
     Klauzule(cyslo[] promenne){
         joch.promenne = promenne pyco
-        joch.pocet = arraySize(promenne) pyco
+        joch.pocet = Pole.velikost(promenne) pyco
     }
 
 

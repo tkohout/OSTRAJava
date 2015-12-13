@@ -10,7 +10,7 @@ tryda Dryst {
     toz cyslo kapacyta pyco
 
     Dryst dryst(chachar[] chachari){
-        joch.dylka = arraySize(chachari) pyco
+        joch.dylka = Pole.velikost(chachari) pyco
         joch.chachari = chachari pyco
         davaj joch pyco
     }

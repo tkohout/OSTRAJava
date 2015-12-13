@@ -234,7 +234,7 @@ public class OSTRAJavaCompiler {
         List<Type> args = new ArrayList<>();
         MethodCompilation compilation = new MethodCompilation();
 
-        boolean isStatic = false;
+        Set<Method.MethodFlag> flags = new HashSet<>();
         boolean isConstructor = false;
 
         Method method = null;
@@ -243,7 +243,9 @@ public class OSTRAJavaCompiler {
             Node child = node.jjtGetChild(i);
 
             if (child instanceof ASTStatic) {
-                isStatic = true;
+                flags.add(Method.MethodFlag.Static);
+            }else if (child instanceof ASTNative) {
+                flags.add(Method.MethodFlag.Native);
             }else if (child instanceof ASTResultType){
                 ASTResultType resultType = ((ASTResultType) child);
                 if (resultType.jjtGetNumChildren() != 0){
@@ -300,8 +302,7 @@ public class OSTRAJavaCompiler {
         }
 
 
-
-        method.setStaticMethod(isStatic);
+        method.addFlags(flags);
         method.setLocalVariablesCount(compilation.getNumberOfLocalVariables());
         method.setByteCode(compilation.getByteCode());
     }
@@ -834,7 +835,7 @@ public class OSTRAJavaCompiler {
             Method method = callerClass.lookupMethod(methodDescriptor, classPool);
             return method.getReturnType();
         } catch (LookupException e) {
-            //TODO:it can still be native
+            //We do not know what method it is, let the invoke handle it
             return null;
         }
     }
@@ -1365,9 +1366,6 @@ public class OSTRAJavaCompiler {
         int index = constantPool.addConstant(STRING_CLASS);
         compilation.getByteCode().addInstruction(new Instruction(InstructionSet.New, index));
 
-        //Duplicate the object reference because invoke will pop it from stack
-        //compilation.getByteCode().addInstruction(new Instruction(InstructionSet.Duplicate, index));
-
         //Setup constructor String(char[]) which will take characters as argument
         List<Type> argTypes = new ArrayList<>();
         argTypes.add(Types.CharArray());
@@ -1469,9 +1467,7 @@ public class OSTRAJavaCompiler {
             //We try to lookup the method
             method = objClass.lookupMethod(methodDescriptor, this.classPool);
         } catch (LookupException e) {
-            //We didn't find it, use the method constructed from what we know
-            //It's a native method - we don't know it's class
-            method.setClassName(null);
+            throw new CompilerException(e.getMessage());
         }
 
 

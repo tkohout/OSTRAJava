@@ -29,7 +29,7 @@ tryda Parsovac {
             casti = radka.rozdel(' ') pyco
 
             toz cyslo j = 0 pyco
-            toz cyslo pocet = arraySize(casti) pyco
+            toz cyslo pocet = Pole.velikost(casti) pyco
 
             toz Dryst prvni = casti[0] pyco
 

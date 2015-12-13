@@ -98,6 +98,7 @@ TOKEN : /* RESERVED WORDS AND LITERALS */
 //| < PRINT: "pravit" >
 | < RETURN: "davaj" >
 | < STATIC: "statyk" >
+| < NATIVE: "natyv" >
 | < INT: "cyslo" >
 | < BOOLEAN: "bul" >
 | < FLOAT: "cyslo_desetinne" >
@@ -366,6 +367,7 @@ void MethodDeclaration() :
 {}
 {
   [ "statyk" #Static]
+  [ "natyv" #Native]
   MethodHeader()
   ( Block() | "pyco" )
 }

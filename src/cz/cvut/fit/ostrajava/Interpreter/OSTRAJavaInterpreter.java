@@ -307,12 +307,6 @@ public class OSTRAJavaInterpreter {
 
                 String className = new Method(methodDescriptor).getClassName();
 
-                //Method class was not found in compilation that means it's a native
-                if (className == null){
-                    invokeNative(methodDescriptor);
-                    return;
-                }
-
 
                 try {
                     //Normal method
@@ -330,6 +324,12 @@ public class OSTRAJavaInterpreter {
 
                     //Lookup real interpreted method
                     InterpretedMethod method = objectClass.lookupMethod(methodDescriptor, classPool);
+
+                    if (method.isNativeMethod()){
+                        invokeNative(methodDescriptor);
+                        return;
+                    }
+
 
                     //Return to next instruction
                     int returnAddress = instructions.getCurrentPosition() + 1;
@@ -364,10 +364,6 @@ public class OSTRAJavaInterpreter {
         if (!natives.nativeExist(methodDescriptor)){
             throw new InterpreterException("Trying to call non-existent method '" + methodDescriptor +"'");
         }
-
-        //Pop obj reference from stack (we don't need it but need to pop it)
-        StackValue objectRef = stack.currentFrame().pop();
-
 
         //Load approximate method from descriptor so we can count the arguments
         Method methodFromDescriptor = new Method(methodDescriptor);

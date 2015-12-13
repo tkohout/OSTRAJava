@@ -26,6 +26,10 @@ tryda Citac {
    zavr(){
       closeReader(joch.readerAddress) pyco
    }
+
+   natyv cyslo openReader(chachar[] fileName) pyco
+   natyv closeReader(cyslo addr) pyco
+   natyv chachar[] readLine(cyslo addr) pyco
     
 }
 

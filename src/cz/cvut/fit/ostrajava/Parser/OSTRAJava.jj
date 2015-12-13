@@ -102,6 +102,7 @@ TOKEN : /* RESERVED WORDS AND LITERALS */
 //| < PRINT: "pravit" >
 | < RETURN: "davaj" >
 | < STATIC: "statyk" >
+| < NATIVE: "natyv" >
 | < INT: "cyslo" >
 | < BOOLEAN: "bul" >
 | < FLOAT: "cyslo_desetinne" >
@@ -571,6 +572,22 @@ void MethodDeclaration() :
       if (jjtc001) {
         jjtree.closeNodeScope(jjtn001, true);
         jjtn001.jjtSetLastToken(getToken(0));
+      }
+    }
+/*@egen*/        ]
+  [/*@bgen(jjtree) Native */
+    {
+      ASTNative jjtn002 = new ASTNative(JJTNATIVE);
+      boolean jjtc002 = true;
+      jjtree.openNodeScope(jjtn002);
+      jjtn002.jjtSetFirstToken(getToken(1));
+    }
+    try {
+/*@egen*/ "natyv"/*@bgen(jjtree)*/
+    } finally {
+      if (jjtc002) {
+        jjtree.closeNodeScope(jjtn002, true);
+        jjtn002.jjtSetLastToken(getToken(0));
       }
     }
 /*@egen*/        ]

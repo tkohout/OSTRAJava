@@ -8,20 +8,27 @@ import cz.cvut.fit.ostrajava.Type.Type;
 import cz.cvut.fit.ostrajava.Type.Types;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Created by tomaskohout on 11/12/15.
  */
 public class Method {
+
+    public enum MethodFlag{
+        Native, Static
+    }
+
     protected String name;
     protected List<Type> args;
     protected Type returnType;
     protected ByteCode byteCode;
     protected int localVariablesCount =  0;
     protected String className;
+    protected Set<MethodFlag> flags;
 
-    boolean staticMethod = false;
 
     public Method(String name, List<Type> args) {
         this(name, args, null);
@@ -36,6 +43,7 @@ public class Method {
         this.args = args;
         this.returnType = returnType;
         this.className = className;
+        this.flags = new HashSet<>();
     }
 
     public Method(String descriptor) {
@@ -150,11 +158,23 @@ public class Method {
     }
 
     public boolean isStaticMethod() {
-        return staticMethod;
+        return flags.contains(MethodFlag.Static);
     }
 
-    public void setStaticMethod(boolean staticMethod) {
-        this.staticMethod = staticMethod;
+    public boolean isNativeMethod() {
+        return flags.contains(MethodFlag.Native);
+    }
+
+    public void addFlag(MethodFlag flag) {
+        this.flags.add(flag);
+    }
+
+    public void addFlags(Set<MethodFlag> flags) {
+        this.flags.addAll(flags);
+    }
+
+    public Set<MethodFlag> getFlags() {
+        return flags;
     }
 
     public String getClassName() {
