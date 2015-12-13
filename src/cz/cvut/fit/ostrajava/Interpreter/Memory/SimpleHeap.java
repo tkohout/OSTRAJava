@@ -146,6 +146,24 @@ public class SimpleHeap implements Heap{
     }
 
     @Override
+    public StackValue[] getAllocated() {
+        StackValue[] allocated = new StackValue[spaceUsed()];
+
+        int pos = 0;
+
+        for (int i = 0; i < getSize(); i++) {
+            StackValue ref = indexToReference(i);
+            HeapItem item = load(ref);
+            if (item != null){
+                allocated[pos] = ref;
+                pos++;
+            }
+        }
+
+        return allocated;
+    }
+
+    @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
 

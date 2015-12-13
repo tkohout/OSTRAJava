@@ -1,5 +1,6 @@
 package cz.cvut.fit.ostrajava.Interpreter.Memory;
 
+import com.sun.tools.javac.util.ArrayUtils;
 import cz.cvut.fit.ostrajava.Interpreter.InterpretedClass;
 import cz.cvut.fit.ostrajava.Interpreter.Memory.GarbageCollector.GenerationCollector;
 import cz.cvut.fit.ostrajava.Interpreter.Memory.GarbageCollector.MarkAndSweepCollector;
@@ -136,6 +137,21 @@ public class GenerationHeap implements Heap {
 
 
     public void setGarbageCollector(GenerationCollector garbageCollector) { this.garbageCollector = garbageCollector; }
+
+
+    @Override
+    public StackValue[] getAllocated() {
+        StackValue[] edenAllocated = eden.getAllocated();
+        StackValue[] tenureAllocated = tenure.getAllocated();
+
+        int edenLen = edenAllocated.length;
+        int tenureLen = tenureAllocated.length;
+        StackValue[] all= new StackValue[edenLen+tenureLen];
+        System.arraycopy(edenAllocated, 0, all, 0, edenLen);
+        System.arraycopy(tenureAllocated, 0, all, edenLen, tenureLen);
+        return all;
+
+    }
 
     @Override
     public String toString() {

@@ -20,7 +20,7 @@ public class OSTRAJavaInterpreter {
     final String MAIN_METHOD_NAME = "rynek";
     final int FRAMES_NUMBER = 128;
     final int FRAME_STACK_SIZE = 256;
-    final int MAX_HEAP_OBJECTS = 201;
+    final int MAX_HEAP_OBJECTS = 400;
 
     final int END_RETURN_ADDRESS = -1;
 
@@ -46,6 +46,7 @@ public class OSTRAJavaInterpreter {
         this.instructions = new Instructions(classPool);
         this.constantPool = new ConstantPool(classPool);
         this.natives = new Natives(this.heap, classPool);
+        Debugger.init(heap, classPool, constantPool);
     }
 
 

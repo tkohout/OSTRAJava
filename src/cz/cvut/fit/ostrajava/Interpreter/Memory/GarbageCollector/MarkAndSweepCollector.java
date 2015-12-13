@@ -10,11 +10,15 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Created by tomaskohout on 11/28/15.
  */
 public class MarkAndSweepCollector extends GarbageCollector{
+
+    private static final Logger log = Logger.getLogger( MarkAndSweepCollector.class.getName() );
     SimpleHeap heap;
 
     public MarkAndSweepCollector(SimpleHeap heap) {
@@ -79,6 +83,10 @@ public class MarkAndSweepCollector extends GarbageCollector{
     }
 
     public void sweep(){
+
+        log.log(Level.FINE, "Collected: ");
+
+
         for (int i=0; i<heap.getSize(); i++){
 
                 StackValue reference = heap.indexToReference(i);
@@ -87,6 +95,7 @@ public class MarkAndSweepCollector extends GarbageCollector{
 
                 if (obj != null) {
                     if (obj.getGCState() == State.Dead) {
+                        log.log(Level.FINE, reference + ", ");
                         heap.dealloc(reference);
                     } else {
                         //Reset all to dead state
@@ -96,6 +105,7 @@ public class MarkAndSweepCollector extends GarbageCollector{
 
 
         }
+
     }
 
 }

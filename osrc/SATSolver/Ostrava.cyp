@@ -11,6 +11,7 @@ tryda Ostrava {
         toz CNF cnf = p.vyparsuj("resources/sats/06.txt") pyco
         Konzola.pravit("Vyparsovano") pyco
         Konzola.pravit("Zacinam resit") pyco
+        dechrobok pyco
 
         toz Resic r = zrob Resic(cnf) pyco
         r.rubej() pyco

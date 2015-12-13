@@ -22,6 +22,6 @@ public interface Heap {
     public int getSize();
 
     public void dealloc(StackValue address);
-
+    public StackValue[] getAllocated();
 
 }

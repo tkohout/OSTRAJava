@@ -12,7 +12,7 @@ tryda Ostrava {
             toz cyslo j = 0 pyco
 
             //Vytvor 10 setu
-            rubat(j < 10){
+            rubat(j < 1000){
                 i = 0 pyco
                 a = chuj pyco
 
@@ -27,7 +27,7 @@ tryda Ostrava {
                 }
 
                 a.print(1) pyco
-                dechrobok pyco
+
 
                 j = j + 1 pyco
             }
