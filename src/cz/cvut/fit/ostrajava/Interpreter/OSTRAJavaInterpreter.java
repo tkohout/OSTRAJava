@@ -4,6 +4,7 @@ import cz.cvut.fit.ostrajava.Compiler.*;
 import cz.cvut.fit.ostrajava.Compiler.Class;
 import cz.cvut.fit.ostrajava.Interpreter.Memory.GarbageCollector.GenerationCollector;
 import cz.cvut.fit.ostrajava.Interpreter.Memory.*;
+import cz.cvut.fit.ostrajava.Interpreter.Memory.Object;
 import cz.cvut.fit.ostrajava.Interpreter.Natives.Natives;
 import cz.cvut.fit.ostrajava.Type.*;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
@@ -148,6 +149,7 @@ public class OSTRAJavaInterpreter {
                 break;
             case InvokeVirtual:
             case InvokeStatic:
+            case InvokeSpecial:
                 executeInvokeInstruction(instruction, stack);
                 break;
             case Duplicate:
@@ -298,64 +300,69 @@ public class OSTRAJavaInterpreter {
     }
 
     public void executeInvokeInstruction(Instruction instruction, Stack stack) throws InterpreterException, HeapOverflow {
+        InstructionSet inst = instruction.getInstruction();
 
 
-                int constPosition = instruction.getOperand(0);
-                String methodDescriptor = constantPool.getConstant(constPosition);
+        int constPosition = instruction.getOperand(0);
+        String methodDescriptor = constantPool.getConstant(constPosition);
 
-                StackValue objectRef;
+        StackValue objectRef;
 
+
+
+
+        try {
+
+            objectRef = stack.currentFrame().pop();
+            InterpretedClass objectClass;
+
+            if (inst == InstructionSet.InvokeVirtual){
+                //Get class from the actual object on heap
+                Object object = heap.loadObject(objectRef);
+                objectClass = object.loadClass(classPool);
+            //Static & special
+            }else {
+                //Get class from descriptor
                 String className = new Method(methodDescriptor).getClassName();
+                objectClass = classPool.lookupClass(className);
+            }
 
 
-                try {
-                    //Normal method
-                    if (instruction.getInstruction() == InstructionSet.InvokeVirtual) {
-                        //Get object the method is called on
-                        objectRef = stack.currentFrame().pop();
-
-                    //Static method
-                    }else{
-                        //Set This to null pointer
-                        objectRef = new StackValue(0, StackValue.Type.Pointer);
-                    }
-
-                    InterpretedClass objectClass = classPool.lookupClass(className);
-
-                    //Lookup real interpreted method
-                    InterpretedMethod method = objectClass.lookupMethod(methodDescriptor, classPool);
-
-                    if (method.isNativeMethod()){
-                        invokeNative(methodDescriptor);
-                        return;
-                    }
+            //Lookup real interpreted method
+            InterpretedMethod method = objectClass.lookupMethod(methodDescriptor, classPool);
 
 
-                    //Return to next instruction
-                    int returnAddress = instructions.getCurrentPosition() + 1;
+            if (method.isNativeMethod()){
+                invokeNative(methodDescriptor);
+                return;
+            }
 
-                    //Pop arguments from the caller stack
-                    int numberOfArgs = method.getArgs().size();
-                    StackValue[] argValues = new StackValue[numberOfArgs];
 
-                    for (int i = 0; i<numberOfArgs; i++){
-                        argValues[i] = stack.currentFrame().pop();
-                    }
+            //Return to next instruction
+            int returnAddress = instructions.getCurrentPosition() + 1;
 
-                    stack.newFrame(returnAddress, objectRef, method);
+            //Pop arguments from the caller stack
+            int numberOfArgs = method.getArgs().size();
+            StackValue[] argValues = new StackValue[numberOfArgs];
 
-                    //Store arguments as variables in callee stack
-                    for (int i = 0; i<numberOfArgs; i++){
-                        //Start with 1 index, 0 is reserved for This
-                        stack.currentFrame().storeVariable(i+1, argValues[i]);
-                    }
+            for (int i = 0; i<numberOfArgs; i++){
+                argValues[i] = stack.currentFrame().pop();
+            }
 
-                    //Go to the method bytecode start
-                    instructions.goTo(((InterpretedMethod) method).getInstructionPosition());
+            stack.newFrame(returnAddress, objectRef, method);
 
-                } catch (LookupException e) {
-                    throw new InterpreterException("Trying to call non-existent method '" + methodDescriptor +"'");
-                }
+            //Store arguments as variables in callee stack
+            for (int i = 0; i<numberOfArgs; i++){
+                //Start with 1 index, 0 is reserved for This
+                stack.currentFrame().storeVariable(i+1, argValues[i]);
+            }
+
+            //Go to the method bytecode start
+            instructions.goTo(((InterpretedMethod) method).getInstructionPosition());
+
+        } catch (LookupException e) {
+            throw new InterpreterException("Trying to call non-existent method '" + methodDescriptor +"'");
+        }
 
 
     }

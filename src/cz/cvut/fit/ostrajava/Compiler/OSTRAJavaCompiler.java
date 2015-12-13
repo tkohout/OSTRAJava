@@ -902,12 +902,16 @@ public class OSTRAJavaCompiler {
                 variable((ASTName) caller, compilation);
             //It has to be static class
             }else{
+                //Put null pointer on stack
+                compilation.getByteCode().addInstruction(new Instruction(InstructionSet.PushInteger, 0));
                 staticCall = true;
             }
         }else{
             //Evaluate caller
             expression(caller, compilation);
         }
+
+
 
         //Load fields (if any)
         for (int i=1; i<node.jjtGetNumChildren()-2; i++) {
@@ -918,7 +922,7 @@ public class OSTRAJavaCompiler {
         //Get types of arguments (whether they are expression, variables or method call)
         List<Type> argTypes = getArgumentsTypes(args,compilation);
 
-        invokeMethod(objectClass, methodName, argTypes, compilation, staticCall);
+        invokeMethod(objectClass, methodName, argTypes, staticCall, (caller instanceof ASTSuper), compilation);
 
     }
 
@@ -932,9 +936,11 @@ public class OSTRAJavaCompiler {
         //Load argument types
         List<Type> argTypes = getArgumentsTypes(arguments, compilation);
 
-        //Get classname
-        ReferenceType type = (ReferenceType)getTypeForExpression(caller, compilation);
-        String className =  type.getClassName();
+        String className;
+
+        //Get super classname
+        ReferenceType type = (ReferenceType) getTypeForExpression(caller, compilation);
+        className = type.getClassName();
 
         //Put caller ref on stack
         expression(caller, compilation);
@@ -1445,45 +1451,46 @@ public class OSTRAJavaCompiler {
         try {
             Class objClass = classPool.lookupClass(className);
 
-            //Call constructor
-            invokeMethod(objClass, className, args, compilation);
+            invokeMethod(objClass, className, args, false, true, compilation);
 
         } catch (LookupException e) {
-            throw new CompilerException("Class '" + className +  "' not found");
+            throw new CompilerException(e.getMessage());
         }
     }
 
     protected void invokeMethod(Class objClass, String name, List<Type> argTypes, MethodCompilation compilation) throws CompilerException {
-        invokeMethod(objClass, name, argTypes, compilation, false);
+        invokeMethod(objClass, name, argTypes, false, false, compilation);
     }
 
-    protected void invokeMethod(Class objClass, String name, List<Type> argTypes, MethodCompilation compilation, boolean staticCall) throws CompilerException {
+    protected void invokeMethod(Class objClass, String name, List<Type> argTypes, boolean staticCall, boolean specialCall, MethodCompilation compilation) throws CompilerException {
 
-        //Get method based on it's name, arguments and className
+        //Get method based on it's name and arguments
         Method method = new Method(name, argTypes, objClass.getClassName());
         String methodDescriptor = method.getDescriptor();
 
         try {
             //We try to lookup the method
             method = objClass.lookupMethod(methodDescriptor, this.classPool);
+
+            int methodIndex = constantPool.addConstant(methodDescriptor);
+
+            //We can't invoke non-static method statically
+            // (We can invoke static method non-statically though
+            if (staticCall && !method.isStaticMethod()) {
+                throw new CompilerException("Trying to invoke non-static method with a static call");
+            }
+
+
+            if (specialCall) {
+                compilation.getByteCode().addInstruction(new Instruction(InstructionSet.InvokeSpecial, methodIndex));
+            }else if (method.isStaticMethod()){
+                compilation.getByteCode().addInstruction(new Instruction(InstructionSet.InvokeStatic, methodIndex));
+            }else{
+                compilation.getByteCode().addInstruction(new Instruction(InstructionSet.InvokeVirtual, methodIndex));
+            }
+
         } catch (LookupException e) {
             throw new CompilerException(e.getMessage());
-        }
-
-
-        int methodIndex = constantPool.addConstant(method.getDescriptor());
-
-        //We can't invoke non-static method statically
-        // (We can invoke static method non-statically though
-        if (staticCall && !method.isStaticMethod()) {
-            throw new CompilerException("Trying to invoke non-static method with a static call");
-        }
-
-
-        if (method.isStaticMethod()){
-            compilation.getByteCode().addInstruction(new Instruction(InstructionSet.InvokeStatic, methodIndex));
-        }else{
-            compilation.getByteCode().addInstruction(new Instruction(InstructionSet.InvokeVirtual, methodIndex));
         }
 
     }

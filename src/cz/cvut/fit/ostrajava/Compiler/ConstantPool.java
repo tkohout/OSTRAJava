@@ -40,6 +40,7 @@ public class ConstantPool {
                         case PushConstant:
                         case New:
                         case InvokeVirtual:
+                        case InvokeSpecial:
                         case GetField:
                         case PutField:
                         case InvokeStatic:

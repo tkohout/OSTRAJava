@@ -69,11 +69,11 @@ tryda Pole{
         davaj arraySize(pole) pyco
     }
 
-    natyv cyslo arraySize(Bazmek[] pole) pyco
-    natyv cyslo arraySize(cyslo[] pole) pyco
-    natyv cyslo arraySize(cyslo_desetinne[] pole) pyco
-    natyv cyslo arraySize(chachar[] pole) pyco
-    natyv cyslo arraySize(bul[] pole) pyco
+    statyk natyv cyslo arraySize(Bazmek[] pole) pyco
+    statyk natyv cyslo arraySize(cyslo[] pole) pyco
+    statyk natyv cyslo arraySize(cyslo_desetinne[] pole) pyco
+    statyk natyv cyslo arraySize(chachar[] pole) pyco
+    statyk natyv cyslo arraySize(bul[] pole) pyco
 }
 
 fajront pyco

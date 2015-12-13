@@ -2,6 +2,16 @@ import java.lang.Object;
 import java.lang.System;
 
 class A{
+    int i;
+
+    A(){
+
+    }
+
+    A(int i){
+        this.i = i;
+    }
+
     void foo(X x, Z z){
         System.out.println("A:foo()");
     }
@@ -12,6 +22,15 @@ class A{
 }
 
 class B extends A{
+
+    B(){
+        this(5);
+    }
+
+    B(int i){
+        super(i);
+    }
+
     void foo(X x, Z z){
         System.out.println("B:foo()");
         super.foo(x, z);

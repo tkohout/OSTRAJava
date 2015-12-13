@@ -58,6 +58,7 @@ public enum InstructionSet {
     GoTo("goto"),
     InvokeVirtual("invokevirtual"),
     InvokeStatic("invokestatic"),
+    InvokeSpecial("invokespecial"),
     ReturnReference("areturn"),
     ReturnInteger("ireturn"),
     ReturnVoid("return"),
