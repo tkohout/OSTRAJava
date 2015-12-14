@@ -76,4 +76,15 @@ public enum InstructionSet {
     public String toString() {
         return abbr;
     }
+
+    public static InstructionSet fromString(String text) {
+        if (text != null) {
+            for (InstructionSet b : InstructionSet.values()) {
+                if (text.equalsIgnoreCase(b.abbr)) {
+                    return b;
+                }
+            }
+        }
+        return null;
+    }
 }

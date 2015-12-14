@@ -6,12 +6,16 @@ banik pyco
 
 tryda Ostrava {
 
-    rynek(){
+    rynek(chachar[] vstup){
+        kaj (vstup == chuj){
+            Konzola.pravit("Chybi vstupni soubor") pyco
+            davaj pyco
+        }
+
         toz Parsovac p = zrob Parsovac() pyco
-        toz CNF cnf = p.vyparsuj("resources/sats/06.txt") pyco
+        toz CNF cnf = p.vyparsuj(zrob Dryst(vstup)) pyco
         Konzola.pravit("Vyparsovano") pyco
         Konzola.pravit("Zacinam resit") pyco
-        dechrobok pyco
 
         toz Resic r = zrob Resic(cnf) pyco
         r.rubej() pyco

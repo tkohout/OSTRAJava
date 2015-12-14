@@ -19,10 +19,6 @@ public class OSTRAJavaInterpreter {
 
     final String MAIN_CLASS_NAME = "ostrava";
     final String MAIN_METHOD_NAME = "rynek";
-    final int FRAMES_NUMBER = 128;
-    final int FRAME_STACK_SIZE = 256;
-    final int MAX_HEAP_OBJECTS = 400;
-
     final int END_RETURN_ADDRESS = -1;
 
 
@@ -34,12 +30,12 @@ public class OSTRAJavaInterpreter {
     Natives natives;
 
 
-    public OSTRAJavaInterpreter(List<Class> compiledClasses) throws InterpreterException, LookupException {
-        this.stack = new Stack(FRAMES_NUMBER, FRAME_STACK_SIZE);
+    public OSTRAJavaInterpreter(List<Class> compiledClasses, int heap_size, int frame_number, int stack_size) throws InterpreterException, LookupException {
+        this.stack = new Stack(frame_number, stack_size);
         this.classPool = new ClassPool(compiledClasses);
 
         //Eden:Tenure 1:9
-        this.heap = new GenerationHeap((int)(MAX_HEAP_OBJECTS * 0.1), (int)(MAX_HEAP_OBJECTS * 0.9), stack);
+        this.heap = new GenerationHeap((int)(heap_size * 0.1), (int)(heap_size * 0.9), stack);
 
         GenerationCollector gc = new GenerationCollector(stack, heap);
         this.heap.setGarbageCollector(gc);
@@ -51,7 +47,7 @@ public class OSTRAJavaInterpreter {
     }
 
 
-    public void run() throws InterpreterException, HeapOverflow {
+    public void run(List<String> arguments) throws InterpreterException, HeapOverflow {
 
         InterpretedClass mainClass = null;
         Method mainMethod = null;
@@ -62,9 +58,13 @@ public class OSTRAJavaInterpreter {
             throw new InterpreterException("Main class not found. The name has to be '" + MAIN_CLASS_NAME + "'");
         }
 
-        try {
-            mainMethod =  mainClass.lookupMethod(MAIN_METHOD_NAME, classPool);
-        }catch (LookupException e) {
+        for (Method method: mainClass.getMethods()){
+            if (method.getName().equals(MAIN_METHOD_NAME)){
+                mainMethod = method;
+            }
+        }
+
+        if (mainMethod == null){
                 throw new InterpreterException("Main method not found. The name has to be '" + MAIN_METHOD_NAME + "'");
         }
 
@@ -73,10 +73,15 @@ public class OSTRAJavaInterpreter {
         //Create new frame for main method
         stack.newFrame(END_RETURN_ADDRESS, objectPointer, mainMethod);
 
+        //Pushing arguments to the main method local variables
+        pushArguments(stack.currentFrame(), mainMethod, arguments);
+
         //Find instructions for main method
         int mainMethodPosition = ((InterpretedMethod)mainMethod).getInstructionPosition();
         interpret(mainMethodPosition);
     }
+
+
 
     public void interpret(int startingPosition) throws InterpreterException, HeapOverflow {
         instructions.goTo(startingPosition);
@@ -227,14 +232,9 @@ public class OSTRAJavaInterpreter {
         String constant = constantPool.getConstant(constPosition);
 
         //Create array of chars and push it on stack
-        StackValue reference = heap.allocArray(constant.length());
 
-        Array charArray = heap.loadArray(reference);
-
-        for (int i = 0; i < constant.length(); i++){
-            StackValue charValue = new StackValue(constant.charAt(i), StackValue.Type.Primitive);
-            charArray.set(i, charValue);
-        }
+        Array charArray = Converter.charArrayToArray(constant.toCharArray());
+        StackValue reference = heap.alloc(charArray);
 
         stack.currentFrame().push(reference);
     }
@@ -642,6 +642,35 @@ public class OSTRAJavaInterpreter {
     }
 
 
+    protected void pushArguments(Frame frame, Method mainMethod, List<String> arguments) throws HeapOverflow {
+        List<Type> args = mainMethod.getArgs();
+        int i = 0;
+        for (Type argType: args){
+            if (i >= arguments.size()){
+                break;
+            }
 
+            StackValue argValue = null;
+            String stringArgValue = arguments.get(i);
+
+            //Main method can get either number, char array or float as argument
+            //It depends on type of arguments in the main method
+            if (argType == Types.Number()) {
+                argValue = new StackValue(Integer.parseInt(stringArgValue), StackValue.Type.Primitive);
+            } else if (argType == Types.Float()){
+                argValue = new StackValue(Float.parseFloat(stringArgValue));
+            } else if (argType == Types.CharArray()){
+                Array array = Converter.charArrayToArray(stringArgValue.toCharArray());
+                argValue = heap.alloc(array);;
+            }else{
+                new InterpreterException("Unsupported argument type '" + argType + "' in " + mainMethod);
+            }
+
+            //0 reserved for this
+            frame.storeVariable(i+1, argValue);
+            i++;
+        }
+
+    }
 
 }

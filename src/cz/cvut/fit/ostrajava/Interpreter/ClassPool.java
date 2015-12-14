@@ -22,7 +22,7 @@ public class ClassPool {
 
         //Find super class
         for (InterpretedClass ic: this.classes){
-            if (ic.getSuperName() != null) {
+            if (ic.getSuperName() != null && ic.getSuperName().length() > 0) {
                 ic.setSuperClass(lookupClass(ic.getSuperName()));
             }
         }

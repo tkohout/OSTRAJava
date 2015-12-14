@@ -33,6 +33,16 @@ public class Instruction {
         this.operands = operands;
     }
 
+    public Instruction(String instructionString) {
+        String[] parts = instructionString.split(" ");
+        this.instruction = InstructionSet.fromString(parts[0]);
+        this.operands = new ArrayList<Integer>();
+
+        for (int i=1; i<parts.length;i++){
+            operands.add(Integer.parseInt(parts[i]));
+        }
+    }
+
     public List<Integer> getOperands() {
         return operands;
     }

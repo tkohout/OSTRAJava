@@ -21,7 +21,7 @@ public class InterpretedClass extends Class {
 
         //Copy
         for (Field field: c.getFields()){
-            this.addFields(field);
+            this.addField(field);
         }
 
         for (Method method: c.getMethods()){

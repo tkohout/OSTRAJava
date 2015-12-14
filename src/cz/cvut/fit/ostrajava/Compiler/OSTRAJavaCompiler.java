@@ -374,7 +374,7 @@ public class OSTRAJavaCompiler {
             }else if (child instanceof ASTContinueStatement) {
                 continueStatement(cycleStart, compilation);
             }else if (child instanceof ASTReturnStatement) {
-                returnStatement(child, compilation);
+                returnStatement(child.jjtGetNumChildren() > 0 ? child.jjtGetChild(0) : null, compilation);
             }else if (child instanceof ASTDebugStatement) {
                 debugStatement(compilation);
             }else{

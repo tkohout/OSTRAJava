@@ -41,7 +41,7 @@ public class ByteCode {
 
         int in = 0;
         for (Instruction i: instructions){
-            sb.append(in + ": " + i + "\n");
+            sb.append(i + System.getProperty("line.separator"));
             in++;
         }
 

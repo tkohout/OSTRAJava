@@ -60,7 +60,9 @@ public class ConstantPool {
     }
 
 
-
+    public int getSize(){
+        return constants.size();
+    }
 
 
     public int addConstant(String constant){

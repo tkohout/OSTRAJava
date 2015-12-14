@@ -1,6 +1,7 @@
 package cz.cvut.fit.ostrajava.Compiler;
 
 import cz.cvut.fit.ostrajava.Type.Type;
+import cz.cvut.fit.ostrajava.Type.Types;
 
 import java.util.List;
 
@@ -15,6 +16,12 @@ public class Field {
     public Field(String name, Type type){
         this.name = name;
         this.type = type;
+    }
+
+    public Field(String descriptor){
+        String[] parts = descriptor.split(":");
+        this.name = parts[0];
+        this.type = Types.fromString(parts[1]);
     }
 
     public String getName() {
@@ -39,5 +46,10 @@ public class Field {
 
     public void setFlags(List<String> flags) {
         this.flags = flags;
+    }
+
+    @Override
+    public String toString() {
+        return getName() + ":" + getType();
     }
 }

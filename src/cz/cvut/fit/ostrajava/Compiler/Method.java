@@ -47,6 +47,7 @@ public class Method {
     }
 
     public Method(String descriptor) {
+        this.flags = new HashSet<>();
 
         int classIndex = descriptor.indexOf(".");
         String methodPart = descriptor;

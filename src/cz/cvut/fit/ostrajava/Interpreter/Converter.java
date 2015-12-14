@@ -57,6 +57,15 @@ public class Converter {
         return chars;
     }
 
+    public static Array charArrayToArray(char[] charArray){
+        Array array = new Array(charArray.length);
+        for (int i = 0; i < charArray.length; i++){
+            StackValue charValue = new StackValue(charArray[i], StackValue.Type.Primitive);
+            array.set(i, charValue);
+        }
+        return array;
+    }
+
     public static boolean[] byteArrayToBoolArray(byte[] bytes){
         int[] intArray = byteArrayToIntArray(bytes);
         boolean[] res = new boolean[intArray.length];

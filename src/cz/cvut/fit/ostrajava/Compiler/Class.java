@@ -19,8 +19,6 @@ import java.util.Set;
  */
 public class Class {
 
-    final String MAGIC_HEADER = "BANIK";
-
     protected List<String> flags;
 
     protected String className;
@@ -84,7 +82,7 @@ public class Class {
         this.fields = fields;
     }
 
-    public void addFields(Field field) {
+    public void addField(Field field) {
         this.fields.add(field);
     }
 
@@ -217,18 +215,6 @@ public class Class {
         sb.append(className + ">" + superName);
 
         return sb.toString();
-/*
-        sb.append(MAGIC_HEADER + "\n");
 
-        for (String flag : flags){
-            sb.append(flag + "|");
-        }
-        sb.append("\n");
-
-        sb.append(className + ">" + superName);
-        sb.append("\n");
-
-
-        return sb.toString();*/
     }
 }
