@@ -4,7 +4,7 @@ OSTRAJava má za cíl pozvednout kvalitu (nejen ostravského) programování. Na
 
 ## Syntaxe ##
 
-### Základy ###
+### Hello world ###
 Zde je typický Hello world program v OSTRAJavě.
 ```
 #!java
@@ -26,7 +26,61 @@ fajront pyco
 * Hlavní třída programu se vždy jmenuje **Ostrava**(jak jinak) a hlavní metoda se vždy jmenuje **rynek**
 * Pozn.: OSTRAJava je case in-sensitive a nedoporučuje se používat diakritiku, jinými slovy s **malym a kratkym**
 
-### Třídy ###
+### Typy ###
+OSTRAJava obsahuje 4 primitivní typy:
+
+* **cyslo** - integer
+* **bul** - boolean, nabyva hodnot *fajne* pro true a *nyt* pro false
+* **chachar** - char
+* **cyslo_desetinne** - float
+* *chuj* je ekvivalent pro null
+
+Základní knihovna OSTRAJavy také obsahuje tridy
+
+* **Dryst** - ekvivalent String.  
+* **Bazmek** - vsechny tridy dedi implicitne z teto tridy. Obsahuje metody naDryst() a kantuje(Bazmek b), ekvivalent pro toString() a equals(Object o)
+* **Citac** - cteni ze souboru
+
+### Příklad 2 ###
+```
+#!java
+banik pyco
+
+tryda Priklad2 {
+   nacti(Dryst nazevSouboru){
+
+        toz Citac c = zrob Citac() pyco
+        c.otevr(nazevSouboru) pyco
+
+        toz Dryst radka pyco
+        radka = c.citajRadku() pyco
+
+        rubat (radka != chuj){
+            kaj (radka.kantuje("neco")){
+                 // ...
+            } kajtez (radka.kantuje("neco jineho")){
+                // ...
+            } boinak {
+               // ...
+            }
+
+            radka = c.citajRadku() pyco
+        }
+        c.zavr() pyco
+    }
+}
+
+fajront pyco 
+
+```
+
+Na výše uvedém příkladu se napřed vytvoří nová instance třídy *Citac* pomocí klíčového slova **zrob**.
+
+Poté se pomocí while cyklu (klíčové slovo **rubat**) načtou jednotlive řádky. 
+
+Pomocí if statementu (**kaj** - **kajtez** - **boinak**) se pak zpracuje vstup.
+
+### Dědičnost ###
 
 ```
 #!java
@@ -51,5 +105,3 @@ tryda Stverec fagan od Obrazec{
 fajront pyco
 
 ```
-
-
