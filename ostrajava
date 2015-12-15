@@ -1,0 +1,2 @@
+#!/bin/bash
+java -jar target/OSTRAJava-1.0-SNAPSHOT.jar run "$@"
