@@ -22,6 +22,7 @@ tryda Ostrava{
         toz bul b = fajne pyco
         toz A a = zrob A(1020) pyco
 
+        //Mel by zavolat naDryst()
         Konzola.pravit(a) pyco
         Konzola.pravit(d) pyco
 

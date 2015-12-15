@@ -15,6 +15,7 @@ tryda Ostrava {
         	x = zrob X() pyco
         	z = zrob Z() pyco
 
+			//Test jestli se zavola X Y z B nebo blizsi X Z ze superclass
         	a.foo(x, z) pyco
         	b.foo(x, z) pyco
     }

@@ -105,7 +105,7 @@ public class Types {
     public static Type fromString(java.lang.String name){
         Type type = getSingleton(name);
         if (type == null){
-            if (name.substring(name.length()-2, name.length()).equals("[]")){
+            if (name.length() > 2 && name.substring(name.length()-2, name.length()).equals("[]")){
                 type = Array(Reference(name.substring(0, name.length()-2)));
             }else {
                 type = Reference(name);

@@ -12,7 +12,7 @@ tryda Ostrava {
             toz cyslo j = 0 pyco
 
             //Vytvor 10 setu
-            rubat(j < 1000){
+            rubat(j < 10){
                 i = 0 pyco
                 a = chuj pyco
 

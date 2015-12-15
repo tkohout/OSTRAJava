@@ -63,7 +63,12 @@ public class OSTRAJavaCompiler {
         do {
             Node child = node.jjtGetChild(i);
             if (child instanceof ASTClass){
-                aClasses.add(compileClass((ASTClass)child));
+
+                try {
+                    aClasses.add(compileClass((ASTClass) child));
+                }catch (CompilerException e){
+                    throw new CompilerException(e.getMessage() + " in class '" + ((ASTClass) child).getName() + "'");
+                }
             }
 
             i++;
@@ -767,7 +772,7 @@ public class OSTRAJavaCompiler {
         }
 
         if (valueType != type){
-            throw new TypeException("Trying to assign '" + valueType  + "' to '" + type + "')");
+            throw new TypeException("Trying to assign '" + valueType  + "' to '" + type + "'");
         }
     }
 

@@ -3,7 +3,7 @@ banik pyco
 tryda Ostrava {
 
      rynek(){
-            //Pro tento priklad nastav HEAP_SIZE = 100 (10 eden, 90 tenure)
+            //Pro tento priklad nastav HEAP_SIZE = 100
 
             //Zacatek - bude ulozen v tenure
             toz A old = zrob A() pyco

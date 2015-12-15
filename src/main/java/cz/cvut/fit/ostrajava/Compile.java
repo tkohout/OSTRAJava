@@ -71,38 +71,41 @@ public class Compile {
         List<Class> classList = new ArrayList<>();
         OSTRAJavaCompiler compiler = new OSTRAJavaCompiler();
 
-
-        //First stage - precompilation
-        for (Node node: rootNodeList){
-            classList.addAll(compiler.precompile(node));
-        }
-
-
-        //Second stage - compilation
-        ClassPool classPool = new ClassPool(classList);
-
-        classList.clear();
-
-        for (Node node: rootNodeList){
-            classList.addAll(compiler.compile(node, classPool));
-        }
-
-        //We don't want the libraries to be generated again
-        classList = removeLibraries(classList);
+        try {
+            //First stage - precompilation
+            for (Node node : rootNodeList) {
+                classList.addAll(compiler.precompile(node));
+            }
 
 
-        //Create output directory
-        File outputDir = new File(outputDirectory);
-        if (!outputDir.exists()) {
-            outputDir.mkdirs();
-        }
+            //Second stage - compilation
+            ClassPool classPool = new ClassPool(classList);
 
-        //Clean the directory
-        removeClassfiles(outputDirectory);
+            classList.clear();
 
-        //Generate files
-        for (Class clazz: classList){
-            Classfile.toFile(clazz, outputDir.getAbsolutePath() + "/" + clazz.getClassName() + "." + CLASS_TYPE_EXTENSION);
+            for (Node node : rootNodeList) {
+                classList.addAll(compiler.compile(node, classPool));
+            }
+
+            //We don't want the libraries to be generated again
+            classList = removeLibraries(classList);
+
+
+            //Create output directory
+            File outputDir = new File(outputDirectory);
+            if (!outputDir.exists()) {
+                outputDir.mkdirs();
+            }
+
+            //Clean the directory
+            removeClassfiles(outputDirectory);
+
+            //Generate files
+            for (Class clazz : classList) {
+                Classfile.toFile(clazz, outputDir.getAbsolutePath() + "/" + clazz.getClassName() + "." + CLASS_TYPE_EXTENSION);
+            }
+        }catch (CompilerException e){
+            System.out.println("compile error: " +  e.getMessage());
         }
 
 
@@ -182,7 +185,7 @@ public class Compile {
 
                 rootNodeList.add(node);
             } catch (ParseException e) {
-                System.out.println("Parsing exception in file " + file.getName());
+                System.out.println("parse error in file " + file.getName() + ": " + e.getMessage());
                 throw e;
             }
         }
