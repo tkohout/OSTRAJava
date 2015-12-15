@@ -30,16 +30,22 @@ fajront pyco
 OSTRAJava obsahuje 4 primitivní typy:
 
 * **cyslo** - integer
-* **bul** - boolean, nabyva hodnot *fajne* pro true a *nyt* pro false
+* **bul** - boolean
 * **chachar** - char
 * **cyslo_desetinne** - float
-* *chuj* je ekvivalent pro null
+
+Hodnoty:
+
+* *fajne* - true
+* *nyt* - false
+* *chuj* - null
 
 Základní knihovna OSTRAJavy také obsahuje tridy
 
 * **Dryst** - ekvivalent String.  
 * **Bazmek** - vsechny tridy dedi implicitne z teto tridy. Obsahuje metody naDryst() a kantuje(Bazmek b), ekvivalent pro toString() a equals(Object o)
 * **Citac** - cteni ze souboru
+* **Konzola** - vypis do konzole
 
 ### Příklad 2 ###
 ```
@@ -57,11 +63,11 @@ tryda Priklad2 {
 
         rubat (radka != chuj){
             kaj (radka.kantuje("neco")){
-                 // ...
+                 dlabat pyco
             } kajtez (radka.kantuje("neco jineho")){
                 // ...
             } boinak {
-               // ...
+               zdybat pyco
             }
 
             radka = c.citajRadku() pyco
@@ -79,6 +85,8 @@ Na výše uvedém příkladu se napřed vytvoří nová instance třídy *Citac*
 Poté se pomocí while cyklu (klíčové slovo **rubat**) načtou jednotlive řádky. 
 
 Pomocí if statementu (**kaj** - **kajtez** - **boinak**) se pak zpracuje vstup.
+
+Rubat cyklus se dá přeřušit pomocí **zdybat** (break) a nebo přeskočit jeden cyklus pomocí **dlabat** (continue)
 
 ### Dědičnost ###
 
