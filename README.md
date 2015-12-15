@@ -80,7 +80,7 @@ fajront pyco
 
 ```
 
-Na výše uvedém příkladu se napřed vytvoří nová instance třídy *Citac* pomocí klíčového slova **zrob**.
+Na výše uvedém příkladu se napřed vytvoří nová instance třídy *Citac* pomocí klíčového slova **zrob**. Deklarace nové proměnné začíná klíčovým slovem **toz**.
 
 Poté se pomocí while cyklu (klíčové slovo **rubat**) načtou jednotlive řádky. 
 
@@ -94,22 +94,30 @@ Rubat cyklus se dá přeřušit pomocí **zdybat** (break) a nebo přeskočit je
 #!java
 banik pyco
 
-tryda Obrazec{
+tryda Obdelnik{
    toz cyslo dylka pyco
    toz cyslo vyska pyco
 
-   Obrazec(cyslo dylka, cyslo vyska){
+   Obdelnik(cyslo dylka, cyslo vyska){
       joch.dylka = dylka pyco
       joch.vyska = vyska pyco
    }
 }
 
-tryda Stverec fagan od Obrazec{
+tryda Stverec fagan od Obdelnik{
     Stverec(cyslo velikost){
        forant(velikost, velikost) pyco
     }
 } 
 
+tryda Ostrava{
+   rynek(){
+      toz Stverec s = zrob Stverec(5) pyco 
+   }
+}
+
 fajront pyco
 
 ```
+
+OSTRAJava je samozřejmě jazyk objektový. 
