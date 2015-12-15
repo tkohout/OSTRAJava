@@ -1,0 +1,167 @@
+Êþºº
+11
+pole.velikost:chachar[]
+dylka
+chachari
+bafr
+bafr.bafr:cyslo
+bafr.nachachar
+dryst
+dryst.dryst:chachar[]
+bafr.vyglancovat
+bafr.pridaj:chachar
+pocet
+dryst
+bazmek
+3
+chachari:chachar[]
+dylka:cyslo
+kapacyta:cyslo
+4
+dryst.dryst:chachar[]
+2
+0
+12
+aload 0 
+aload 1 
+ipush 0 
+invokestatic 0 
+putfield 1 
+aload 0 
+aload 1 
+putfield 2 
+aload 0 
+areturn 
+aload 0 
+areturn 
+dryst.nachachar
+1
+0
+3
+aload 0 
+getfield 2 
+areturn 
+dryst.kantuje:dryst
+3
+0
+31
+ipush 0 
+istore 2 
+aload 0 
+getfield 1 
+aload 1 
+getfield 1 
+if_icmpeq 9 
+ipush 0 
+ireturn 
+iload 2 
+aload 0 
+getfield 1 
+if_icmpge 29 
+aload 0 
+getfield 2 
+iload 2 
+iaload 
+aload 1 
+getfield 2 
+iload 2 
+iaload 
+if_icmpeq 24 
+ipush 0 
+ireturn 
+iload 2 
+ipush 1 
+iadd 
+istore 2 
+goto 9 
+ipush 1 
+ireturn 
+dryst.rozdel:chachar
+6
+0
+85
+ipush 0 
+istore 2 
+ipush 0 
+istore 3 
+iload 2 
+aload 0 
+getfield 1 
+if_icmpge 23 
+aload 0 
+getfield 2 
+iload 2 
+iaload 
+iload 1 
+if_icmpne 18 
+iload 3 
+ipush 1 
+iadd 
+istore 3 
+iload 2 
+ipush 1 
+iadd 
+istore 2 
+goto 4 
+iload 3 
+ipush 1 
+iadd 
+newarray 
+astore 4 
+ipush 0 
+istore 2 
+ipush 0 
+istore 3 
+aload 0 
+getfield 1 
+new 3 
+invokespecial 4 
+astore 5 
+iload 2 
+aload 0 
+getfield 1 
+if_icmpge 72 
+aload 0 
+getfield 2 
+iload 2 
+iaload 
+iload 1 
+if_icmpne 61 
+aload 4 
+iload 3 
+aload 5 
+invokevirtual 5 
+new 6 
+invokespecial 7 
+aastore 
+iload 3 
+ipush 1 
+iadd 
+istore 3 
+aload 5 
+invokevirtual 8 
+goto 67 
+aload 0 
+getfield 2 
+iload 2 
+iaload 
+aload 5 
+invokevirtual 9 
+iload 2 
+ipush 1 
+iadd 
+istore 2 
+goto 37 
+aload 5 
+getfield 10 
+ipush 0 
+if_icmple 83 
+aload 4 
+iload 3 
+aload 5 
+invokevirtual 5 
+new 6 
+invokespecial 7 
+aastore 
+aload 4 
+areturn 

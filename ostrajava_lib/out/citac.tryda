@@ -1,0 +1,74 @@
+Êþºº
+8
+bazmek.bazmek
+dryst.nachachar
+citac.openreader:chachar[]
+readeraddress
+citac.readline:cyslo
+dryst
+dryst.dryst:chachar[]
+citac.closereader:cyslo
+citac
+bazmek
+1
+readeraddress:cyslo
+7
+citac.otevr:dryst
+3
+0
+9
+aload 1 
+invokevirtual 1 
+astore 2 
+aload 0 
+aload 2 
+aload 0 
+invokevirtual 2 
+putfield 3 
+return 
+citac.citajradku
+2
+0
+14
+aload 0 
+getfield 3 
+aload 0 
+invokevirtual 4 
+astore 1 
+aload 1 
+ipush 0 
+if_icmpeq 12 
+aload 1 
+new 5 
+invokespecial 6 
+areturn 
+ipush 0 
+areturn 
+citac.zavr
+1
+0
+5
+aload 0 
+getfield 3 
+aload 0 
+invokevirtual 7 
+return 
+citac.openreader:chachar[]
+2
+1
+0
+citac.closereader:cyslo
+2
+1
+0
+citac.readline:cyslo
+2
+1
+0
+citac.citac
+1
+0
+3
+aload 0 
+invokevirtual 0 
+areturn 0 

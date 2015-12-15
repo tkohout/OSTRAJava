@@ -1,0 +1,182 @@
+Êþºº
+11
+pole
+kapacyta
+velikost
+pole.pole:cyslo
+pole.vejdesa:cyslo
+pole.zvets:cyslo
+pole.arraysize:bazmek[]
+pole.arraysize:cyslo[]
+pole.arraysize:cyslo_desetinne[]
+pole.arraysize:chachar[]
+pole.arraysize:bul[]
+pole
+bazmek
+3
+pole:bazmek[]
+velikost:cyslo
+kapacyta:cyslo
+15
+pole.pole:cyslo
+2
+0
+12
+aload 0 
+iload 1 
+newarray 
+putfield 0 
+aload 0 
+iload 1 
+putfield 1 
+aload 0 
+ipush 0 
+putfield 2 
+aload 0 
+areturn 
+pole.pole
+1
+0
+5
+ipush 2 
+aload 0 
+invokespecial 3 
+aload 0 
+areturn 
+pole.pridaj:bazmek
+3
+0
+28
+aload 0 
+getfield 2 
+ipush 1 
+iadd 
+istore 2 
+iload 2 
+aload 0 
+invokevirtual 4 
+ipush 0 
+if_icmpne 16 
+aload 0 
+getfield 1 
+ipush 2 
+imul 
+aload 0 
+invokevirtual 5 
+aload 0 
+getfield 0 
+iload 2 
+aload 1 
+aastore 
+aload 0 
+aload 0 
+getfield 2 
+ipush 1 
+iadd 
+putfield 2 
+return 
+pole.vejdesa:cyslo
+2
+0
+8
+iload 1 
+aload 0 
+getfield 1 
+if_icmpge 6 
+ipush 1 
+ireturn 
+ipush 0 
+ireturn 
+pole.zvets:cyslo
+4
+0
+29
+aload 0 
+getfield 0 
+astore 2 
+aload 0 
+iload 1 
+newarray 
+putfield 0 
+ipush 0 
+istore 3 
+iload 3 
+aload 0 
+getfield 1 
+if_icmpge 25 
+aload 0 
+getfield 0 
+iload 3 
+aload 2 
+iload 3 
+iaload 
+aastore 
+iload 3 
+ipush 1 
+iadd 
+istore 3 
+goto 9 
+aload 0 
+iload 1 
+putfield 1 
+return 
+pole.velikost:bazmek[]
+2
+0
+4
+aload 1 
+aload 0 
+invokestatic 6 
+ireturn 
+pole.velikost:cyslo[]
+2
+0
+4
+aload 1 
+aload 0 
+invokestatic 7 
+ireturn 
+pole.velikost:cyslo_desetinne[]
+2
+0
+4
+aload 1 
+aload 0 
+invokestatic 8 
+ireturn 
+pole.velikost:chachar[]
+2
+0
+4
+aload 1 
+aload 0 
+invokestatic 9 
+ireturn 
+pole.velikost:bul[]
+2
+0
+4
+aload 1 
+aload 0 
+invokestatic 10 
+ireturn 
+pole.arraysize:bazmek[]
+2
+1
+0
+pole.arraysize:cyslo[]
+2
+1
+0
+pole.arraysize:cyslo_desetinne[]
+2
+1
+0
+pole.arraysize:chachar[]
+2
+1
+0
+pole.arraysize:bul[]
+2
+1
+0

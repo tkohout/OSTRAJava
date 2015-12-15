@@ -1,0 +1,52 @@
+Êþºº
+6
+c
+dryst.nachachar
+cyslocele.chararraytoint:chachar[]
+cyslocele.inttochararray:cyslo
+dryst
+dryst.dryst:chachar[]
+cyslocele
+bazmek
+1
+c:cyslo
+5
+cyslocele.cyslocele:cyslo
+2
+0
+5
+aload 0 
+iload 1 
+putfield 0 
+aload 0 
+areturn 
+cyslocele.preved:dryst
+2
+0
+5
+aload 1 
+invokevirtual 1 
+aload 0 
+invokestatic 2 
+ireturn 
+cyslocele.nadryst
+2
+0
+9
+aload 0 
+getfield 0 
+aload 0 
+invokestatic 3 
+astore 1 
+aload 1 
+new 4 
+invokespecial 5 
+areturn 
+cyslocele.chararraytoint:chachar[]
+2
+1
+0
+cyslocele.inttochararray:cyslo
+2
+1
+0

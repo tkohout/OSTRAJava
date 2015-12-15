@@ -1,0 +1,81 @@
+Êþºº
+3
+velikost_maximalni
+bafr
+pocet
+bafr
+bazmek
+3
+velikost_maximalni:cyslo
+pocet:cyslo
+bafr:chachar[]
+4
+bafr.bafr:cyslo
+2
+0
+12
+aload 0 
+iload 1 
+putfield 0 
+aload 0 
+iload 1 
+newarray 
+putfield 1 
+aload 0 
+ipush 0 
+putfield 2 
+aload 0 
+areturn 
+bafr.pridaj:chachar
+2
+0
+13
+aload 0 
+getfield 1 
+aload 0 
+getfield 2 
+iload 1 
+iastore 
+aload 0 
+aload 0 
+getfield 2 
+ipush 1 
+iadd 
+putfield 2 
+return 
+bafr.vyglancovat
+1
+0
+4
+aload 0 
+ipush 0 
+putfield 2 
+return 
+bafr.nachachar
+3
+0
+24
+aload 0 
+getfield 2 
+newarray 
+astore 1 
+ipush 0 
+istore 2 
+iload 2 
+aload 0 
+getfield 2 
+if_icmpge 22 
+aload 1 
+iload 2 
+aload 0 
+getfield 1 
+iload 2 
+iaload 
+iastore 
+iload 2 
+ipush 1 
+iadd 
+istore 2 
+goto 6 
+aload 1 
+areturn 

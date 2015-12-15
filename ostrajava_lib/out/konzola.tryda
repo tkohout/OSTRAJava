@@ -1,0 +1,134 @@
+Êþºº
+14
+bazmek.bazmek
+chuj
+dryst
+dryst.dryst:chachar[]
+konzola.pravit:dryst
+bazmek.nadryst
+dryst.nachachar
+konzola.pravit:chachar[]
+konzola.print:cyslo
+konzola.print:cyslo_desetinne
+konzola.print:chachar[]
+konzola.print:chachar
+fajne
+nyt
+konzola
+bazmek
+0
+12
+konzola.pravit:bazmek
+3
+0
+16
+aload 1 
+ipush 0 
+if_icmpne 9 
+ldc 1 
+new 2 
+invokevirtual 3 
+ipush 0 
+invokestatic 4 
+goto 15 
+aload 1 
+invokevirtual 5 
+astore 2 
+aload 2 
+ipush 0 
+invokestatic 4 
+return 
+konzola.pravit:dryst
+3
+0
+16
+aload 1 
+ipush 0 
+if_icmpne 9 
+ldc 1 
+new 2 
+invokevirtual 3 
+ipush 0 
+invokestatic 4 
+goto 15 
+aload 1 
+invokevirtual 6 
+astore 2 
+aload 2 
+ipush 0 
+invokestatic 7 
+return 
+konzola.pravit:cyslo
+2
+0
+4
+iload 1 
+aload 0 
+invokestatic 8 
+return 
+konzola.pravit:cyslo_desetinne
+2
+0
+4
+fload 1 
+aload 0 
+invokestatic 9 
+return 
+konzola.pravit:chachar[]
+2
+0
+4
+aload 1 
+aload 0 
+invokestatic 10 
+return 
+konzola.pravit:chachar
+2
+0
+4
+iload 1 
+aload 0 
+invokestatic 11 
+return 
+konzola.pravit:bul
+2
+0
+15
+iload 1 
+ipush 1 
+if_icmpne 9 
+ldc 12 
+new 2 
+invokevirtual 3 
+ipush 0 
+invokestatic 4 
+goto 14 
+ldc 13 
+new 2 
+invokevirtual 3 
+ipush 0 
+invokestatic 4 
+return 
+konzola.print:chachar[]
+2
+1
+0
+konzola.print:cyslo
+2
+1
+0
+konzola.print:cyslo_desetinne
+2
+1
+0
+konzola.print:chachar
+2
+1
+0
+konzola.konzola
+1
+0
+3
+aload 0 
+invokevirtual 0 
+areturn 0 

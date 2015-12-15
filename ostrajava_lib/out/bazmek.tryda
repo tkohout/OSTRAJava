@@ -1,0 +1,23 @@
+Êþºº
+3
+implementuj metodu naDryst()
+dryst
+dryst.dryst:chachar[]
+bazmek
+
+0
+2
+bazmek.nadryst
+1
+0
+4
+ldc 0 
+new 1 
+invokevirtual 2 
+areturn 
+bazmek.bazmek
+1
+0
+2
+aload 0 
+areturn 0 
