@@ -120,4 +120,62 @@ fajront pyco
 
 ```
 
-OSTRAJava je samozřejmě jazyk objektový. 
+OSTRAJava je samozřejmě jazyk objektový.
+
+
+## Implementace ##
+
+Implementováno momentálně je:
+
+* Compiler
+* * Pokročilá typová kontrola (přiřazení objektů, návratové hodnoty funkcí, fieldy)
+* * Kontrola deklarace a inicializace proměnných
+* * Kontrola volání metod (static, non-static)
+* * Kompilace do .tryda classfilu
+
+* Interpreter
+* * Paměť pomocí pole objektů
+* * Generační garbage collector
+* * Nativní volání
+* * Statické volání
+* * Primitiva (integer, float) na stacku a pointer s 1 na posledním bitu
+* * Aritmetické operace pro integer a float
+* * Pole (primitiv i referencí)
+* * Dynamický lookup metod
+* * Overload metody
+
+### Kompilace a spuštění ###
+
+V root složce 
+
+```
+#!
+
+mvn clean
+mvn install
+
+```
+
+Nastavení práv pro skripty
+
+```
+#!
+chmod u+x ostrajavac
+chmod u+x ostrajava
+```
+
+Program SATSolver je ve složce examples/SATSolver/
+
+Kompilace 
+```
+#!
+./ostrajavac examples/SATSolver/ -d compiled/
+
+```
+
+Spuštění
+```
+#!
+./ostrajava -h 1024 -f 256 -s 128 compiled/ resources/sats/01.txt
+
+```
