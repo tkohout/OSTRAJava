@@ -165,6 +165,17 @@ OSTRAJava je samozřejmě jazyk objektový. Pokud chceme uvést třídu z které
 
 **forant** tedy předák na šichtě slouží jako reference na rodiče, tedy ekvivalent super
 
+nový objekt vytvoříme pomocí **zrob**
+
+Pokud bychom chtěli vytvořit pole uděláme to následovně
+
+```
+#!java
+
+toz cyslo[] pole = zrob cyslo[5] pyco
+
+```
+
 ### Metody ###
 Navratový typ metody se píše stejně jako v javě před název metody. Pro metodu s prázdným návratovým typem není třeba psát nic. 
 
