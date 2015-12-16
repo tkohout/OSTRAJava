@@ -168,7 +168,7 @@ OSTRAJava je samozřejmě jazyk objektový. Pokud chceme uvést třídu z které
 ### Metody ###
 Navratový typ metody se píše stejně jako v javě před název metody. Pro metodu s prázdným návratovým typem není třeba psát nic. 
 
-Pro návrat hodnot je použito klíčové slovo **davaj**
+Pro navrácení hodnoty je použito klíčové slovo **davaj**
 
 ```
 #!java
