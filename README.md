@@ -4,7 +4,7 @@ OSTRAJava má za cíl pozvednout kvalitu (nejen ostravského) programování. Na
 
 ## Syntaxe ##
 
-### Hello world ###
+### Příklad 1 - Hello world ###
 Zde je typický Hello world program v OSTRAJavě.
 ```
 #!java
@@ -40,14 +40,68 @@ Hodnoty:
 * *nyt* - false
 * *chuj* - null
 
-Základní knihovna OSTRAJavy také obsahuje tridy
+Základní knihovna OSTRAJavy také obsahuje třídy
 
 * **Dryst** - ekvivalent String.  
 * **Bazmek** - vsechny tridy dedi implicitne z teto tridy. Obsahuje metody naDryst() a kantuje(Bazmek b), ekvivalent pro toString() a equals(Object o)
 * **Citac** - cteni ze souboru
 * **Konzola** - vypis do konzole
+* **Bafr** - jednoduchý buffer na čtení charů
+
+### Deklarace ###
+Deklaraci je nutno začít klíčovým slovem **toz**
+
+```
+#!java
+toz cyslo i = 1 pyco
+```
+
+
+### Podmínky ###
+Pro vytvoření podmínky použijeme konstrukt **kaj**  - **kajtez** - **boinak**
+
+Jednotlivé výrazy můžeme spojovat pomocí boolenovského **bo** (or) a **aj** (and) 
+
+```
+#!java
+toz bul a pyco
+toz bul b pyco
+
+//...
+
+kaj (a == fajne bo b == fajne){
+   // ...
+} kajtez (a == nyt aj b == fajne){
+   // ...
+} boinak {
+   // ...
+}
+
+```
+
+### Cykly ###
+Cyklus má OSTRAJava pouze jeden. Pomocí **rubat** vytvoříme while.
+
+Rubat cyklus se dá přeřušit pomocí **zdybat** (break) a nebo přeskočit jeden cyklus pomocí **dlabat** (continue)
+
+```
+#!java
+
+toz cyslo i = 0 pyco
+
+rubat (i < 5){
+    kaj (i == 4){
+      zdybat pyco 
+   }
+   //...
+   i = i+1 pyco
+}
+
+``` 
 
 ### Příklad 2 ###
+Následuje jednoduchý příklad na čtení ze souboru
+
 ```
 #!java
 banik pyco
@@ -62,14 +116,7 @@ tryda Priklad2 {
         radka = c.citajRadku() pyco
 
         rubat (radka != chuj){
-            kaj (radka.kantuje("neco")){
-                 dlabat pyco
-            } kajtez (radka.kantuje("neco jineho")){
-                // ...
-            } boinak {
-               zdybat pyco
-            }
-
+            // ...
             radka = c.citajRadku() pyco
         }
         c.zavr() pyco
@@ -79,14 +126,6 @@ tryda Priklad2 {
 fajront pyco 
 
 ```
-
-Na výše uvedém příkladu se napřed vytvoří nová instance třídy *Citac* pomocí klíčového slova **zrob**. Deklarace nové proměnné začíná klíčovým slovem **toz**.
-
-Poté se pomocí while cyklu (klíčové slovo **rubat**) načtou jednotlive řádky. 
-
-Pomocí if statementu (**kaj** - **kajtez** - **boinak**) se pak zpracuje vstup.
-
-Rubat cyklus se dá přeřušit pomocí **zdybat** (break) a nebo přeskočit jeden cyklus pomocí **dlabat** (continue)
 
 ### Dědičnost ###
 
@@ -120,8 +159,26 @@ fajront pyco
 
 ```
 
-OSTRAJava je samozřejmě jazyk objektový.
+OSTRAJava je samozřejmě jazyk objektový. Pokud chceme uvést třídu z které chceme dědit použijeme konstrukt **fagan od**.
 
+**joch** slouží jako reference na vlastní instanci tedy ekvivalent this
+
+**forant** tedy předák na šichtě slouží jako reference na rodiče, tedy ekvivalent super
+
+### Metody ###
+Navratový typ metody se píše stejně jako v javě před název metody. Pro metodu s prázdným návratovým typem není třeba psát nic. 
+
+Pro návrat hodnot je použito klíčové slovo **davaj**
+
+```
+#!java
+tryda Buu{
+   cyslo fuu(Dryst text){
+       //...
+       davaj text.dylka pyco
+   }
+}
+```
 
 ## Implementace ##
 
