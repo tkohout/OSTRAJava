@@ -1,14 +1,11 @@
 package cz.cvut.fit.ostrajava.Interpreter;
 
 import cz.cvut.fit.ostrajava.Compiler.Instruction;
-import cz.cvut.fit.ostrajava.Compiler.InstructionSet;
 import cz.cvut.fit.ostrajava.Compiler.Method;
 
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Spliterator;
-import java.util.function.Consumer;
 
 /**
  * Created by tomaskohout on 11/19/15.
