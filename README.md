@@ -235,3 +235,11 @@ Spuštění
 ./ostrajava -h 1024 -f 256 -s 128 compiled/ resources/sats/01.txt
 
 ```
+
+### Autor ###
+
+Tomáš Kohout
+
+FIT ČVUT
+
+(www.whostolemyunicorn.com)
