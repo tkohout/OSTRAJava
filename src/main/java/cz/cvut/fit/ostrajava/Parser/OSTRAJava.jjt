@@ -201,7 +201,7 @@ TOKEN : /* OPERATORS */
 | < LE: "<=" >
 | < GE: ">=" >
 | < NE: "!=" >
-| < SC_OR: "bo" >
+| < SC_OR: "ci" >
 | < SC_AND: "aj" >
 | < PLUS: "+" >
 | < MINUS: "-" >
@@ -521,7 +521,7 @@ void ConditionalExpression() :
 void ConditionalOrExpression() :
 {}
 {
-  ConditionalAndExpression() ( "bo" #OrOperator ConditionalAndExpression() )*
+  ConditionalAndExpression() ( "ci" #OrOperator ConditionalAndExpression() )*
 }
 
 void ConditionalAndExpression() :

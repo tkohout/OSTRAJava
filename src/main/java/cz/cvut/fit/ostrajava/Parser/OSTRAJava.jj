@@ -205,7 +205,7 @@ TOKEN : /* OPERATORS */
 | < LE: "<=" >
 | < GE: ">=" >
 | < NE: "!=" >
-| < SC_OR: "bo" >
+| < SC_OR: "ci" >
 | < SC_AND: "aj" >
 | < PLUS: "+" >
 | < MINUS: "-" >
@@ -1240,7 +1240,7 @@ void ConditionalOrExpression() :
                                  jjtn001.jjtSetFirstToken(getToken(1));
                                }
                                try {
-/*@egen*/ "bo"/*@bgen(jjtree)*/
+/*@egen*/ "ci"/*@bgen(jjtree)*/
                                } finally {
                                  if (jjtc001) {
                                    jjtree.closeNodeScope(jjtn001, true);

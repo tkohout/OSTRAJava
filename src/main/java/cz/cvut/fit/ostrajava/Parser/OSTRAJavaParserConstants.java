@@ -237,7 +237,7 @@ public interface OSTRAJavaParserConstants {
     "\"<=\"",
     "\">=\"",
     "\"!=\"",
-    "\"bo\"",
+    "\"ci\"",
     "\"aj\"",
     "\"+\"",
     "\"-\"",

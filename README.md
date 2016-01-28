@@ -60,7 +60,7 @@ toz cyslo i = 1 pyco
 ### Podmínky ###
 Pro vytvoření podmínky použijeme konstrukt **kaj**  - **kajtez** - **boinak**
 
-Jednotlivé výrazy můžeme spojovat pomocí boolenovského **bo** (or) a **aj** (and) 
+Jednotlivé výrazy můžeme spojovat pomocí boolenovského **ci** (or) a **aj** (and)
 
 ```
 #!java
@@ -69,7 +69,7 @@ toz bul b pyco
 
 //...
 
-kaj (a == fajne bo b == fajne){
+kaj (a == fajne ci b == fajne){
    // ...
 } kajtez (a == nyt aj b == fajne){
    // ...
