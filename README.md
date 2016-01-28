@@ -6,8 +6,8 @@ OSTRAJava má za cíl pozvednout kvalitu (nejen ostravského) programování. Na
 
 ### Příklad 1 - Hello world ###
 Zde je typický Hello world program v OSTRAJavě.
-```
-#!java
+
+```java
 banik pyco
 
 tryda Ostrava{
@@ -51,8 +51,7 @@ Základní knihovna OSTRAJavy také obsahuje třídy
 ### Deklarace ###
 Deklaraci je nutno začít klíčovým slovem **toz**
 
-```
-#!java
+```java
 toz cyslo i = 1 pyco
 ```
 
@@ -62,8 +61,7 @@ Pro vytvoření podmínky použijeme konstrukt **kaj**  - **kajtez** - **boinak*
 
 Jednotlivé výrazy můžeme spojovat pomocí boolenovského **ci** (or) a **aj** (and)
 
-```
-#!java
+```java
 toz bul a pyco
 toz bul b pyco
 
@@ -84,8 +82,7 @@ Cyklus má OSTRAJava pouze jeden. Pomocí **rubat** vytvoříme while.
 
 Rubat cyklus se dá přeřušit pomocí **zdybat** (break) a nebo přeskočit jeden cyklus pomocí **dlabat** (continue)
 
-```
-#!java
+```java
 
 toz cyslo i = 0 pyco
 
@@ -102,8 +99,7 @@ rubat (i < 5){
 ### Příklad 2 ###
 Následuje jednoduchý příklad na čtení ze souboru
 
-```
-#!java
+```java
 banik pyco
 
 tryda Priklad2 {
@@ -129,8 +125,7 @@ fajront pyco
 
 ### Dědičnost ###
 
-```
-#!java
+```java
 banik pyco
 
 tryda Obdelnik{
@@ -169,8 +164,7 @@ nový objekt vytvoříme pomocí **zrob**
 
 Pokud bychom chtěli vytvořit pole uděláme to následovně
 
-```
-#!java
+```java
 
 toz cyslo[] pole = zrob cyslo[5] pyco
 
@@ -181,8 +175,7 @@ Navratový typ metody se píše stejně jako v javě před název metody. Pro me
 
 Pro navrácení hodnoty je použito klíčové slovo **davaj**
 
-```
-#!java
+```java
 tryda Buu{
    cyslo fuu(Dryst text){
        //...
@@ -217,8 +210,6 @@ Implementováno momentálně je:
 V root složce 
 
 ```
-#!
-
 mvn clean
 mvn install
 
@@ -227,7 +218,6 @@ mvn install
 Nastavení práv pro skripty
 
 ```
-#!
 chmod u+x ostrajavac
 chmod u+x ostrajava
 ```
@@ -236,14 +226,12 @@ Program SATSolver je ve složce examples/SATSolver/
 
 Kompilace 
 ```
-#!
 ./ostrajavac examples/SATSolver/ -d compiled/
 
 ```
 
 Spuštění
 ```
-#!
 ./ostrajava -h 1024 -f 256 -s 128 compiled/ resources/sats/01.txt
 
 ```
