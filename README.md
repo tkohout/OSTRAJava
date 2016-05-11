@@ -46,7 +46,7 @@ Základní knihovna OSTRAJavy také obsahuje třídy
 * **Bazmek** - vsechny tridy dedi implicitne z teto tridy. Obsahuje metody naDryst() a kantuje(Bazmek b), ekvivalent pro toString() a equals(Object o)
 * **Citac** - cteni ze souboru
 * **Konzola** - vypis do konzole
-* **Bafr** - jednoduchý buffer na čtení charů
+* **Bafr** - jednoduchý buffer na čtení chacharů
 
 ### Deklarace ###
 Deklaraci je nutno začít klíčovým slovem **toz**
