@@ -2469,7 +2469,7 @@ void IfStatement() :
 {/*@bgen(jjtree) IfStatement */
   try {
 /*@egen*/
-  "kaj" "(" Expression() ")" Block() ( LOOKAHEAD(2) "kajtez (" Expression() ")" Block() )* [ LOOKAHEAD(1) "boinak" Block() ]/*@bgen(jjtree)*/
+  "kaj" "(" Expression() ")" Block() ( LOOKAHEAD(3) "kajtez" "(" Expression() ")" Block() )* [ LOOKAHEAD(1) "boinak" Block() ]/*@bgen(jjtree)*/
   } catch (Throwable jjte000) {
     if (jjtc000) {
       jjtree.clearNodeScope(jjtn000);

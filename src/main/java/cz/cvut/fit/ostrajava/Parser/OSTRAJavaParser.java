@@ -2823,12 +2823,13 @@ if (jjtc000) {
       Block();
       label_22:
       while (true) {
-        if (jj_2_10(2)) {
+        if (jj_2_10(3)) {
           ;
         } else {
           break label_22;
         }
-        jj_consume_token(82);
+        jj_consume_token(ELSEIF);
+        jj_consume_token(LPAREN);
         Expression();
         jj_consume_token(RPAREN);
         Block();
@@ -3679,7 +3680,8 @@ if (jjtc000) {
 
   private boolean jj_3_10()
  {
-    if (jj_scan_token(82)) return true;
+    if (jj_scan_token(ELSEIF)) return true;
+    if (jj_scan_token(LPAREN)) return true;
     if (jj_3R_31()) return true;
     return false;
   }
@@ -4356,7 +4358,7 @@ if (jjtc000) {
   /** Generate ParseException. */
   public ParseException generateParseException() {
     jj_expentries.clear();
-    boolean[] la1tokens = new boolean[83];
+    boolean[] la1tokens = new boolean[82];
     if (jj_kind >= 0) {
       la1tokens[jj_kind] = true;
       jj_kind = -1;
@@ -4376,7 +4378,7 @@ if (jjtc000) {
         }
       }
     }
-    for (int i = 0; i < 83; i++) {
+    for (int i = 0; i < 82; i++) {
       if (la1tokens[i]) {
         jj_expentry = new int[1];
         jj_expentry[0] = i;

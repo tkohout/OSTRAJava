@@ -248,7 +248,6 @@ public interface OSTRAJavaParserConstants {
     "<LETTER>",
     "<DIGIT>",
     "\":\"",
-    "\"kajtez (\"",
   };
 
 }

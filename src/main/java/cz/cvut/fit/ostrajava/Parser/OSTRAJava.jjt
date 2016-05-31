@@ -787,7 +787,7 @@ void IfStatement() :
  */
 {}
 {
-  "kaj" "(" Expression() ")" Block() ( LOOKAHEAD(2) "kajtez (" Expression() ")" Block() )* [ LOOKAHEAD(1) "boinak" Block() ]
+  "kaj" "(" Expression() ")" Block() ( LOOKAHEAD(3) "kajtez" "(" Expression() ")" Block() )* [ LOOKAHEAD(1) "boinak" Block() ]
 }
 
 void WhileStatement() :
