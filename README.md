@@ -1,6 +1,6 @@
 # OSTRAJava #
 
-OSTRAJava má za cíl pozvednout kvalitu (nejen ostravského) programování. Na rozdíl od Javy vychází OSTRAJava přímo z mluveného jazyka (ostravského nářečí), tedy z něčeho čemu obyčejní lidé rozumějí. Typický ostravský horník pak nebude mít problém přejít od těžby rudy ke klávesnici. Jazyk tak mimo jiné řeší i problém nezaměstnanosti na moravsko-slezsku.
+OSTRAJava má za cíl pozvednout kvalitu (nejen ostravského) programování. Na rozdíl od Javy vychází OSTRAJava přímo z mluveného jazyka (ostravského nářečí), tedy z něčeho čemu obyčejní lidé rozumějí. Typický ostravský horník pak nebude mít problém přejít od těžby uhlí ke klávesnici. Jazyk tak mimo jiné řeší i problém nezaměstnanosti na moravsko-slezsku.
 
 ## Syntaxe ##
 
@@ -46,7 +46,7 @@ Základní knihovna OSTRAJavy také obsahuje třídy
 * **Bazmek** - vsechny tridy dedi implicitne z teto tridy. Obsahuje metody naDryst() a kantuje(Bazmek b), ekvivalent pro toString() a equals(Object o)
 * **Citac** - cteni ze souboru
 * **Konzola** - vypis do konzole
-* **Bafr** - jednoduchý buffer na čtení charů
+* **Bafr** - jednoduchý buffer na čtení chacharů
 
 ### Deklarace ###
 Deklaraci je nutno začít klíčovým slovem **toz**
@@ -235,3 +235,11 @@ Spuštění
 ./ostrajava -h 1024 -f 256 -s 128 compiled/ resources/sats/01.txt
 
 ```
+
+### Autor ###
+
+Tomáš Kohout
+
+FIT ČVUT
+
+(www.whostolemyunicorn.com)
