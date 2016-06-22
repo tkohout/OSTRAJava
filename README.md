@@ -207,6 +207,17 @@ Implementováno momentálně je:
 
 ### Kompilace a spuštění ###
 
+#### Závislosti ####
+Pro kompilaci OSTRAJava překladače je potřeba:
+ * Java překladač (JDK) >= 1.7 (http://www.oracle.com/technetwork/java/javase/downloads/index.html)
+ * Maven (https://maven.apache.org/)
+
+Pro spuštění zkompilovaných binárek postačí Java interpret (JRE) >= 1.7
+(http://www.oracle.com/technetwork/java/javase/downloads/index.html)
+
+
+#### Kompilace OSTRAJava překladače a interpretru ####
+
 V root složce 
 
 ```
@@ -222,15 +233,17 @@ chmod u+x ostrajavac
 chmod u+x ostrajava
 ```
 
+
+#### Kompilace OSTRAJava programů ####
+
 Program SATSolver je ve složce examples/SATSolver/
 
-Kompilace 
 ```
 ./ostrajavac examples/SATSolver/ -d compiled/
 
 ```
 
-Spuštění
+#### Spuštění OSTRAJava programů ####
 ```
 ./ostrajava -h 1024 -f 256 -s 128 compiled/ resources/sats/01.txt
 
