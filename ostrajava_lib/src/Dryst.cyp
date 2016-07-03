@@ -24,7 +24,7 @@ tryda Dryst {
     /**
      *  Vrati chachar na zadane pozici
      */
-    chachar davajChacharNa(cyslo pozyce){
+    chachar chacharNa(cyslo pozyce){
         davaj joch.chachari[pozyce] pyco
     }
 
