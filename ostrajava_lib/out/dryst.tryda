@@ -17,7 +17,7 @@ bazmek
 chachari:chachar[]
 dylka:cyslo
 kapacyta:cyslo
-4
+7
 dryst.dryst:chachar[]
 2
 0
@@ -41,6 +41,15 @@ dryst.nachachar
 aload 0 
 getfield 2 
 areturn 
+dryst.davajchacharna:cyslo
+2
+0
+5
+aload 0 
+getfield 2 
+iload 1 
+iaload 
+ireturn 
 dryst.kantuje:dryst
 3
 0
@@ -163,5 +172,96 @@ invokevirtual 5
 new 6 
 invokespecial 7 
 aastore 
+aload 4 
+areturn 
+dryst.pridaj:chachar
+5
+0
+34
+aload 0 
+getfield 1 
+ipush 1 
+iadd 
+new 3 
+invokespecial 4 
+astore 2 
+ipush 0 
+istore 3 
+iload 3 
+aload 0 
+getfield 1 
+if_icmpge 24 
+aload 0 
+getfield 2 
+iload 3 
+iaload 
+aload 2 
+invokevirtual 9 
+iload 3 
+ipush 1 
+iadd 
+istore 3 
+goto 9 
+iload 1 
+aload 2 
+invokevirtual 9 
+aload 2 
+invokevirtual 5 
+new 6 
+invokespecial 7 
+astore 4 
+aload 4 
+areturn 
+dryst.pridaj:dryst
+5
+0
+49
+aload 0 
+getfield 1 
+aload 1 
+getfield 1 
+iadd 
+new 3 
+invokespecial 4 
+astore 2 
+ipush 0 
+istore 3 
+iload 3 
+aload 0 
+getfield 1 
+if_icmpge 25 
+aload 0 
+getfield 2 
+iload 3 
+iaload 
+aload 2 
+invokevirtual 9 
+iload 3 
+ipush 1 
+iadd 
+istore 3 
+goto 10 
+ipush 0 
+istore 3 
+iload 3 
+aload 1 
+getfield 1 
+if_icmpge 42 
+aload 1 
+getfield 2 
+iload 3 
+iaload 
+aload 2 
+invokevirtual 9 
+iload 3 
+ipush 1 
+iadd 
+istore 3 
+goto 27 
+aload 2 
+invokevirtual 5 
+new 6 
+invokespecial 7 
+astore 4 
 aload 4 
 areturn 
