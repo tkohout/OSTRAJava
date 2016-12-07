@@ -22,7 +22,7 @@ fajront pyco
 
 * Všechny soubory OSTRAJavy začínají klíčovým slovem **banik**. 
 * Všechny soubory OSTRAJavy končí klíčovým slovem **fajront**, označující konec směny.
-* Každý statement programu musí být ukončen klíčovým slovem **pyco**. Nahrazuje tedy v javě používaný středník.
+* Každý statement programu musí být ukončen klíčovým slovem **pyco**. Nahrazuje tedy v Javě používaný středník.
 * Hlavní třída programu se vždy jmenuje **Ostrava**(jak jinak) a hlavní metoda se vždy jmenuje **rynek**
 * Pozn.: OSTRAJava je case in-sensitive a nedoporučuje se používat diakritiku, jinými slovy s **malym a kratkym**
 
