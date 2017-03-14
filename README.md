@@ -4,7 +4,7 @@ OSTRAJava má za cíl pozvednout kvalitu (nejen ostravského) programování. Na
 
 ## Syntaxe ##
 
-### Příklad 1 - Hello world ###
+### Příklad 1 – Hello world ###
 Zde je typický Hello world program v OSTRAJavě.
 
 ```java
@@ -20,46 +20,45 @@ fajront pyco
 
 ```
 
-* Všechny soubory OSTRAJavy začínají klíčovým slovem **banik**. 
-* Všechny soubory OSTRAJavy končí klíčovým slovem **fajront**, označující konec směny.
-* Každý statement programu musí být ukončen klíčovým slovem **pyco**. Nahrazuje tedy v Javě používaný středník.
-* Hlavní třída programu se vždy jmenuje **Ostrava**(jak jinak) a hlavní metoda se vždy jmenuje **rynek**
-* Pozn.: OSTRAJava je case in-sensitive a nedoporučuje se používat diakritiku, jinými slovy s **malym a kratkym**
+* Všechny soubory OSTRAJavy začínají klíčovým slovem **`banik`**. 
+* Všechny soubory OSTRAJavy končí klíčovým slovem **`fajront`**, označující konec směny.
+* Každý statement programu musí být ukončen klíčovým slovem **`pyco`**. Nahrazuje tedy v Javě používaný středník.
+* Hlavní třída programu se vždy jmenuje **`Ostrava`** (jak jinak) a hlavní metoda se vždy jmenuje **`rynek`**.
+* Pozn.: OSTRAJava je case insensitive a nedoporučuje se používat diakritiku, jinými slovy s **malym a kratkym**.
 
 ### Typy ###
 OSTRAJava obsahuje 4 primitivní typy:
 
-* **cyslo** - integer
-* **bul** - boolean
-* **chachar** - char
-* **cyslo_desetinne** - float
+* **`cyslo`** – integer
+* **`bul`** – boolean
+* **`chachar`** – char
+* **`cyslo_desetinne`** – float
 
 Hodnoty:
 
-* *fajne* - true
-* *nyt* - false
-* *chuj* - null
+* *`fajne`* – true
+* *`nyt`* – false
+* *`chuj`* – null
 
-Základní knihovna OSTRAJavy také obsahuje třídy
+Základní knihovna OSTRAJavy také obsahuje třídy:
 
-* **Dryst** - ekvivalent String.  
-* **Bazmek** - vsechny tridy dedi implicitne z teto tridy. Obsahuje metody naDryst() a kantuje(Bazmek b), ekvivalent pro toString() a equals(Object o)
-* **Citac** - cteni ze souboru
-* **Konzola** - vypis do konzole
-* **Bafr** - jednoduchý buffer na čtení chacharů
+* **`Dryst`** – ekvivalent `String`.  
+* **`Bazmek`** – všechny třídy dědí implicitně od této třídy. Obsahuje metody `naDryst()` a `kantuje(Bazmek b)`, ekvivalent pro `toString()` a `equals(Object o)`.
+* **`Citac`** – čtení ze souboru.
+* **`Konzola`** – výpis do konzole.
+* **`Bafr`** – jednoduchý buffer na čtení chacharů.
 
 ### Deklarace ###
-Deklaraci je nutno začít klíčovým slovem **toz**
+Deklaraci je nutno začít klíčovým slovem **`toz`**.
 
 ```java
 toz cyslo i = 1 pyco
 ```
 
-
 ### Podmínky ###
-Pro vytvoření podmínky použijeme konstrukt **kaj**  - **kajtez** - **boinak**
+Pro vytvoření podmínky použijeme konstrukt **`kaj`**  – **`kajtez`** – **`boinak`**.
 
-Jednotlivé výrazy můžeme spojovat pomocí boolenovského **ci** (or) a **aj** (and)
+Jednotlivé výrazy můžeme spojovat pomocí boolenovského **`ci`** (`or`) a **`aj`** (`and`).
 
 ```java
 toz bul a pyco
@@ -78,9 +77,9 @@ kaj (a == fajne ci b == fajne){
 ```
 
 ### Cykly ###
-Cyklus má OSTRAJava pouze jeden. Pomocí **rubat** vytvoříme while.
+Cyklus má OSTRAJava pouze jeden. Pomocí **`rubat`** vytvoříme `while`.
 
-Rubat cyklus se dá přeřušit pomocí **zdybat** (break) a nebo přeskočit jeden cyklus pomocí **dlabat** (continue)
+Rubat cyklus se dá přeřušit pomocí **`zdybat`** (`break`) a nebo přeskočit jeden cyklus pomocí **`dlabat`** (`continue`)
 
 ```java
 
@@ -94,10 +93,10 @@ rubat (i < 5){
    i = i+1 pyco
 }
 
-``` 
+```
 
 ### Příklad 2 ###
-Následuje jednoduchý příklad na čtení ze souboru
+Následuje jednoduchý příklad na čtení ze souboru.
 
 ```java
 banik pyco
@@ -154,15 +153,15 @@ fajront pyco
 
 ```
 
-OSTRAJava je samozřejmě jazyk objektový. Pokud chceme uvést třídu z které chceme dědit použijeme konstrukt **fagan od**.
+OSTRAJava je samozřejmě jazyk objektový. Pokud chceme uvést třídu, z které chceme dědit, použijeme konstrukt **`fagan od`**.
 
-**joch** slouží jako reference na vlastní instanci tedy ekvivalent this
+**`joch`** slouží jako reference na vlastní instanci tedy ekvivalent `this`.
 
-**forant** tedy předák na šichtě slouží jako reference na rodiče, tedy ekvivalent super
+**`forant`**, tedy předák na šichtě, slouží jako reference na rodiče, tedy ekvivalent `super`.
 
-nový objekt vytvoříme pomocí **zrob**
+Nový objekt vytvoříme pomocí **`zrob`**.
 
-Pokud bychom chtěli vytvořit pole uděláme to následovně
+Pokud bychom chtěli vytvořit pole, uděláme to následovně:
 
 ```java
 
@@ -171,9 +170,9 @@ toz cyslo[] pole = zrob cyslo[5] pyco
 ```
 
 ### Metody ###
-Navratový typ metody se píše stejně jako v javě před název metody. Pro metodu s prázdným návratovým typem není třeba psát nic. 
+Navratový typ metody se píše stejně jako v Javě před název metody. Pro metodu s prázdným návratovým typem není třeba psát nic. 
 
-Pro navrácení hodnoty je použito klíčové slovo **davaj**
+Pro navrácení hodnoty je použito klíčové slovo **`davaj`**.
 
 ```java
 tryda Buu{
@@ -189,64 +188,64 @@ tryda Buu{
 Implementováno momentálně je:
 
 * Compiler
-* * Pokročilá typová kontrola (přiřazení objektů, návratové hodnoty funkcí, fieldy)
-* * Kontrola deklarace a inicializace proměnných
-* * Kontrola volání metod (static, non-static)
-* * Kompilace do .tryda classfilu
+  * Pokročilá typová kontrola (přiřazení objektů, návratové hodnoty funkcí, fieldy)
+  * Kontrola deklarace a inicializace proměnných
+  * Kontrola volání metod (static, non-static)
+  * Kompilace do `.tryda` classfilu
 
 * Interpreter
-* * Paměť pomocí pole objektů
-* * Generační garbage collector
-* * Nativní volání
-* * Statické volání
-* * Primitiva (integer, float) na stacku a pointer s 1 na posledním bitu
-* * Aritmetické operace pro integer a float
-* * Pole (primitiv i referencí)
-* * Dynamický lookup metod
-* * Overload metody
+  * Paměť pomocí pole objektů
+  * Generační garbage collector
+  * Nativní volání
+  * Statické volání
+  * Primitiva (`integer`, `float`) na stacku a pointer s 1 na posledním bitu
+  * Aritmetické operace pro `integer` a `float`
+  * Pole (primitiv i referencí)
+  * Dynamický lookup metod
+  * Overload metody
 
 ### Kompilace a spuštění ###
 
 #### Závislosti ####
 Pro kompilaci OSTRAJava překladače je potřeba:
- * Java překladač (JDK) >= 1.7 (http://www.oracle.com/technetwork/java/javase/downloads/index.html)
- * Maven (https://maven.apache.org/)
+
+* Java překladač (JDK) >= 1.7 (http://www.oracle.com/technetwork/java/javase/downloads/index.html)
+* Maven (https://maven.apache.org/)
 
 Pro spuštění zkompilovaných binárek postačí Java interpret (JRE) >= 1.7
-(http://www.oracle.com/technetwork/java/javase/downloads/index.html)
+(http://www.oracle.com/technetwork/java/javase/downloads/index.html).
 
 
 #### Kompilace OSTRAJava překladače a interpretru ####
 
-V root složce 
+V root složce:
 
 ```
-mvn clean
-mvn install
+$ mvn clean
+$ mvn install
 
 ```
 
 Nastavení práv pro skripty
 
 ```
-chmod u+x ostrajavac
-chmod u+x ostrajava
+$ chmod u+x ostrajavac
+$ chmod u+x ostrajava
 ```
 
 
 #### Kompilace OSTRAJava programů ####
 
-Program SATSolver je ve složce examples/SATSolver/
+Program SATSolver je ve složce `examples/SATSolver/`:
 
 ```
-./ostrajavac examples/SATSolver/ -d compiled/
+$ ./ostrajavac examples/SATSolver/ -d compiled/
 
 ```
 
 #### Spuštění OSTRAJava programů ####
 ```
-./ostrajava -h 1024 -f 256 -s 128 compiled/ resources/sats/01.txt
-
+$ ./ostrajava -h 1024 -f 256 -s 128 compiled/ resources/sats/01.txt
 ```
 
 ### Autor ###
