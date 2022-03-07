@@ -1,11 +1,11 @@
 # OSTRAJava #
 
-OSTRAJava má za cíl pozvednout kvalitu (nejen ostravského) programování. Na rozdíl od Javy vychází OSTRAJava přímo z mluveného jazyka (ostravského nářečí), tedy z něčeho čemu obyčejní lidé rozumějí. Typický ostravský horník pak nebude mít problém přejít od těžby uhlí ke klávesnici. Jazyk tak mimo jiné řeší i problém nezaměstnanosti na moravsko-slezsku.
+OSTRAJava má za cíl pozvednout kvalitu (nejen ostravského) programování. Na rozdíl od Javy vychází OSTRAJava přímo z mluveného jazyka (ostravského nářečí), tedy z něčeho, čemu obyčejní lidé rozumějí. Typický ostravský horník pak nebude mít problém přejít od těžby uhlí ke klávesnici. Jazyk tak mimo jiné řeší i problém nezaměstnanosti na Moravsko-Slezsku.
 
 ## Syntaxe ##
 
 ### Příklad 1 – Hello world ###
-Zde je typický Hello world program v OSTRAJavě.
+Zde je typický "Hello world" program v OSTRAJavě.
 
 ```java
 banik pyco
