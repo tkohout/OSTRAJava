@@ -76,6 +76,8 @@ public class Natives {
             addNative("arraysize:" + "bazmek[]", new ReferenceArraySize(heap));
             addNative("chararraytoint:" + Types.CharArray(), new CharArrayToInt(heap));
             addNative("inttochararray:" + Types.Number(), new IntToCharArray(heap));
+
+            addNative("nextline", new NextLine(heap));
         }
     }
 
