@@ -19,7 +19,7 @@ public class NextLine extends Native
 	}
 
 	@Override
-	//Arguments: char
+	//Arguments: void (none)
 	public StackValue invoke (StackValue[] args) throws InterpreterException, HeapOverflow
 	{
 		String input = scanner.nextLine();
