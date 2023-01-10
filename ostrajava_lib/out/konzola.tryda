@@ -1,5 +1,5 @@
 Êþºº
-14
+15
 bazmek.bazmek
 chuj
 dryst
@@ -14,10 +14,11 @@ konzola.print:chachar[]
 konzola.print:chachar
 fajne
 nyt
+konzola.nextline
 konzola
 bazmek
 0
-12
+14
 konzola.pravit:bazmek
 3
 0
@@ -109,6 +110,15 @@ invokevirtual 3
 ipush 0 
 invokestatic 4 
 return 
+konzola.cti
+1
+0
+5
+aload 0 
+invokestatic 14 
+new 2 
+invokespecial 3 
+areturn 
 konzola.print:chachar[]
 2
 1
@@ -123,6 +133,10 @@ konzola.print:cyslo_desetinne
 0
 konzola.print:chachar
 2
+1
+0
+konzola.nextline
+1
 1
 0
 konzola.konzola

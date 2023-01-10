@@ -49,11 +49,17 @@ tryda Konzola{
         }
     }
 
+    statyk Dryst cti(){
+        //Native call
+        davaj zrob Dryst(nextline()) pyco
+    }
+
     statyk natyv print(chachar[] c) pyco
     statyk natyv print(cyslo i) pyco
     statyk natyv print(cyslo_desetinne i) pyco
     statyk natyv print(chachar c) pyco
 
+    statyk natyv chachar[] nextline() pyco
 }
 
 fajront pyco
