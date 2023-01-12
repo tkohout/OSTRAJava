@@ -11,7 +11,7 @@ import java.util.Scanner;
 
 public class NextLine extends Native
 {
-	private Scanner scanner = new Scanner(System.in);
+	private final Scanner scanner = new Scanner(System.in);
 
 	public NextLine (Heap heap)
 	{
